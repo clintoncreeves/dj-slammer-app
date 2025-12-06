@@ -1,0 +1,33 @@
+import { kv } from '@vercel/kv';
+
+export default async function handler(req, res) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    // Get all response IDs
+    const responseIds = await kv.lrange('all-responses', 0, -1);
+    
+    // Fetch each response
+    const responses = [];
+    for (const id of responseIds) {
+      const response = await kv.get(id);
+      if (response) {
+        responses.push({ id, ...response });
+      }
+    }
+    
+    return res.status(200).json({ 
+      success: true, 
+      count: responses.length,
+      responses 
+    });
+  } catch (error) {
+    console.error('Error fetching responses:', error);
+    return res.status(500).json({ 
+      error: 'Failed to fetch responses',
+      details: error.message 
+    });
+  }
+}
