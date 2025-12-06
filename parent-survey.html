@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parent Technical Survey - DJ Slammer App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #4F46E5;
+            --primary-purple: #7C3AED;
+            --dark-bg: #0F172A;
+            --card-bg: #1E293B;
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --border-color: #334155;
+            --success-green: #10B981;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #1a1f35 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--text-primary);
+        }
+
+        .container {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 50px 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.05em;
+            line-height: 1.6;
+        }
+
+        .question-screen {
+            display: none;
+        }
+
+        .question-screen.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .question-title {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+
+        .question-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.95em;
+            margin-top: -15px;
+            margin-bottom: 25px;
+        }
+
+        .option {
+            background: rgba(71, 85, 105, 0.3);
+            color: var(--text-primary);
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid var(--border-color);
+            font-size: 1em;
+            text-align: left;
+        }
+
+        .option:hover {
+            border-color: var(--primary-blue);
+            background: rgba(79, 70, 229, 0.15);
+            transform: translateX(3px);
+        }
+
+        .option.selected {
+            border-color: var(--primary-purple);
+            background: rgba(124, 58, 237, 0.2);
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+        }
+
+        .text-input {
+            width: 100%;
+            padding: 18px;
+            background: rgba(71, 85, 105, 0.3);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1em;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            background: rgba(79, 70, 229, 0.1);
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: rgba(71, 85, 105, 0.3);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .checkbox-option:hover {
+            border-color: var(--primary-blue);
+            background: rgba(79, 70, 229, 0.15);
+        }
+
+        .checkbox-option.selected {
+            border-color: var(--primary-purple);
+            background: rgba(124, 58, 237, 0.2);
+        }
+
+        .checkbox-option input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 40px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.05em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-next {
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple));
+            color: white;
+        }
+
+        .btn-next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(79, 70, 229, 0.4);
+        }
+
+        .btn-next:disabled {
+            background: rgba(71, 85, 105, 0.5);
+            color: var(--text-secondary);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-back {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-back:hover {
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+            transform: translateY(-2px);
+        }
+
+        .progress {
+            background: rgba(71, 85, 105, 0.3);
+            height: 6px;
+            border-radius: 10px;
+            margin-bottom: 40px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, var(--primary-blue), var(--primary-purple));
+            height: 100%;
+            transition: width 0.5s;
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .result-item {
+            background: rgba(71, 85, 105, 0.3);
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-blue);
+        }
+
+        .result-q {
+            font-weight: 600;
+            color: var(--primary-purple);
+            margin-bottom: 8px;
+        }
+
+        .result-a {
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .success-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .start-screen {
+            text-align: center;
+        }
+
+        .start-screen h2 {
+            font-size: 2em;
+            font-weight: 700;
+            margin: 25px 0;
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .start-screen p {
+            color: var(--text-secondary);
+            font-size: 1.1em;
+            margin: 20px 0;
+            line-height: 1.7;
+        }
+
+        .home-link {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .home-link a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.95em;
+            transition: color 0.3s;
+        }
+
+        .home-link a:hover {
+            color: var(--primary-blue);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 25px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Parent Technical Survey</h1>
+            <p>Help us understand Tanner's equipment and experience to build the perfect learning app</p>
+        </div>
+
+        <div class="start-screen active" id="startScreen">
+            <div class="success-icon">🎯</div>
+            <h2>Quick Technical Assessment</h2>
+            <p>This survey helps us tailor the DJ learning app to Tanner's current setup and skill level.</p>
+            <p>Takes about 3 minutes to complete.</p>
+            <button class="btn btn-next" onclick="startSurvey()" style="margin-top: 30px;">Start Survey</button>
+        </div>
+
+        <div class="progress" style="display: none;" id="progress">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <!-- Question 1: Has DJ Controller -->
+        <div class="question-screen" id="q1">
+            <div class="question-title">Does Tanner have a DJ controller?</div>
+            <div class="option" onclick="selectOption(1, 0, this, 'Yes')">Yes</div>
+            <div class="option" onclick="selectOption(1, 1, this, 'No')">No</div>
+            <div class="option" onclick="selectOption(1, 2, this, 'Not sure')">Not sure</div>
+            <div class="nav-buttons">
+                <button class="btn btn-back" onclick="goBack()" style="display: none;">← Back</button>
+                <button class="btn btn-next" id="next1" disabled onclick="nextQuestion(1)">Next →</button>
+            </div>
+        </div>
+
+        <!-- Question 2: Controller Model -->
+        <div class="question-screen" id="q2">
+            <div class="question-title">What model is the DJ controller?</div>
+            <div class="question-subtitle">Please enter the brand and model (e.g., "Pioneer DDJ-400" or "Numark Party Mix")</div>
+            <input type="text" class="text-input" id="controllerModel" placeholder="Enter controller model..." oninput="enableNextIfFilled(2)">
+            <div class="nav-buttons">
+                <button class="btn btn-back" onclick="goBack()">← Back</button>
+                <button class="btn btn-next" id="next2" disabled onclick="nextQuestion(2)">Next →</button>
+            </div>
+        </div>
+
+        <!-- Question 3: DJ Software -->
+        <div class="question-screen" id="q3">
+            <div class="question-title">What DJ software does Tanner use?</div>
+            <div class="option" onclick="selectOption(3, 0, this, 'Serato DJ Lite')">Serato DJ Lite</div>
+            <div class="option" onclick="selectOption(3, 1, this, 'VirtualDJ')">VirtualDJ</div>
+            <div class="option" onclick="selectOption(3, 2, this, 'Rekordbox')">Rekordbox</div>
+            <div class="option" onclick="selectOption(3, 3, this, 'djay Pro')">djay Pro</div>
+            <div class="option" onclick="selectOption(3, 4, this, 'Traktor')">Traktor</div>
+            <div class="option" onclick="selectOption(3, 5, this, 'Other')">Other</div>
+            <div class="option" onclick="selectOption(3, 6, this, 'None yet')">None yet</div>
+            <div class="nav-buttons">
+                <button class="btn btn-back" onclick="goBack()">← Back</button>
+                <button class="btn btn-next" id="next3" disabled onclick="nextQuestion(3)">Next →</button>
+            </div>
+        </div>
+
+        <!-- Question 4: Skill Level -->
+        <div class="question-screen" id="q4">
+            <div class="question-title">What's Tanner's current skill level?</div>
+            <div class="option" onclick="selectOption(4, 0, this, 'Complete beginner')">Complete beginner</div>
+            <div class="option" onclick="selectOption(4, 1, this, 'Has taken a few lessons')">Has taken a few lessons</div>
+            <div class="option" onclick="selectOption(4, 2, this, 'Practices regularly')">Practices regularly</div>
+            <div class="option" onclick="selectOption(4, 3, this, 'Can mix and perform basic sets')">Can mix and perform basic sets</div>
+            <div class="nav-buttons">
+                <button class="btn btn-back" onclick="goBack()">← Back</button>
+                <button class="btn btn-next" id="next4" disabled onclick="nextQuestion(4)">Next →</button>
+            </div>
+        </div>
+
+        <!-- Question 5: Age Range -->
+        <div class="question-screen" id="q5">
+            <div class="question-title">How old is Tanner?</div>
+            <div class="option" onclick="selectOption(5, 0, this, '6-8 years old')">6-8 years old</div>
+            <div class="option" onclick="selectOption(5, 1, this, '9-11 years old')">9-11 years old</div>
+            <div class="option" onclick="selectOption(5, 2, this, '12-14 years old')">12-14 years old</div>
+            <div class="option" onclick="selectOption(5, 3, this, '15+ years old')">15+ years old</div>
+            <div class="nav-buttons">
+                <button class="btn btn-back" onclick="goBack()">← Back</button>
+                <button class="btn btn-next" id="next5" disabled onclick="nextQuestion(5)">Next →</button>
+            </div>
+        </div>
+
+        <!-- Question 6: App Purpose (Multi-select) -->
+        <div class="question-screen" id="q6">
+            <div class="question-title">What should the app help with?</div>
+            <div class="question-subtitle">Select all that apply</div>
+            <div class="checkbox-group">
+                <label class="checkbox-option" onclick="toggleCheckbox(this)">
+                    <input type="checkbox" value="Supplement regular DJ lessons">
+                    <span>Supplement regular DJ lessons</span>
+                </label>
+                <label class="checkbox-option" onclick="toggleCheckbox(this)">
+                    <input type="checkbox" value="Practice between lessons">
+                    <span>Practice between lessons</span>
+                </label>
+                <label class="checkbox-option" onclick="toggleCheckbox(this)">
+                    <input type="checkbox" value="Learn new techniques and tricks">
+                    <span>Learn new techniques and tricks</span>
+                </label>
+                <label class="checkbox-option" onclick="toggleCheckbox(this)">
+                    <input type="checkbox" value="Build confidence before performing">
+                    <span>Build confidence before performing</span>
+                </label>
+                <label class="checkbox-option" onclick="toggleCheckbox(this)">
+                    <input type="checkbox" value="Just have fun making music">
+                    <span>Just have fun making music</span>
+                </label>
+            </div>
+            <div class="nav-buttons">
+                <button class="btn btn-back" onclick="goBack()">← Back</button>
+                <button class="btn btn-next" id="next6" onclick="showResults()">Finish Survey ✓</button>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="results" id="results">
+            <div class="header" style="border-bottom: none;">
+                <div class="success-icon">✓</div>
+                <h2 style="font-size: 2em; background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Survey Complete!</h2>
+                <p style="color: var(--text-secondary);">Thank you for providing this information. Here's what you shared:</p>
+            </div>
+            <div id="resultsContent"></div>
+            <div style="text-align: center; margin-top: 30px;">
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                    Your responses have been saved. We'll use this information to tailor the app experience.
+                </p>
+            </div>
+        </div>
+
+        <div class="home-link">
+            <a href="index.html">← Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        const answers = {};
+        let currentQuestion = 0;
+        let hasController = true;
+
+        const questions = [
+            { text: "Does Tanner have a DJ controller?" },
+            { text: "What model is the DJ controller?" },
+            { text: "What DJ software does Tanner use?" },
+            { text: "What's Tanner's current skill level?" },
+            { text: "How old is Tanner?" },
+            { text: "What should the app help with?" }
+        ];
+
+        function startSurvey() {
+            document.getElementById('startScreen').classList.remove('active');
+            document.getElementById('progress').style.display = 'block';
+            document.getElementById('q1').classList.add('active');
+            currentQuestion = 1;
+            updateProgress();
+        }
+
+        function selectOption(questionNum, optionIndex, element, value) {
+            const allOptions = element.parentElement.querySelectorAll('.option');
+            allOptions.forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+
+            answers[questionNum] = {
+                question: questions[questionNum - 1].text,
+                answer: value
+            };
+
+            // Check if controller is available for question 1
+            if (questionNum === 1) {
+                hasController = (value === 'Yes');
+            }
+
+            document.getElementById('next' + questionNum).disabled = false;
+        }
+
+        function enableNextIfFilled(questionNum) {
+            const input = document.getElementById('controllerModel');
+            const isValid = input.value.trim().length > 0;
+            document.getElementById('next' + questionNum).disabled = !isValid;
+
+            if (isValid) {
+                answers[questionNum] = {
+                    question: questions[questionNum - 1].text,
+                    answer: input.value.trim()
+                };
+            }
+        }
+
+        function toggleCheckbox(label) {
+            const checkbox = label.querySelector('input[type="checkbox"]');
+            checkbox.checked = !checkbox.checked;
+
+            if (checkbox.checked) {
+                label.classList.add('selected');
+            } else {
+                label.classList.remove('selected');
+            }
+
+            // Collect all checked values
+            const checkboxes = document.querySelectorAll('#q6 input[type="checkbox"]:checked');
+            const selectedValues = Array.from(checkboxes).map(cb => cb.value);
+
+            if (selectedValues.length > 0) {
+                answers[6] = {
+                    question: questions[5].text,
+                    answer: selectedValues.join(', ')
+                };
+            } else {
+                delete answers[6];
+            }
+        }
+
+        function nextQuestion(current) {
+            document.getElementById('q' + current).classList.remove('active');
+
+            // Skip question 2 if no controller
+            if (current === 1 && !hasController) {
+                // Skip directly to question 3
+                answers[2] = {
+                    question: questions[1].text,
+                    answer: 'N/A (No controller)'
+                };
+                document.getElementById('q3').classList.add('active');
+                currentQuestion = 3;
+            } else {
+                document.getElementById('q' + (current + 1)).classList.add('active');
+                currentQuestion = current + 1;
+            }
+
+            updateProgress();
+        }
+
+        function goBack() {
+            if (currentQuestion > 1) {
+                document.getElementById('q' + currentQuestion).classList.remove('active');
+
+                // Skip question 2 when going back if no controller
+                if (currentQuestion === 3 && !hasController) {
+                    document.getElementById('q1').classList.add('active');
+                    currentQuestion = 1;
+                } else {
+                    document.getElementById('q' + (currentQuestion - 1)).classList.add('active');
+                    currentQuestion--;
+                }
+
+                updateProgress();
+            }
+        }
+
+        function updateProgress() {
+            const progress = (currentQuestion / 6) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        async function showResults() {
+            document.getElementById('q6').classList.remove('active');
+            document.getElementById('progress').style.display = 'none';
+
+            const resultsContent = document.getElementById('resultsContent');
+            let html = '';
+
+            // Display all answers
+            Object.keys(answers).sort().forEach(key => {
+                html += `
+                    <div class="result-item">
+                        <div class="result-q">${answers[key].question}</div>
+                        <div class="result-a">${answers[key].answer}</div>
+                    </div>
+                `;
+            });
+
+            resultsContent.innerHTML = html;
+            document.getElementById('results').classList.add('active');
+
+            // Save to backend
+            try {
+                const response = await fetch('/api/save-parent-response', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        answers: answers,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    console.log('✅ Parent responses saved!', data.responseId);
+                } else {
+                    console.error('Failed to save parent responses:', data.error);
+                }
+            } catch (error) {
+                console.error('Error saving parent responses:', error);
+            }
+        }
+    </script>
+</body>
+</html>

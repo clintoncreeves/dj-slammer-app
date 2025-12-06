@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Responses - Admin</title>
+    <title>Survey Responses - Admin Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -13,7 +13,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Space Mono', monospace;
             background: #000;
@@ -21,12 +21,12 @@
             padding: 40px 20px;
             min-height: 100vh;
         }
-        
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
-        
+
         h1 {
             font-family: 'Bebas Neue', sans-serif;
             color: #00D4FF;
@@ -34,19 +34,62 @@
             margin-bottom: 10px;
             letter-spacing: 3px;
         }
-        
+
         .subtitle {
             color: #FF1493;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             font-size: 1.1em;
         }
-        
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .tab {
+            background: transparent;
+            color: #999;
+            border: none;
+            padding: 15px 30px;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .tab:hover {
+            color: #00D4FF;
+        }
+
+        .tab.active {
+            color: #00D4FF;
+            border-bottom-color: #00D4FF;
+        }
+
+        .tab.parent.active {
+            color: #9D00FF;
+            border-bottom-color: #9D00FF;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
         .loading {
             text-align: center;
             padding: 40px;
             color: #00D4FF;
         }
-        
+
         .response-card {
             background: #1a1a1a;
             border: 1px solid rgba(0, 212, 255, 0.3);
@@ -54,7 +97,11 @@
             padding: 30px;
             margin-bottom: 30px;
         }
-        
+
+        .parent-card {
+            border-color: rgba(157, 0, 255, 0.3);
+        }
+
         .response-header {
             display: flex;
             justify-content: space-between;
@@ -63,17 +110,21 @@
             padding-bottom: 15px;
             border-bottom: 2px solid rgba(0, 212, 255, 0.2);
         }
-        
+
+        .parent-card .response-header {
+            border-bottom-color: rgba(157, 0, 255, 0.2);
+        }
+
         .response-id {
             color: #FFD700;
             font-size: 0.9em;
         }
-        
+
         .response-time {
             color: #999;
             font-size: 0.9em;
         }
-        
+
         .answer-block {
             margin: 20px 0;
             padding: 20px;
@@ -81,26 +132,36 @@
             border-left: 4px solid #00D4FF;
             border-radius: 8px;
         }
-        
+
+        .parent-card .answer-block {
+            border-left-color: #9D00FF;
+        }
+
         .question {
             color: #FFD700;
             font-weight: 700;
             margin-bottom: 10px;
             font-size: 1.05em;
         }
-        
+
         .answer {
             color: #fff;
             line-height: 1.6;
             padding-left: 10px;
         }
-        
+
         .no-responses {
             text-align: center;
             padding: 60px 20px;
             color: #999;
         }
-        
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
         .refresh-btn {
             background: #00D4FF;
             color: #000;
@@ -110,21 +171,39 @@
             font-family: 'Space Mono', monospace;
             font-weight: 700;
             cursor: pointer;
-            margin-bottom: 30px;
             transition: all 0.3s;
         }
-        
+
         .refresh-btn:hover {
             background: #FF1493;
             transform: translateY(-2px);
         }
-        
+
+        .home-link {
+            background: transparent;
+            color: #999;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .home-link:hover {
+            border-color: #00D4FF;
+            color: #00D4FF;
+        }
+
         .stats {
             display: flex;
             gap: 20px;
             margin-bottom: 30px;
         }
-        
+
         .stat-box {
             background: #1a1a1a;
             border: 1px solid rgba(255, 20, 147, 0.3);
@@ -132,13 +211,13 @@
             padding: 20px;
             flex: 1;
         }
-        
+
         .stat-label {
             color: #999;
             font-size: 0.9em;
             margin-bottom: 5px;
         }
-        
+
         .stat-value {
             color: #FF1493;
             font-size: 2em;
@@ -148,47 +227,101 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎧 Quiz Responses</h1>
-        <p class="subtitle">DJ Slammer App - Admin Dashboard</p>
-        
-        <button class="refresh-btn" onclick="loadResponses()">🔄 Refresh</button>
-        
-        <div class="stats" id="stats" style="display: none;">
-            <div class="stat-box">
-                <div class="stat-label">Total Responses</div>
-                <div class="stat-value" id="totalCount">0</div>
+        <h1>🎧 Survey Dashboard</h1>
+        <p class="subtitle">DJ Slammer App - Admin Panel</p>
+
+        <div class="controls">
+            <button class="refresh-btn" onclick="loadCurrentTab()">🔄 Refresh</button>
+            <a href="index.html" class="home-link">← Back to Home</a>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('tanner')">Tanner's Responses</button>
+            <button class="tab parent" onclick="switchTab('parent')">Parent Responses</button>
+        </div>
+
+        <!-- Tanner's Responses Tab -->
+        <div id="tannerTab" class="tab-content active">
+            <div class="stats" id="tannerStats" style="display: none;">
+                <div class="stat-box">
+                    <div class="stat-label">Total Responses</div>
+                    <div class="stat-value" id="tannerCount">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Latest Response</div>
+                    <div class="stat-value" id="tannerLatest" style="font-size: 1.2em;">-</div>
+                </div>
             </div>
-            <div class="stat-box">
-                <div class="stat-label">Latest Response</div>
-                <div class="stat-value" id="latestTime" style="font-size: 1.2em;">-</div>
+            <div id="tannerContainer">
+                <div class="loading">Loading Tanner's responses...</div>
             </div>
         </div>
-        
-        <div id="responsesContainer">
-            <div class="loading">Loading responses...</div>
+
+        <!-- Parent Responses Tab -->
+        <div id="parentTab" class="tab-content">
+            <div class="stats" id="parentStats" style="display: none;">
+                <div class="stat-box">
+                    <div class="stat-label">Total Responses</div>
+                    <div class="stat-value" id="parentCount">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Latest Response</div>
+                    <div class="stat-value" id="parentLatest" style="font-size: 1.2em;">-</div>
+                </div>
+            </div>
+            <div id="parentContainer">
+                <div class="loading">Loading parent responses...</div>
+            </div>
         </div>
     </div>
-    
+
     <script>
-        async function loadResponses() {
-            const container = document.getElementById('responsesContainer');
-            const stats = document.getElementById('stats');
-            
+        let currentTab = 'tanner';
+
+        function switchTab(tab) {
+            currentTab = tab;
+
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(tab + 'Tab').classList.add('active');
+
+            // Load data for the selected tab
+            if (tab === 'tanner') {
+                loadTannerResponses();
+            } else {
+                loadParentResponses();
+            }
+        }
+
+        function loadCurrentTab() {
+            if (currentTab === 'tanner') {
+                loadTannerResponses();
+            } else {
+                loadParentResponses();
+            }
+        }
+
+        async function loadTannerResponses() {
+            const container = document.getElementById('tannerContainer');
+            const stats = document.getElementById('tannerStats');
+
             container.innerHTML = '<div class="loading">Loading responses...</div>';
-            
+
             try {
                 const response = await fetch('/api/get-responses');
                 const data = await response.json();
-                
+
                 if (data.success && data.responses.length > 0) {
-                    // Show stats
                     stats.style.display = 'flex';
-                    document.getElementById('totalCount').textContent = data.count;
-                    
+                    document.getElementById('tannerCount').textContent = data.count;
+
                     const latest = new Date(data.responses[0].submittedAt);
-                    document.getElementById('latestTime').textContent = latest.toLocaleString();
-                    
-                    // Display responses
+                    document.getElementById('tannerLatest').textContent = latest.toLocaleString();
+
                     container.innerHTML = data.responses.map(r => `
                         <div class="response-card">
                             <div class="response-header">
@@ -211,12 +344,52 @@
                 container.innerHTML = `<div class="no-responses">Error loading responses: ${error.message}</div>`;
             }
         }
-        
+
+        async function loadParentResponses() {
+            const container = document.getElementById('parentContainer');
+            const stats = document.getElementById('parentStats');
+
+            container.innerHTML = '<div class="loading">Loading parent responses...</div>';
+
+            try {
+                const response = await fetch('/api/get-parent-responses');
+                const data = await response.json();
+
+                if (data.success && data.responses.length > 0) {
+                    stats.style.display = 'flex';
+                    document.getElementById('parentCount').textContent = data.count;
+
+                    const latest = new Date(data.responses[0].submittedAt);
+                    document.getElementById('parentLatest').textContent = latest.toLocaleString();
+
+                    container.innerHTML = data.responses.map(r => `
+                        <div class="response-card parent-card">
+                            <div class="response-header">
+                                <div class="response-id">Response ID: ${r.id}</div>
+                                <div class="response-time">${new Date(r.submittedAt).toLocaleString()}</div>
+                            </div>
+                            ${Object.entries(r.answers).map(([qNum, qa]) => `
+                                <div class="answer-block">
+                                    <div class="question">${qa.question}</div>
+                                    <div class="answer">✅ ${qa.answer}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `).join('');
+                } else {
+                    stats.style.display = 'none';
+                    container.innerHTML = '<div class="no-responses">No parent responses yet. 👨‍👩‍👦</div>';
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="no-responses">Error loading parent responses: ${error.message}</div>`;
+            }
+        }
+
         // Load on page load
-        loadResponses();
-        
+        loadTannerResponses();
+
         // Auto-refresh every 30 seconds
-        setInterval(loadResponses, 30000);
+        setInterval(loadCurrentTab, 30000);
     </script>
 </body>
 </html>
