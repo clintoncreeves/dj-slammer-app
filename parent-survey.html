@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parent Technical Survey - DJ Slammer App</title>
+    <title>DJ Slammer Parent Setup - Technical Assessment</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -15,130 +15,301 @@
         }
 
         :root {
-            --primary-blue: #4F46E5;
-            --primary-purple: #7C3AED;
-            --dark-bg: #0F172A;
-            --card-bg: #1E293B;
-            --text-primary: #F8FAFC;
-            --text-secondary: #94A3B8;
-            --border-color: #334155;
-            --success-green: #10B981;
+            --neon-cyan: #00F0FF;
+            --neon-magenta: #FF006E;
+            --neon-purple: #B537F2;
+            --neon-yellow: #FFD60A;
+            --vinyl-black: #0a0a0a;
+            --deck-dark: #1a1a2e;
+            --deck-elevated: #16213e;
+            --text-primary: #F0F0F0;
+            --text-secondary: #A8A8A8;
+            --text-muted: #707070;
+            --glow-cyan: rgba(0, 240, 255, 0.25);
+            --glow-magenta: rgba(255, 0, 110, 0.25);
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, var(--dark-bg) 0%, #1a1f35 100%);
+            font-family: 'Space Mono', monospace;
+            background: var(--vinyl-black);
+            background-image: 
+                radial-gradient(circle at 15% 15%, var(--glow-cyan) 0%, transparent 25%),
+                radial-gradient(circle at 85% 85%, var(--glow-magenta) 0%, transparent 25%),
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 240, 255, 0.03) 2px, rgba(0, 240, 255, 0.03) 4px);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 40px 20px;
             color: var(--text-primary);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Vinyl record decoration */
+        body::before {
+            content: '💿';
+            position: fixed;
+            top: -100px;
+            right: -100px;
+            font-size: 400px;
+            opacity: 0.03;
+            animation: vinylSpin 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '🎧';
+            position: fixed;
+            bottom: -80px;
+            left: -80px;
+            font-size: 300px;
+            opacity: 0.04;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes vinylSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         .container {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 50px 40px;
-            max-width: 700px;
+            background: var(--deck-dark);
+            border-radius: 24px;
+            padding: 56px 48px;
+            max-width: 680px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-            border: 1px solid var(--border-color);
+            box-shadow: 
+                0 0 80px rgba(0, 240, 255, 0.15),
+                0 0 40px rgba(255, 0, 110, 0.1),
+                0 20px 60px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            z-index: 1;
+        }
+
+        /* Neon accent line at top */
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, 
+                var(--neon-cyan) 0%, 
+                var(--neon-purple) 33%, 
+                var(--neon-magenta) 66%, 
+                var(--neon-yellow) 100%);
+            box-shadow: 0 0 20px var(--neon-cyan);
+        }
+
+        /* Subtle grid pattern */
+        .container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.02) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+            opacity: 0.5;
         }
 
         .header {
-            text-align: center;
-            margin-bottom: 40px;
-            padding-bottom: 30px;
-            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 48px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .header-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--neon-cyan);
+            background: var(--glow-cyan);
+            padding: 8px 14px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            text-shadow: 0 0 10px var(--neon-cyan);
+        }
+
+        .vinyl-icon {
+            display: inline-block;
+            animation: vinylSpinSlow 8s linear infinite;
+        }
+
+        @keyframes vinylSpinSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         .header h1 {
-            font-size: 2.2em;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 12px;
+            color: var(--text-primary);
+            margin-bottom: 14px;
+            line-height: 1.1;
+            letter-spacing: 0.02em;
+            text-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
         }
 
         .header p {
             color: var(--text-secondary);
-            font-size: 1.05em;
+            font-size: 1.0625rem;
             line-height: 1.6;
+            max-width: 540px;
         }
 
         .question-screen {
             display: none;
+            position: relative;
+            z-index: 2;
         }
 
         .question-screen.active {
             display: block;
-            animation: fadeIn 0.3s;
+            animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes slideIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(30px);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0);
+            }
+        }
+
+        .question-number {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--neon-purple);
+            margin-bottom: 12px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
         }
 
         .question-title {
-            font-size: 1.4em;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.75rem;
             font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 25px;
-            line-height: 1.4;
+            color: var(--neon-cyan);
+            margin-bottom: 12px;
+            line-height: 1.2;
+            letter-spacing: 0.02em;
+            text-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
         }
 
         .question-subtitle {
             color: var(--text-secondary);
-            font-size: 0.95em;
-            margin-top: -15px;
-            margin-bottom: 25px;
+            font-size: 0.9375rem;
+            margin-bottom: 28px;
+            line-height: 1.5;
         }
 
         .option {
-            background: rgba(71, 85, 105, 0.3);
+            background: var(--deck-elevated);
             color: var(--text-primary);
-            padding: 20px;
-            margin: 15px 0;
-            border-radius: 10px;
+            padding: 22px 24px;
+            margin: 14px 0;
+            border-radius: 12px;
             cursor: pointer;
-            transition: all 0.3s;
-            border: 2px solid var(--border-color);
-            font-size: 1em;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 2px solid rgba(0, 240, 255, 0.15);
+            font-size: 0.9375rem;
             text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(0, 240, 255, 0.1), 
+                transparent);
+            transition: left 0.5s;
         }
 
         .option:hover {
-            border-color: var(--primary-blue);
-            background: rgba(79, 70, 229, 0.15);
-            transform: translateX(3px);
+            border-color: var(--neon-cyan);
+            transform: translateX(6px);
+            box-shadow: 
+                0 0 30px var(--glow-cyan),
+                0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .option:hover::before {
+            left: 100%;
         }
 
         .option.selected {
-            border-color: var(--primary-purple);
-            background: rgba(124, 58, 237, 0.2);
-            box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+            border-color: var(--neon-magenta);
+            background: linear-gradient(135deg, 
+                rgba(255, 0, 110, 0.15), 
+                rgba(181, 55, 242, 0.1));
+            box-shadow: 
+                0 0 30px var(--glow-magenta),
+                inset 0 0 20px rgba(255, 0, 110, 0.1);
+        }
+
+        .option.selected::after {
+            content: '✓';
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--neon-magenta);
+            font-weight: 700;
+            font-size: 1.2rem;
         }
 
         .text-input {
             width: 100%;
-            padding: 18px;
-            background: rgba(71, 85, 105, 0.3);
-            border: 2px solid var(--border-color);
-            border-radius: 10px;
+            padding: 18px 20px;
+            background: var(--deck-elevated);
+            border: 2px solid rgba(0, 240, 255, 0.2);
+            border-radius: 12px;
             color: var(--text-primary);
-            font-size: 1em;
-            font-family: 'Inter', sans-serif;
+            font-size: 0.9375rem;
+            font-family: 'Space Mono', monospace;
             transition: all 0.3s;
+        }
+
+        .text-input::placeholder {
+            color: var(--text-muted);
         }
 
         .text-input:focus {
             outline: none;
-            border-color: var(--primary-blue);
-            background: rgba(79, 70, 229, 0.1);
+            border-color: var(--neon-cyan);
+            background: var(--deck-dark);
+            box-shadow: 
+                0 0 30px var(--glow-cyan),
+                inset 0 0 20px rgba(0, 240, 255, 0.05);
         }
 
         .checkbox-group {
@@ -150,95 +321,166 @@
         .checkbox-option {
             display: flex;
             align-items: center;
-            padding: 15px;
-            background: rgba(71, 85, 105, 0.3);
-            border: 2px solid var(--border-color);
-            border-radius: 10px;
+            padding: 18px 20px;
+            background: var(--deck-elevated);
+            border: 2px solid rgba(0, 240, 255, 0.15);
+            border-radius: 12px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
         }
 
         .checkbox-option:hover {
-            border-color: var(--primary-blue);
-            background: rgba(79, 70, 229, 0.15);
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 20px var(--glow-cyan);
+            transform: translateX(4px);
         }
 
         .checkbox-option.selected {
-            border-color: var(--primary-purple);
-            background: rgba(124, 58, 237, 0.2);
+            border-color: var(--neon-magenta);
+            background: rgba(255, 0, 110, 0.1);
+            box-shadow: 0 0 20px var(--glow-magenta);
         }
 
         .checkbox-option input[type="checkbox"] {
             width: 20px;
             height: 20px;
-            margin-right: 12px;
+            margin-right: 14px;
             cursor: pointer;
+            accent-color: var(--neon-magenta);
+        }
+
+        .checkbox-option span {
+            font-size: 0.9375rem;
         }
 
         .nav-buttons {
             display: flex;
-            gap: 15px;
+            gap: 12px;
             margin-top: 40px;
         }
 
         .btn {
             flex: 1;
-            padding: 16px;
+            padding: 16px 24px;
             border: none;
-            border-radius: 10px;
-            font-size: 1.05em;
-            font-weight: 600;
+            border-radius: 12px;
+            font-size: 0.9375rem;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s;
-            font-family: 'Inter', sans-serif;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            font-family: 'Space Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            position: relative;
+            overflow: hidden;
         }
 
         .btn-next {
-            background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple));
+            background: linear-gradient(135deg, var(--neon-magenta), var(--neon-purple));
             color: white;
+            border: 2px solid var(--neon-magenta);
+            box-shadow: 
+                0 0 30px var(--glow-magenta),
+                0 4px 20px rgba(255, 0, 110, 0.3);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
 
-        .btn-next:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(79, 70, 229, 0.4);
+        .btn-next::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.2), 
+                transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-next:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 0 50px var(--glow-magenta),
+                0 8px 30px rgba(255, 0, 110, 0.4);
+        }
+
+        .btn-next:hover:not(:disabled)::before {
+            left: 100%;
+        }
+
+        .btn-next:active:not(:disabled) {
+            transform: translateY(-1px);
         }
 
         .btn-next:disabled {
-            background: rgba(71, 85, 105, 0.5);
-            color: var(--text-secondary);
+            background: var(--deck-elevated);
+            color: var(--text-muted);
+            border-color: rgba(255, 255, 255, 0.1);
             cursor: not-allowed;
-            transform: none;
             box-shadow: none;
+            text-shadow: none;
         }
 
         .btn-back {
             background: transparent;
             color: var(--text-secondary);
-            border: 2px solid var(--border-color);
+            border: 2px solid rgba(0, 240, 255, 0.3);
         }
 
         .btn-back:hover {
-            border-color: var(--primary-blue);
-            color: var(--primary-blue);
-            transform: translateY(-2px);
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+            background: var(--glow-cyan);
+            box-shadow: 0 0 20px var(--glow-cyan);
         }
 
-        .progress {
-            background: rgba(71, 85, 105, 0.3);
-            height: 6px;
+        .progress-container {
+            background: rgba(0, 240, 255, 0.1);
+            height: 8px;
             border-radius: 10px;
             margin-bottom: 40px;
             overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
         }
 
         .progress-bar {
-            background: linear-gradient(90deg, var(--primary-blue), var(--primary-purple));
+            background: linear-gradient(90deg, 
+                var(--neon-cyan), 
+                var(--neon-purple),
+                var(--neon-magenta));
             height: 100%;
-            transition: width 0.5s;
+            transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            box-shadow: 
+                0 0 20px var(--neon-cyan),
+                0 0 40px var(--neon-magenta);
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 100px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4));
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
         }
 
         .results {
             display: none;
+            position: relative;
+            z-index: 2;
         }
 
         .results.active {
@@ -246,17 +488,41 @@
         }
 
         .result-item {
-            background: rgba(71, 85, 105, 0.3);
-            padding: 20px;
-            margin: 15px 0;
-            border-radius: 10px;
-            border-left: 4px solid var(--primary-blue);
+            background: var(--deck-elevated);
+            padding: 24px;
+            margin: 16px 0;
+            border-radius: 14px;
+            border-left: 4px solid var(--neon-cyan);
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .result-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, 
+                var(--neon-cyan), 
+                var(--neon-purple),
+                var(--neon-magenta));
+            box-shadow: 0 0 10px var(--neon-cyan);
+        }
+
+        .result-item:hover {
+            box-shadow: 0 0 30px var(--glow-cyan);
+            transform: translateX(4px);
         }
 
         .result-q {
             font-weight: 600;
-            color: var(--primary-purple);
+            color: var(--neon-purple);
             margin-bottom: 8px;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .result-a {
@@ -265,206 +531,263 @@
         }
 
         .success-icon {
-            font-size: 4em;
-            margin-bottom: 20px;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            background: var(--glow-magenta);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            border: 3px solid var(--neon-magenta);
+            box-shadow: 
+                0 0 40px var(--glow-magenta),
+                inset 0 0 20px rgba(255, 0, 110, 0.2);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 0 40px var(--glow-magenta);
+            }
+            50% { 
+                transform: scale(1.05);
+                box-shadow: 0 0 60px var(--glow-magenta);
+            }
         }
 
         .start-screen {
             text-align: center;
+            position: relative;
+            z-index: 2;
         }
 
         .start-screen h2 {
-            font-size: 2em;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
             font-weight: 700;
-            margin: 25px 0;
-            background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            margin: 24px 0 16px;
+            color: var(--text-primary);
+            letter-spacing: 0.05em;
+            text-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
         }
 
         .start-screen p {
             color: var(--text-secondary);
-            font-size: 1.1em;
-            margin: 20px 0;
+            font-size: 1.0625rem;
+            margin: 16px 0;
             line-height: 1.7;
         }
 
         .home-link {
             text-align: center;
-            margin-top: 30px;
+            margin-top: 40px;
+            padding-top: 32px;
+            border-top: 1px solid rgba(0, 240, 255, 0.2);
         }
 
         .home-link a {
-            color: var(--text-secondary);
+            color: var(--text-muted);
             text-decoration: none;
-            font-size: 0.95em;
-            transition: color 0.3s;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .home-link a:hover {
-            color: var(--primary-blue);
+            color: var(--neon-cyan);
+            text-shadow: 0 0 10px var(--neon-cyan);
         }
 
         @media (max-width: 600px) {
             .container {
-                padding: 30px 25px;
+                padding: 40px 28px;
             }
 
             .header h1 {
-                font-size: 1.8em;
+                font-size: 2rem;
             }
+
+            .question-title {
+                font-size: 1.5rem;
+            }
+
+            .nav-buttons {
+                flex-direction: column-reverse;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Sound wave decoration */
+        .sound-wave {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        .sound-wave span {
+            flex: 1;
+            background: var(--neon-cyan);
+            border-radius: 2px;
+            animation: wave 1s ease-in-out infinite;
+        }
+
+        .sound-wave span:nth-child(1) { animation-delay: 0s; }
+        .sound-wave span:nth-child(2) { animation-delay: 0.1s; }
+        .sound-wave span:nth-child(3) { animation-delay: 0.2s; }
+        .sound-wave span:nth-child(4) { animation-delay: 0.3s; }
+        .sound-wave span:nth-child(5) { animation-delay: 0.4s; }
+
+        @keyframes wave {
+            0%, 100% { height: 10%; }
+            50% { height: 100%; }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="sound-wave">
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+        </div>
+
         <div class="header">
-            <h1>Parent Technical Survey</h1>
-            <p>Help us understand Tanner's equipment and experience to build the perfect learning app</p>
+            <span class="header-label">
+                <span class="vinyl-icon">💿</span>
+                Parent Setup Guide
+            </span>
+            <h1>DJ Slammer Technical Assessment</h1>
+            <p>Help us build the perfect DJ learning experience for Tanner by sharing details about his current setup and goals.</p>
         </div>
 
         <div class="start-screen active" id="startScreen">
             <div class="success-icon">🎯</div>
-            <h2>Quick Technical Assessment</h2>
-            <p>This survey helps us tailor the DJ learning app to Tanner's current setup and skill level.</p>
-            <p>Takes about 3 minutes to complete.</p>
-            <button class="btn btn-next" onclick="startSurvey()" style="margin-top: 30px;">Start Survey</button>
+            <h2>Let's Get Tanner Set Up</h2>
+            <p>Quick assessment about his current setup and experience.</p>
+            <p style="color: var(--text-muted); font-size: 0.9375rem;">Takes 1 minute • 4 quick questions</p>
+            <button class="btn btn-next" onclick="startSurvey()" style="margin-top: 32px; max-width: 280px;">Start Assessment</button>
         </div>
 
-        <div class="progress" style="display: none;" id="progress">
+        <div class="progress-container" style="display: none;" id="progress">
             <div class="progress-bar" id="progressBar" style="width: 0%"></div>
         </div>
 
-        <!-- Question 1: Has DJ Controller -->
+        <!-- Question 1: Age and Experience Level Combined -->
         <div class="question-screen" id="q1">
-            <div class="question-title">Does Tanner have a DJ controller?</div>
-            <div class="option" onclick="selectOption(1, 0, this, 'Yes')">Yes</div>
-            <div class="option" onclick="selectOption(1, 1, this, 'No')">No</div>
-            <div class="option" onclick="selectOption(1, 2, this, 'Not sure')">Not sure</div>
+            <div class="question-number">Question 1 of 4</div>
+            <div class="question-title">Tell us about Tanner</div>
+            <div class="question-subtitle">Age and current DJ experience</div>
+            <div class="option" onclick="selectOption(1, 0, this, '6-8 years old, complete beginner')">6-8 years old • Just starting out</div>
+            <div class="option" onclick="selectOption(1, 1, this, '6-8 years old, has some experience')">6-8 years old • Has taken some lessons</div>
+            <div class="option" onclick="selectOption(1, 2, this, '9-11 years old, complete beginner')">9-11 years old • Just starting out</div>
+            <div class="option" onclick="selectOption(1, 3, this, '9-11 years old, has some experience')">9-11 years old • Has taken some lessons</div>
+            <div class="option" onclick="selectOption(1, 4, this, '12-14 years old, complete beginner')">12-14 years old • Just starting out</div>
+            <div class="option" onclick="selectOption(1, 5, this, '12-14 years old, has some experience')">12-14 years old • Has taken some lessons</div>
+            <div class="option" onclick="selectOption(1, 6, this, '12-14 years old, practices regularly')">12-14 years old • Practices regularly</div>
+            <div class="option" onclick="selectOption(1, 7, this, '15+ years old, any level')">15+ years old</div>
             <div class="nav-buttons">
                 <button class="btn btn-back" onclick="goBack()" style="display: none;">← Back</button>
                 <button class="btn btn-next" id="next1" disabled onclick="nextQuestion(1)">Next →</button>
             </div>
         </div>
 
-        <!-- Question 2: Controller Model -->
+        <!-- Question 2: Equipment Setup -->
         <div class="question-screen" id="q2">
-            <div class="question-title">What model is the DJ controller?</div>
-            <div class="question-subtitle">Please enter the brand and model (e.g., "Pioneer DDJ-400" or "Numark Party Mix")</div>
-            <input type="text" class="text-input" id="controllerModel" placeholder="Enter controller model..." oninput="enableNextIfFilled(2)">
+            <div class="question-number">Question 2 of 4</div>
+            <div class="question-title">What equipment does Tanner have?</div>
+            <div class="option" onclick="selectOption(2, 0, this, 'Has a DJ controller (Pioneer, Numark, etc.)')">Has a DJ controller (Pioneer, Numark, etc.)</div>
+            <div class="option" onclick="selectOption(2, 1, this, 'Has turntables or CDJs')">Has turntables or CDJs</div>
+            <div class="option" onclick="selectOption(2, 2, this, 'Just uses a laptop/tablet')">Just uses a laptop or tablet</div>
+            <div class="option" onclick="selectOption(2, 3, this, 'No equipment yet')">No equipment yet - exploring options</div>
             <div class="nav-buttons">
                 <button class="btn btn-back" onclick="goBack()">← Back</button>
                 <button class="btn btn-next" id="next2" disabled onclick="nextQuestion(2)">Next →</button>
             </div>
         </div>
 
-        <!-- Question 3: DJ Software -->
+        <!-- Question 3: Primary Goal -->
         <div class="question-screen" id="q3">
-            <div class="question-title">What DJ software does Tanner use?</div>
-            <div class="option" onclick="selectOption(3, 0, this, 'Serato DJ Lite')">Serato DJ Lite</div>
-            <div class="option" onclick="selectOption(3, 1, this, 'VirtualDJ')">VirtualDJ</div>
-            <div class="option" onclick="selectOption(3, 2, this, 'Rekordbox')">Rekordbox</div>
-            <div class="option" onclick="selectOption(3, 3, this, 'djay Pro')">djay Pro</div>
-            <div class="option" onclick="selectOption(3, 4, this, 'Traktor')">Traktor</div>
-            <div class="option" onclick="selectOption(3, 5, this, 'Other')">Other</div>
-            <div class="option" onclick="selectOption(3, 6, this, 'None yet')">None yet</div>
+            <div class="question-number">Question 3 of 4</div>
+            <div class="question-title">What's the main goal for the app?</div>
+            <div class="option" onclick="selectOption(3, 0, this, 'Learn DJ basics from scratch')">Learn DJ basics from scratch</div>
+            <div class="option" onclick="selectOption(3, 1, this, 'Supplement his regular DJ lessons')">Supplement his regular DJ lessons</div>
+            <div class="option" onclick="selectOption(3, 2, this, 'Practice specific techniques')">Practice specific techniques and skills</div>
+            <div class="option" onclick="selectOption(3, 3, this, 'Just have fun exploring music')">Just have fun exploring and making music</div>
             <div class="nav-buttons">
                 <button class="btn btn-back" onclick="goBack()">← Back</button>
                 <button class="btn btn-next" id="next3" disabled onclick="nextQuestion(3)">Next →</button>
             </div>
         </div>
 
-        <!-- Question 4: Skill Level -->
+        <!-- Question 4: Learning Style -->
         <div class="question-screen" id="q4">
-            <div class="question-title">What's Tanner's current skill level?</div>
-            <div class="option" onclick="selectOption(4, 0, this, 'Complete beginner')">Complete beginner</div>
-            <div class="option" onclick="selectOption(4, 1, this, 'Has taken a few lessons')">Has taken a few lessons</div>
-            <div class="option" onclick="selectOption(4, 2, this, 'Practices regularly')">Practices regularly</div>
-            <div class="option" onclick="selectOption(4, 3, this, 'Can mix and perform basic sets')">Can mix and perform basic sets</div>
+            <div class="question-number">Question 4 of 4</div>
+            <div class="question-title">How does Tanner learn best?</div>
+            <div class="option" onclick="selectOption(4, 0, this, 'Step-by-step guided lessons')">Step-by-step guided lessons</div>
+            <div class="option" onclick="selectOption(4, 1, this, 'Watching and copying examples')">Watching and copying examples</div>
+            <div class="option" onclick="selectOption(4, 2, this, 'Experimenting and exploring freely')">Experimenting and exploring freely</div>
+            <div class="option" onclick="selectOption(4, 3, this, 'Not sure - mix of everything')">Not sure - a mix of everything</div>
             <div class="nav-buttons">
                 <button class="btn btn-back" onclick="goBack()">← Back</button>
-                <button class="btn btn-next" id="next4" disabled onclick="nextQuestion(4)">Next →</button>
-            </div>
-        </div>
-
-        <!-- Question 5: Age Range -->
-        <div class="question-screen" id="q5">
-            <div class="question-title">How old is Tanner?</div>
-            <div class="option" onclick="selectOption(5, 0, this, '6-8 years old')">6-8 years old</div>
-            <div class="option" onclick="selectOption(5, 1, this, '9-11 years old')">9-11 years old</div>
-            <div class="option" onclick="selectOption(5, 2, this, '12-14 years old')">12-14 years old</div>
-            <div class="option" onclick="selectOption(5, 3, this, '15+ years old')">15+ years old</div>
-            <div class="nav-buttons">
-                <button class="btn btn-back" onclick="goBack()">← Back</button>
-                <button class="btn btn-next" id="next5" disabled onclick="nextQuestion(5)">Next →</button>
-            </div>
-        </div>
-
-        <!-- Question 6: App Purpose (Multi-select) -->
-        <div class="question-screen" id="q6">
-            <div class="question-title">What should the app help with?</div>
-            <div class="question-subtitle">Select all that apply</div>
-            <div class="checkbox-group">
-                <label class="checkbox-option" onclick="toggleCheckbox(this)">
-                    <input type="checkbox" value="Supplement regular DJ lessons">
-                    <span>Supplement regular DJ lessons</span>
-                </label>
-                <label class="checkbox-option" onclick="toggleCheckbox(this)">
-                    <input type="checkbox" value="Practice between lessons">
-                    <span>Practice between lessons</span>
-                </label>
-                <label class="checkbox-option" onclick="toggleCheckbox(this)">
-                    <input type="checkbox" value="Learn new techniques and tricks">
-                    <span>Learn new techniques and tricks</span>
-                </label>
-                <label class="checkbox-option" onclick="toggleCheckbox(this)">
-                    <input type="checkbox" value="Build confidence before performing">
-                    <span>Build confidence before performing</span>
-                </label>
-                <label class="checkbox-option" onclick="toggleCheckbox(this)">
-                    <input type="checkbox" value="Just have fun making music">
-                    <span>Just have fun making music</span>
-                </label>
-            </div>
-            <div class="nav-buttons">
-                <button class="btn btn-back" onclick="goBack()">← Back</button>
-                <button class="btn btn-next" id="next6" onclick="showResults()">Finish Survey ✓</button>
+                <button class="btn btn-next" id="next4" disabled onclick="showResults()">See Results →</button>
             </div>
         </div>
 
         <!-- Results -->
         <div class="results" id="results">
-            <div class="header" style="border-bottom: none;">
+            <div class="header" style="margin-bottom: 32px; border-bottom: 1px solid rgba(0, 240, 255, 0.2); padding-bottom: 32px;">
                 <div class="success-icon">✓</div>
-                <h2 style="font-size: 2em; background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Survey Complete!</h2>
-                <p style="color: var(--text-secondary);">Thank you for providing this information. Here's what you shared:</p>
+                <h2 style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; font-weight: 700; color: var(--neon-cyan); margin-bottom: 12px; text-shadow: 0 0 30px rgba(0, 240, 255, 0.5);">Setup Complete!</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9375rem;">Here's what you shared about Tanner's setup:</p>
             </div>
             <div id="resultsContent"></div>
-            <div style="text-align: center; margin-top: 30px;">
-                <p style="color: var(--text-secondary); margin-bottom: 20px;">
-                    Your responses have been saved. We'll use this information to tailor the app experience.
+            <div style="text-align: center; margin-top: 40px; padding-top: 32px; border-top: 1px solid rgba(0, 240, 255, 0.2);">
+                <p style="color: var(--text-secondary); margin-bottom: 24px; font-size: 0.9375rem;">
+                    🎧 Responses saved! We'll use this to create the perfect DJ learning experience for Tanner.
                 </p>
             </div>
         </div>
 
         <div class="home-link">
-            <a href="index.html">← Back to Home</a>
+            <a href="index.html">
+                <span>←</span>
+                Back to Home
+            </a>
         </div>
     </div>
 
     <script>
         const answers = {};
         let currentQuestion = 0;
-        let hasController = true;
 
         const questions = [
-            { text: "Does Tanner have a DJ controller?" },
-            { text: "What model is the DJ controller?" },
-            { text: "What DJ software does Tanner use?" },
-            { text: "What's Tanner's current skill level?" },
-            { text: "How old is Tanner?" },
-            { text: "What should the app help with?" }
+            { text: "Tell us about Tanner (Age and experience)" },
+            { text: "What equipment does Tanner have?" },
+            { text: "What's the main goal for the app?" },
+            { text: "How does Tanner learn best?" }
         ];
 
         function startSurvey() {
@@ -485,104 +808,40 @@
                 answer: value
             };
 
-            // Check if controller is available for question 1
-            if (questionNum === 1) {
-                hasController = (value === 'Yes');
-            }
-
             document.getElementById('next' + questionNum).disabled = false;
-        }
-
-        function enableNextIfFilled(questionNum) {
-            const input = document.getElementById('controllerModel');
-            const isValid = input.value.trim().length > 0;
-            document.getElementById('next' + questionNum).disabled = !isValid;
-
-            if (isValid) {
-                answers[questionNum] = {
-                    question: questions[questionNum - 1].text,
-                    answer: input.value.trim()
-                };
-            }
-        }
-
-        function toggleCheckbox(label) {
-            const checkbox = label.querySelector('input[type="checkbox"]');
-            checkbox.checked = !checkbox.checked;
-
-            if (checkbox.checked) {
-                label.classList.add('selected');
-            } else {
-                label.classList.remove('selected');
-            }
-
-            // Collect all checked values
-            const checkboxes = document.querySelectorAll('#q6 input[type="checkbox"]:checked');
-            const selectedValues = Array.from(checkboxes).map(cb => cb.value);
-
-            if (selectedValues.length > 0) {
-                answers[6] = {
-                    question: questions[5].text,
-                    answer: selectedValues.join(', ')
-                };
-            } else {
-                delete answers[6];
-            }
         }
 
         function nextQuestion(current) {
             document.getElementById('q' + current).classList.remove('active');
-
-            // Skip question 2 if no controller
-            if (current === 1 && !hasController) {
-                // Skip directly to question 3
-                answers[2] = {
-                    question: questions[1].text,
-                    answer: 'N/A (No controller)'
-                };
-                document.getElementById('q3').classList.add('active');
-                currentQuestion = 3;
-            } else {
-                document.getElementById('q' + (current + 1)).classList.add('active');
-                currentQuestion = current + 1;
-            }
-
+            document.getElementById('q' + (current + 1)).classList.add('active');
+            currentQuestion = current + 1;
             updateProgress();
         }
 
         function goBack() {
             if (currentQuestion > 1) {
                 document.getElementById('q' + currentQuestion).classList.remove('active');
-
-                // Skip question 2 when going back if no controller
-                if (currentQuestion === 3 && !hasController) {
-                    document.getElementById('q1').classList.add('active');
-                    currentQuestion = 1;
-                } else {
-                    document.getElementById('q' + (currentQuestion - 1)).classList.add('active');
-                    currentQuestion--;
-                }
-
+                document.getElementById('q' + (currentQuestion - 1)).classList.add('active');
+                currentQuestion--;
                 updateProgress();
             }
         }
 
         function updateProgress() {
-            const progress = (currentQuestion / 6) * 100;
+            const progress = (currentQuestion / 4) * 100;
             document.getElementById('progressBar').style.width = progress + '%';
         }
 
         async function showResults() {
-            document.getElementById('q6').classList.remove('active');
+            document.getElementById('q4').classList.remove('active');
             document.getElementById('progress').style.display = 'none';
 
             const resultsContent = document.getElementById('resultsContent');
             let html = '';
 
-            // Display all answers
             Object.keys(answers).sort().forEach(key => {
                 html += `
-                    <div class="result-item">
+                    <div class="result-item fade-in">
                         <div class="result-q">${answers[key].question}</div>
                         <div class="result-a">${answers[key].answer}</div>
                     </div>
