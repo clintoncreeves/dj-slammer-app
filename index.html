@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DJ Slammer's App Vision 🎧</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial Black', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 30px;
+            padding: 40px 30px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+            font-family: Arial, sans-serif;
+        }
+        
+        .question-screen {
+            display: none;
+        }
+        
+        .question-screen.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .question-title {
+            font-size: 1.4em;
+            color: #333;
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+        
+        .option {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+            font-size: 1.1em;
+            text-align: left;
+        }
+        
+        .option:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .option.selected {
+            border-color: #ffd700;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .option-emoji {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Arial Black', Arial, sans-serif;
+        }
+        
+        .btn-next {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-next:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+        
+        .btn-next:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-back {
+            background: #ddd;
+            color: #333;
+        }
+        
+        .btn-back:hover {
+            background: #ccc;
+        }
+        
+        .progress {
+            background: #e0e0e0;
+            height: 8px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.3s;
+        }
+        
+        .results {
+            display: none;
+        }
+        
+        .results.active {
+            display: block;
+        }
+        
+        .result-item {
+            background: #f5f5f5;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .result-q {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .result-a {
+            color: #333;
+            font-family: Arial, sans-serif;
+        }
+        
+        .start-screen {
+            text-align: center;
+        }
+        
+        .start-screen h2 {
+            color: #667eea;
+            margin: 30px 0;
+            font-size: 1.8em;
+        }
+        
+        .start-screen p {
+            font-family: Arial, sans-serif;
+            color: #666;
+            font-size: 1.2em;
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+        
+        .dj-emoji {
+            font-size: 5em;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .copy-button {
+            background: #667eea;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        
+        .copy-button:hover {
+            background: #764ba2;
+        }
+        
+        .copied-message {
+            display: none;
+            color: #4CAF50;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎧 DJ Slammer's App Vision 🎧</h1>
+            <p>Help us build YOUR dream DJ app!</p>
+        </div>
+        
+        <div class="start-screen active" id="startScreen">
+            <div class="dj-emoji">🎵</div>
+            <h2>Hey Tanner!</h2>
+            <p>We're super excited to build your DJ app idea! 🔥</p>
+            <p>Just tap your favorite answer for each question - this will only take 2 minutes!</p>
+            <button class="btn btn-next" onclick="startQuiz()" style="margin-top: 30px;">Let's Go! 🚀</button>
+        </div>
+        
+        <div class="progress" style="display: none;" id="progress">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+        
+        <!-- Question 1 -->
+        <div class="question-screen" id="q1">
+            <div class="question-title">
+                When the app "tells you what to press," how does it show you?
+            </div>
+            <div class="option" onclick="selectOption(1, 0, this)">
+                <span class="option-emoji">🎯</span>
+                Like Simon Says - lights up buttons and you tap them when it tells you
+            </div>
+            <div class="option" onclick="selectOption(1, 1, this)">
+                <span class="option-emoji">📚</span>
+                Step-by-step lesson that explains what each button does
+            </div>
+            <div class="option" onclick="selectOption(1, 2, this)">
+                <span class="option-emoji">✨</span>
+                Buttons glow/highlight when you should press them
+            </div>
+            <div class="option" onclick="selectOption(1, 3, this)">
+                <span class="option-emoji">💭</span>
+                Something else I'm thinking of
+            </div>
+            <div class="nav-buttons">
+                <button class="btn btn-back" onclick="goBack()" style="display: none;">← Back</button>
+                <button class="btn btn-next" id="next1" disabled onclick="nextQuestion(1)">Next →</button>
+            </div>
+        </div>
+        
+        <!-- Question 2 -->
+        <div class="question-screen" id="q2">
+            <div class="question-title">
+                When you pick a different DJ each day, what changes?
+            </div>
+            <div class="option" onclick="selectOption(2, 0, this)">
+                <span class="option-emoji">🎶</span>
+                Different music styles (hip-hop, EDM, house, etc.)
+            </div>
+            <div class="option" onclick="selectOption(2, 1, this)">
+                <span class="option-emoji">🎪</span>
+                Different DJ tricks and techniques to learn
+            </div>
+            <div class="option" onclick="selectOption(2, 2, this)">
+                <span class="option-emoji">🎛️</span>
+                The controller looks different with different sounds
+            </div>
+            <div class="option" onclick="selectOption(2, 3, this)">
+                <span class="option-emoji">🌟</span>
+                All of these things!
+            </div>
+            <div class="nav-buttons">
+                <button class="btn btn-back" onclick="goBack()">← Back</button>
+                <button class="btn btn-next" id="next2" disabled onclick="nextQuestion(2)">Next →</button>
+            </div>
+        </div>
+        
+        <!-- Question 3 -->
+        <div class="question-screen" id="q3">
+            <div class="question-title">
+                After you follow the instructions and make the song, what happens?
+            </div>
+            <div class="option" onclick="selectOption(3, 0, this)">
+                <span class="option-emoji">💾</span>
+                Save it and listen to it again later
+            </div>
+            <div class="option" onclick="selectOption(3, 1, this)">
+                <span class="option-emoji">📱</span>
+                Share it with friends and family
+            </div>
+            <div class="option" onclick="selectOption(3, 2, this)">
+                <span class="option-emoji">🔄</span>
+                Try again to do it better or faster
+            </div>
+            <div class="option" onclick="selectOption(3, 3, this)">
+                <span class="option-emoji">🎨</span>
+                Make your own song without instructions
+            </div>
+            <div class="option" onclick="selectOption(3, 4, this)">
+                <span class="option-emoji">✅</span>
+                All of these!
+            </div>
+            <div class="nav-buttons">
+                <button class="btn btn-back" onclick="goBack()">← Back</button>
+                <button class="btn btn-next" id="next3" disabled onclick="nextQuestion(3)">Next →</button>
+            </div>
+        </div>
+        
+        <!-- Question 4 -->
+        <div class="question-screen" id="q4">
+            <div class="question-title">
+                What would you use this app for the most?
+            </div>
+            <div class="option" onclick="selectOption(4, 0, this)">
+                <span class="option-emoji">📖</span>
+                Learning new DJ skills and tricks
+            </div>
+            <div class="option" onclick="selectOption(4, 1, this)">
+                <span class="option-emoji">🏋️</span>
+                Practicing what I learn in my real DJ lessons
+            </div>
+            <div class="option" onclick="selectOption(4, 2, this)">
+                <span class="option-emoji">🎉</span>
+                Just having fun making music
+            </div>
+            <div class="option" onclick="selectOption(4, 3, this)">
+                <span class="option-emoji">🌈</span>
+                All of these!
+            </div>
+            <div class="nav-buttons">
+                <button class="btn btn-back" onclick="goBack()">← Back</button>
+                <button class="btn btn-next" id="next4" disabled onclick="showResults()">Finish! ✨</button>
+            </div>
+        </div>
+        
+        <!-- Results -->
+        <div class="results" id="results">
+            <div class="header">
+                <h2 style="color: #667eea;">🎉 Awesome! Thanks DJ Slammer! 🎉</h2>
+                <p style="margin-top: 15px;">Here's what you told us:</p>
+            </div>
+            <div id="resultsContent"></div>
+            <div style="text-align: center; margin-top: 30px;">
+                <p style="font-family: Arial, sans-serif; color: #666;">
+                    Your dad can copy these answers and send them to Clinton!
+                </p>
+                <button class="copy-button" onclick="copyResults()">📋 Copy Answers</button>
+                <div class="copied-message" id="copiedMsg">✅ Copied! Ready to send!</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const answers = {};
+        let currentQuestion = 0;
+        
+        const questions = [
+            {
+                text: "When the app tells you what to press, how does it show you?",
+                options: [
+                    "Like Simon Says - lights up buttons and you tap them when it tells you",
+                    "Step-by-step lesson that explains what each button does",
+                    "Buttons glow/highlight when you should press them",
+                    "Something else I'm thinking of"
+                ]
+            },
+            {
+                text: "When you pick a different DJ each day, what changes?",
+                options: [
+                    "Different music styles (hip-hop, EDM, house, etc.)",
+                    "Different DJ tricks and techniques to learn",
+                    "The controller looks different with different sounds",
+                    "All of these things!"
+                ]
+            },
+            {
+                text: "After you follow the instructions and make the song, what happens?",
+                options: [
+                    "Save it and listen to it again later",
+                    "Share it with friends and family",
+                    "Try again to do it better or faster",
+                    "Make your own song without instructions",
+                    "All of these!"
+                ]
+            },
+            {
+                text: "What would you use this app for the most?",
+                options: [
+                    "Learning new DJ skills and tricks",
+                    "Practicing what I learn in my real DJ lessons",
+                    "Just having fun making music",
+                    "All of these!"
+                ]
+            }
+        ];
+        
+        function startQuiz() {
+            document.getElementById('startScreen').classList.remove('active');
+            document.getElementById('progress').style.display = 'block';
+            document.getElementById('q1').classList.add('active');
+            currentQuestion = 1;
+            updateProgress();
+        }
+        
+        function selectOption(questionNum, optionIndex, element) {
+            const allOptions = element.parentElement.querySelectorAll('.option');
+            allOptions.forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+            answers[questionNum] = {
+                question: questions[questionNum - 1].text,
+                answer: questions[questionNum - 1].options[optionIndex]
+            };
+            document.getElementById('next' + questionNum).disabled = false;
+        }
+        
+        function nextQuestion(current) {
+            document.getElementById('q' + current).classList.remove('active');
+            document.getElementById('q' + (current + 1)).classList.add('active');
+            currentQuestion = current + 1;
+            updateProgress();
+        }
+        
+        function goBack() {
+            if (currentQuestion > 1) {
+                document.getElementById('q' + currentQuestion).classList.remove('active');
+                document.getElementById('q' + (currentQuestion - 1)).classList.add('active');
+                currentQuestion--;
+                updateProgress();
+            }
+        }
+        
+        function updateProgress() {
+            const progress = (currentQuestion / 4) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+        
+        function showResults() {
+            document.getElementById('q4').classList.remove('active');
+            document.getElementById('progress').style.display = 'none';
+            const resultsContent = document.getElementById('resultsContent');
+            let html = '';
+            for (let i = 1; i <= 4; i++) {
+                html += `<div class="result-item"><div class="result-q">Q${i}: ${answers[i].question}</div><div class="result-a">✅ ${answers[i].answer}</div></div>`;
+            }
+            resultsContent.innerHTML = html;
+            document.getElementById('results').classList.add('active');
+        }
+        
+        function copyResults() {
+            let text = "🎧 Tanner's DJ App Answers 🎧\n\n";
+            for (let i = 1; i <= 4; i++) {
+                text += `Question ${i}: ${answers[i].question}\nAnswer: ${answers[i].answer}\n\n`;
+            }
+            navigator.clipboard.writeText(text).then(() => {
+                const msg = document.getElementById('copiedMsg');
+                msg.style.display = 'block';
+                setTimeout(() => { msg.style.display = 'none'; }, 3000);
+            });
+        }
+    </script>
+</body>
+</html>
