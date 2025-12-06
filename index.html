@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DJ Slammer's App Vision 🎧</title>
+    <title>DJ Slammer App - Home</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -13,13 +13,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
-  * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+
         :root {
             --neon-cyan: #00D4FF;
             --neon-pink: #FF1493;
@@ -28,7 +22,7 @@
             --dark-bg: #000000;
             --dark-card: #1a1a1a;
         }
-        
+
         body {
             font-family: 'Space Mono', monospace;
             background: var(--dark-bg);
@@ -38,562 +32,195 @@
             align-items: center;
             padding: 20px;
         }
-        
+
         .container {
             background: var(--dark-card);
             border-radius: 20px;
             padding: 50px 40px;
-            max-width: 700px;
+            max-width: 800px;
             width: 100%;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             border: 1px solid rgba(0, 255, 255, 0.2);
         }
-        
+
         .header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 50px;
         }
-        
+
         .header h1 {
             font-family: 'Bebas Neue', sans-serif;
             color: var(--neon-cyan);
-            font-size: 3em;
+            font-size: 3.5em;
             margin-bottom: 15px;
             letter-spacing: 3px;
-            text-shadow: 0 0 5px rgba(0, 212, 255, 0.3);
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
         }
-        
+
         .header p {
             color: var(--neon-pink);
-            font-size: 1.1em;
+            font-size: 1.2em;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 2px;
         }
-        
-        .question-screen {
-            display: none;
-        }
-        
-        .question-screen.active {
-            display: block;
-            animation: fadeIn 0.3s;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .question-title {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.8em;
-            color: var(--neon-yellow);
-            margin-bottom: 35px;
-            line-height: 1.3;
-            letter-spacing: 1px;
-        }
-        
-        .option {
-            background: rgba(40, 40, 40, 0.8);
-            color: #fff;
-            padding: 25px;
-            margin: 20px 0;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 2px solid rgba(0, 255, 255, 0.2);
-            font-size: 1.05em;
-            text-align: left;
-        }
-        
-        .option:hover {
-            transform: translateX(5px);
-            border-color: var(--neon-cyan);
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
-        }
-        
-        .option:active {
-            transform: translateX(5px) scale(0.98);
-        }
-        
-        .option.selected {
-            border-color: var(--neon-pink);
-            background: rgba(255, 20, 147, 0.1);
-            box-shadow: 0 0 15px rgba(255, 20, 147, 0.3);
-        }
-        
-        .option-emoji {
-            font-size: 1.8em;
-            margin-right: 15px;
-            display: inline-block;
-        }
-        
-        .nav-buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 40px;
-        }
-        
-        .btn {
-            flex: 1;
-            padding: 18px;
-            border: 2px solid;
-            border-radius: 12px;
-            font-size: 1.1em;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-family: 'Space Mono', monospace;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        
-        .btn-next {
-            background: var(--dark-card);
-            color: var(--neon-cyan);
-            border-color: var(--neon-cyan);
-        }
-        
-        .btn-next:hover {
-            background: var(--neon-cyan);
-            color: var(--dark-bg);
-            transform: translateY(-2px);
-        }
-        
-        .btn-next:disabled {
-            background: rgba(26, 26, 26, 0.5);
-            color: rgba(255, 255, 255, 0.3);
-            border-color: rgba(255, 255, 255, 0.2);
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .btn-back {
-            background: var(--dark-card);
-            color: var(--neon-pink);
-            border-color: var(--neon-pink);
-        }
-        
-        .btn-back:hover {
-            background: var(--neon-pink);
-            color: var(--dark-bg);
-            transform: translateY(-2px);
-        }
-        
-        .progress {
-            background: rgba(26, 26, 26, 0.8);
-            height: 8px;
-            border-radius: 10px;
-            margin-bottom: 40px;
-            overflow: hidden;
-            border: 1px solid rgba(0, 255, 255, 0.2);
-        }
-        
-        .progress-bar {
-            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
-            height: 100%;
-            transition: width 0.5s;
-        }
-        
-        .results {
-            display: none;
-        }
-        
-        .results.active {
-            display: block;
-        }
-        
-        .result-item {
-            background: rgba(40, 40, 40, 0.8);
-            padding: 25px;
-            margin: 20px 0;
-            border-radius: 15px;
-            border-left: 4px solid var(--neon-cyan);
-            transition: all 0.3s;
-        }
-        
-        .result-item:hover {
-            border-left-color: var(--neon-pink);
-        }
-        
-        .result-q {
-            font-weight: 700;
-            color: var(--neon-yellow);
-            margin-bottom: 12px;
-            letter-spacing: 1px;
-        }
-        
-        .result-a {
-            color: #fff;
-            line-height: 1.6;
-        }
-        
-        .start-screen {
-            text-align: center;
-        }
-        
-        .start-screen h2 {
-            font-family: 'Bebas Neue', sans-serif;
-            color: var(--neon-pink);
-            margin: 30px 0;
-            font-size: 2.5em;
-            letter-spacing: 3px;
-        }
-        
-        .start-screen p {
-            color: #fff;
-            font-size: 1.15em;
-            margin: 25px 0;
-            line-height: 1.8;
-        }
-        
+
         .dj-emoji {
-            font-size: 6em;
+            font-size: 5em;
             animation: vinylSpin 4s linear infinite;
             display: inline-block;
+            margin-bottom: 20px;
         }
-        
+
         @keyframes vinylSpin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
-        .copy-button {
-            background: var(--dark-card);
+
+        .survey-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .survey-card {
+            background: rgba(40, 40, 40, 0.8);
+            border: 2px solid rgba(0, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 35px;
+            text-decoration: none;
+            transition: all 0.3s;
+            display: block;
+        }
+
+        .survey-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--neon-cyan);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .survey-card.kid {
+            border-color: rgba(255, 20, 147, 0.3);
+        }
+
+        .survey-card.kid:hover {
+            border-color: var(--neon-pink);
+            box-shadow: 0 10px 30px rgba(255, 20, 147, 0.3);
+        }
+
+        .survey-card.parent {
+            border-color: rgba(157, 0, 255, 0.3);
+        }
+
+        .survey-card.parent:hover {
+            border-color: var(--neon-purple);
+            box-shadow: 0 10px 30px rgba(157, 0, 255, 0.3);
+        }
+
+        .card-emoji {
+            font-size: 3em;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .card-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2em;
+            color: var(--neon-cyan);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .survey-card.kid .card-title {
+            color: var(--neon-pink);
+        }
+
+        .survey-card.parent .card-title {
             color: var(--neon-purple);
-            padding: 18px 35px;
-            border: 2px solid var(--neon-purple);
-            border-radius: 12px;
+        }
+
+        .card-description {
+            color: #fff;
             font-size: 1.1em;
-            cursor: pointer;
-            margin-top: 25px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .card-cta {
+            color: var(--neon-yellow);
             font-weight: 700;
-            font-family: 'Space Mono', monospace;
             text-transform: uppercase;
             letter-spacing: 2px;
-            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
         }
-        
-        .copy-button:hover {
-            background: var(--neon-purple);
-            color: var(--dark-bg);
-            transform: translateY(-2px);
+
+        .admin-link {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
-        .copied-message {
-            display: none;
+
+        .admin-link a {
+            color: rgba(255, 255, 255, 0.5);
+            text-decoration: none;
+            font-size: 0.9em;
+            transition: color 0.3s;
+        }
+
+        .admin-link a:hover {
             color: var(--neon-cyan);
-            margin-top: 15px;
-            font-weight: 700;
         }
-        
-        @keyframes fadeInOut {
-            0% { opacity: 0; transform: translateY(-10px); }
-            20%, 80% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-10px); }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 2.5em;
+            }
+
+            .container {
+                padding: 30px 25px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎧 DJ Slammer's App Vision 🎧</h1>
-            <p>Help us build YOUR dream DJ app!</p>
-        </div>
-        
-        <div class="start-screen active" id="startScreen">
             <div class="dj-emoji">🎵</div>
-            <h2>Hey Tanner!</h2>
-            <p>We're super excited to build your DJ app idea! 🔥</p>
-            <p>Just tap your favorite answer for each question - this will only take 2 minutes!</p>
-            <button class="btn btn-next" onclick="startQuiz()" style="margin-top: 30px;">Let's Go! 🚀</button>
+            <h1>🎧 DJ Slammer App 🎧</h1>
+            <p>Help us build the ultimate DJ learning experience!</p>
         </div>
-        
-        <div class="progress" style="display: none;" id="progress">
-            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+
+        <div class="survey-cards">
+            <a href="tanner-survey.html" class="survey-card kid">
+                <span class="card-emoji">🎮</span>
+                <div class="card-title">Tanner's Survey</div>
+                <div class="card-description">
+                    Hey Tanner! Tell us about your dream DJ app - what features would make it awesome? Takes just 2 minutes!
+                </div>
+                <div class="card-cta">
+                    Start Survey →
+                </div>
+            </a>
+
+            <a href="parent-survey.html" class="survey-card parent">
+                <span class="card-emoji">👨‍👩‍👦</span>
+                <div class="card-title">Parent Survey</div>
+                <div class="card-description">
+                    Help us understand Tanner's equipment, experience level, and learning goals so we can build the perfect app.
+                </div>
+                <div class="card-cta">
+                    Start Survey →
+                </div>
+            </a>
         </div>
-        
-        <!-- Question 1 -->
-        <div class="question-screen" id="q1">
-            <div class="question-title">
-                When the app "tells you what to press," how does it show you?
-            </div>
-            <div class="option" onclick="selectOption(1, 0, this)">
-                <span class="option-emoji">🎯</span>
-                Like Simon Says - lights up buttons and you tap them when it tells you
-            </div>
-            <div class="option" onclick="selectOption(1, 1, this)">
-                <span class="option-emoji">📚</span>
-                Step-by-step lesson that explains what each button does
-            </div>
-            <div class="option" onclick="selectOption(1, 2, this)">
-                <span class="option-emoji">✨</span>
-                Buttons glow/highlight when you should press them
-            </div>
-            <div class="option" onclick="selectOption(1, 3, this)">
-                <span class="option-emoji">💭</span>
-                Something else I'm thinking of
-            </div>
-            <div class="nav-buttons">
-                <button class="btn btn-back" onclick="goBack()" style="display: none;">← Back</button>
-                <button class="btn btn-next" id="next1" disabled onclick="nextQuestion(1)">Next →</button>
-            </div>
-        </div>
-        
-        <!-- Question 2 -->
-        <div class="question-screen" id="q2">
-            <div class="question-title">
-                When you pick a different DJ each day, what changes?
-            </div>
-            <div class="option" onclick="selectOption(2, 0, this)">
-                <span class="option-emoji">🎶</span>
-                Different music styles (hip-hop, EDM, house, etc.)
-            </div>
-            <div class="option" onclick="selectOption(2, 1, this)">
-                <span class="option-emoji">🎪</span>
-                Different DJ tricks and techniques to learn
-            </div>
-            <div class="option" onclick="selectOption(2, 2, this)">
-                <span class="option-emoji">🎛️</span>
-                The controller looks different with different sounds
-            </div>
-            <div class="option" onclick="selectOption(2, 3, this)">
-                <span class="option-emoji">🌟</span>
-                All of these things!
-            </div>
-            <div class="nav-buttons">
-                <button class="btn btn-back" onclick="goBack()">← Back</button>
-                <button class="btn btn-next" id="next2" disabled onclick="nextQuestion(2)">Next →</button>
-            </div>
-        </div>
-        
-        <!-- Question 3 -->
-        <div class="question-screen" id="q3">
-            <div class="question-title">
-                After you follow the instructions and make the song, what happens?
-            </div>
-            <div class="option" onclick="selectOption(3, 0, this)">
-                <span class="option-emoji">💾</span>
-                Save it and listen to it again later
-            </div>
-            <div class="option" onclick="selectOption(3, 1, this)">
-                <span class="option-emoji">📱</span>
-                Share it with friends and family
-            </div>
-            <div class="option" onclick="selectOption(3, 2, this)">
-                <span class="option-emoji">🔄</span>
-                Try again to do it better or faster
-            </div>
-            <div class="option" onclick="selectOption(3, 3, this)">
-                <span class="option-emoji">🎨</span>
-                Make your own song without instructions
-            </div>
-            <div class="option" onclick="selectOption(3, 4, this)">
-                <span class="option-emoji">✅</span>
-                All of these!
-            </div>
-            <div class="nav-buttons">
-                <button class="btn btn-back" onclick="goBack()">← Back</button>
-                <button class="btn btn-next" id="next3" disabled onclick="nextQuestion(3)">Next →</button>
-            </div>
-        </div>
-        
-        <!-- Question 4 -->
-        <div class="question-screen" id="q4">
-            <div class="question-title">
-                What would you use this app for the most?
-            </div>
-            <div class="option" onclick="selectOption(4, 0, this)">
-                <span class="option-emoji">📖</span>
-                Learning new DJ skills and tricks
-            </div>
-            <div class="option" onclick="selectOption(4, 1, this)">
-                <span class="option-emoji">🏋️</span>
-                Practicing what I learn in my real DJ lessons
-            </div>
-            <div class="option" onclick="selectOption(4, 2, this)">
-                <span class="option-emoji">🎉</span>
-                Just having fun making music
-            </div>
-            <div class="option" onclick="selectOption(4, 3, this)">
-                <span class="option-emoji">🌈</span>
-                All of these!
-            </div>
-            <div class="nav-buttons">
-                <button class="btn btn-back" onclick="goBack()">← Back</button>
-                <button class="btn btn-next" id="next4" disabled onclick="showResults()">Finish! ✨</button>
-            </div>
-        </div>
-        
-        <!-- Results -->
-        <div class="results" id="results">
-            <div class="header">
-                <h2 style="font-family: 'Bebas Neue', sans-serif; color: var(--neon-cyan); font-size: 2.5em; letter-spacing: 3px; text-shadow: 0 0 20px var(--neon-cyan), 0 0 40px var(--neon-cyan);">🎉 Awesome! Thanks DJ Slammer! 🎉</h2>
-                <p style="margin-top: 20px; color: var(--neon-pink); text-shadow: 0 0 10px var(--neon-pink);">Here's what you told us:</p>
-            </div>
-            <div id="resultsContent"></div>
-            <div style="text-align: center; margin-top: 30px;">
-                <p style="color: #fff; font-size: 1.1em; margin-bottom: 10px;">
-                    Your dad can copy these answers and send them to Clinton!
-                </p>
-                <button class="copy-button" onclick="copyResults()">📋 Copy Answers</button>
-                <div class="copied-message" id="copiedMsg">✅ Copied! Ready to send!</div>
-            </div>
+
+        <div class="admin-link">
+            <a href="admin.html">Admin Dashboard →</a>
         </div>
     </div>
-    
-    <script>
-        const answers = {};
-        let currentQuestion = 0;
-        
-        const questions = [
-            {
-                text: "When the app tells you what to press, how does it show you?",
-                options: [
-                    "Like Simon Says - lights up buttons and you tap them when it tells you",
-                    "Step-by-step lesson that explains what each button does",
-                    "Buttons glow/highlight when you should press them",
-                    "Something else I'm thinking of"
-                ]
-            },
-            {
-                text: "When you pick a different DJ each day, what changes?",
-                options: [
-                    "Different music styles (hip-hop, EDM, house, etc.)",
-                    "Different DJ tricks and techniques to learn",
-                    "The controller looks different with different sounds",
-                    "All of these things!"
-                ]
-            },
-            {
-                text: "After you follow the instructions and make the song, what happens?",
-                options: [
-                    "Save it and listen to it again later",
-                    "Share it with friends and family",
-                    "Try again to do it better or faster",
-                    "Make your own song without instructions",
-                    "All of these!"
-                ]
-            },
-            {
-                text: "What would you use this app for the most?",
-                options: [
-                    "Learning new DJ skills and tricks",
-                    "Practicing what I learn in my real DJ lessons",
-                    "Just having fun making music",
-                    "All of these!"
-                ]
-            }
-        ];
-        
-        function startQuiz() {
-            document.getElementById('startScreen').classList.remove('active');
-            document.getElementById('progress').style.display = 'block';
-            document.getElementById('q1').classList.add('active');
-            currentQuestion = 1;
-            updateProgress();
-        }
-        
-        function selectOption(questionNum, optionIndex, element) {
-            // Remove selected class from all options in this question
-            const allOptions = element.parentElement.querySelectorAll('.option');
-            allOptions.forEach(opt => opt.classList.remove('selected'));
-            
-            // Add selected class to clicked option
-            element.classList.add('selected');
-            
-            // Store answer
-            answers[questionNum] = {
-                question: questions[questionNum - 1].text,
-                answer: questions[questionNum - 1].options[optionIndex]
-            };
-            
-            // Enable next button
-            document.getElementById('next' + questionNum).disabled = false;
-        }
-        
-        function nextQuestion(current) {
-            document.getElementById('q' + current).classList.remove('active');
-            document.getElementById('q' + (current + 1)).classList.add('active');
-            currentQuestion = current + 1;
-            updateProgress();
-        }
-        
-        function goBack() {
-            if (currentQuestion > 1) {
-                document.getElementById('q' + currentQuestion).classList.remove('active');
-                document.getElementById('q' + (currentQuestion - 1)).classList.add('active');
-                currentQuestion--;
-                updateProgress();
-            }
-        }
-        
-        function updateProgress() {
-            const progress = (currentQuestion / 4) * 100;
-            document.getElementById('progressBar').style.width = progress + '%';
-        }
-        
-        async function showResults() {
-            document.getElementById('q4').classList.remove('active');
-            document.getElementById('progress').style.display = 'none';
-
-            const resultsContent = document.getElementById('resultsContent');
-            let html = '';
-
-            for (let i = 1; i <= 4; i++) {
-                html += `
-                    <div class="result-item">
-                        <div class="result-q">Q${i}: ${answers[i].question}</div>
-                        <div class="result-a">✅ ${answers[i].answer}</div>
-                    </div>
-                `;
-            }
-
-            resultsContent.innerHTML = html;
-            document.getElementById('results').classList.add('active');
-
-            // Save responses to backend
-            try {
-                const response = await fetch('/api/save-response', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        answers: answers,
-                        timestamp: new Date().toISOString()
-                    })
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    console.log('✅ Responses saved to database!', data.responseId);
-                } else {
-                    console.error('Failed to save responses:', data.error);
-                }
-            } catch (error) {
-                console.error('Error saving responses to backend:', error);
-                // Don't block the user experience if backend fails
-            }
-        }
-        
-        function copyResults() {
-            let text = "🎧 Tanner's DJ App Answers 🎧\n\n";
-            
-            for (let i = 1; i <= 4; i++) {
-                text += `Question ${i}: ${answers[i].question}\n`;
-                text += `Answer: ${answers[i].answer}\n\n`;
-            }
-            
-            navigator.clipboard.writeText(text).then(() => {
-                const msg = document.getElementById('copiedMsg');
-                msg.style.display = 'block';
-                setTimeout(() => {
-                    msg.style.display = 'none';
-                }, 3000);
-            });
-        }
-    </script>
 </body>
 </html>
