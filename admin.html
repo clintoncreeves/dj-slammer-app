@@ -353,9 +353,22 @@
 
             try {
                 const response = await fetch('/api/get-parent-responses');
+
+                // Check if response is OK
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    throw new Error(`API returned non-JSON response: ${text.substring(0, 100)}`);
+                }
+
                 const data = await response.json();
 
-                if (data.success && data.responses.length > 0) {
+                if (data.success && data.responses && data.responses.length > 0) {
                     stats.style.display = 'flex';
                     document.getElementById('parentCount').textContent = data.count;
 
@@ -381,7 +394,9 @@
                     container.innerHTML = '<div class="no-responses">No parent responses yet. 👨‍👩‍👦</div>';
                 }
             } catch (error) {
-                container.innerHTML = `<div class="no-responses">Error loading parent responses: ${error.message}</div>`;
+                stats.style.display = 'none';
+                console.error('Parent responses error:', error);
+                container.innerHTML = `<div class="no-responses">Error loading parent responses: ${error.message}<br><br>Check browser console for details.</div>`;
             }
         }
 
