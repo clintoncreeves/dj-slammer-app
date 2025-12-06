@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DJ Slammer's App Vision 🎧</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -11,40 +14,131 @@
             box-sizing: border-box;
         }
         
+        :root {
+            --neon-cyan: #00FFFF;
+            --neon-pink: #FF006E;
+            --neon-yellow: #FFD60A;
+            --neon-purple: #B100FF;
+            --dark-bg: #0a0a0a;
+            --dark-card: #1a1a1a;
+        }
+        
         body {
-            font-family: 'Arial Black', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Space Mono', monospace;
+            background: var(--dark-bg);
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(255, 0, 110, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 255, 255, 0.15) 0%, transparent 50%),
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255, 255, 255, 0.03) 2px, rgba(255, 255, 255, 0.03) 4px);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, transparent 0%, var(--dark-bg) 100%);
+            pointer-events: none;
+            z-index: 1;
         }
         
         .container {
-            background: white;
-            border-radius: 30px;
-            padding: 40px 30px;
-            max-width: 600px;
+            background: var(--dark-card);
+            border-radius: 20px;
+            padding: 50px 40px;
+            max-width: 700px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 
+                0 0 60px rgba(0, 255, 255, 0.2),
+                0 0 120px rgba(255, 0, 110, 0.15),
+                inset 0 0 80px rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            position: relative;
+            z-index: 2;
+            animation: containerPulse 4s ease-in-out infinite;
+        }
+        
+        @keyframes containerPulse {
+            0%, 100% { 
+                box-shadow: 
+                    0 0 60px rgba(0, 255, 255, 0.2),
+                    0 0 120px rgba(255, 0, 110, 0.15),
+                    inset 0 0 80px rgba(0, 0, 0, 0.5);
+            }
+            50% { 
+                box-shadow: 
+                    0 0 80px rgba(0, 255, 255, 0.3),
+                    0 0 140px rgba(255, 0, 110, 0.2),
+                    inset 0 0 80px rgba(0, 0, 0, 0.5);
+            }
+        }
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-pink), var(--neon-yellow), var(--neon-purple));
+            border-radius: 20px;
+            opacity: 0.1;
+            z-index: -1;
+            animation: borderRotate 8s linear infinite;
+        }
+        
+        @keyframes borderRotate {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
         }
         
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
         
         .header h1 {
-            color: #667eea;
-            font-size: 2em;
-            margin-bottom: 10px;
+            font-family: 'Bebas Neue', sans-serif;
+            color: var(--neon-cyan);
+            font-size: 3.5em;
+            margin-bottom: 15px;
+            letter-spacing: 4px;
+            text-shadow: 
+                0 0 10px var(--neon-cyan),
+                0 0 20px var(--neon-cyan),
+                0 0 40px var(--neon-cyan),
+                0 0 80px rgba(0, 255, 255, 0.5);
+            animation: flicker 3s infinite alternate;
+        }
+        
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            41.99% { opacity: 1; }
+            42% { opacity: 0.8; }
+            43% { opacity: 1; }
+            45.99% { opacity: 1; }
+            46% { opacity: 0.7; }
+            46.5% { opacity: 1; }
         }
         
         .header p {
-            color: #666;
+            color: var(--neon-pink);
             font-size: 1.1em;
-            font-family: Arial, sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 
+                0 0 10px var(--neon-pink),
+                0 0 20px var(--neon-pink);
         }
         
         .question-screen {
@@ -62,95 +156,207 @@
         }
         
         .question-title {
-            font-size: 1.4em;
-            color: #333;
-            margin-bottom: 25px;
-            line-height: 1.4;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2em;
+            color: var(--neon-yellow);
+            margin-bottom: 35px;
+            line-height: 1.3;
+            text-shadow: 
+                0 0 10px var(--neon-yellow),
+                0 0 20px var(--neon-yellow);
+            letter-spacing: 1px;
         }
         
         .option {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            margin: 15px 0;
+            background: linear-gradient(135deg, rgba(26, 26, 26, 0.9), rgba(40, 40, 40, 0.9));
+            color: #fff;
+            padding: 25px;
+            margin: 20px 0;
             border-radius: 15px;
             cursor: pointer;
-            transition: all 0.3s;
-            border: 3px solid transparent;
-            font-size: 1.1em;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid rgba(0, 255, 255, 0.2);
+            font-size: 1.05em;
             text-align: left;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        
+        .option::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--neon-cyan) 0%, transparent 70%);
+            opacity: 0;
+            transform: translate(-50%, -50%);
+            transition: all 0.5s ease;
+        }
+        
+        .option:hover::before {
+            width: 300px;
+            height: 300px;
+            opacity: 0.1;
         }
         
         .option:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+            transform: translateX(10px) scale(1.02);
+            border-color: var(--neon-cyan);
+            box-shadow: 
+                0 0 20px rgba(0, 255, 255, 0.4),
+                inset 0 0 20px rgba(0, 255, 255, 0.1);
+        }
+        
+        .option:active {
+            transform: translateX(10px) scale(0.98);
         }
         
         .option.selected {
-            border-color: #ffd700;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-color: var(--neon-pink);
+            background: linear-gradient(135deg, rgba(255, 0, 110, 0.2), rgba(177, 0, 255, 0.2));
+            box-shadow: 
+                0 0 30px rgba(255, 0, 110, 0.5),
+                inset 0 0 30px rgba(255, 0, 110, 0.2);
+            animation: selectedPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes selectedPulse {
+            0%, 100% { 
+                box-shadow: 
+                    0 0 30px rgba(255, 0, 110, 0.5),
+                    inset 0 0 30px rgba(255, 0, 110, 0.2);
+            }
+            50% { 
+                box-shadow: 
+                    0 0 40px rgba(255, 0, 110, 0.7),
+                    inset 0 0 40px rgba(255, 0, 110, 0.3);
+            }
         }
         
         .option-emoji {
-            font-size: 1.5em;
-            margin-right: 10px;
+            font-size: 1.8em;
+            margin-right: 15px;
+            display: inline-block;
+            filter: drop-shadow(0 0 10px var(--neon-yellow));
+            animation: emojiFloat 3s ease-in-out infinite;
+        }
+        
+        @keyframes emojiFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
         }
         
         .nav-buttons {
             display: flex;
             gap: 15px;
-            margin-top: 30px;
+            margin-top: 40px;
         }
         
         .btn {
             flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 15px;
+            padding: 18px;
+            border: 2px solid;
+            border-radius: 12px;
             font-size: 1.1em;
-            font-weight: bold;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s;
-            font-family: 'Arial Black', Arial, sans-serif;
-        }
-        
-        .btn-next {
-            background: #4CAF50;
-            color: white;
-        }
-        
-        .btn-next:hover {
-            background: #45a049;
-            transform: scale(1.05);
-        }
-        
-        .btn-next:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .btn-back {
-            background: #ddd;
-            color: #333;
-        }
-        
-        .btn-back:hover {
-            background: #ccc;
-        }
-        
-        .progress {
-            background: #e0e0e0;
-            height: 8px;
-            border-radius: 10px;
-            margin-bottom: 30px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Space Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
             overflow: hidden;
         }
         
-        .progress-bar {
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
             height: 100%;
-            transition: width 0.3s;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn-next {
+            background: var(--dark-card);
+            color: var(--neon-cyan);
+            border-color: var(--neon-cyan);
+        }
+        
+        .btn-next:hover {
+            background: var(--neon-cyan);
+            color: var(--dark-bg);
+            box-shadow: 0 0 30px var(--neon-cyan);
+            transform: translateY(-2px);
+        }
+        
+        .btn-next:disabled {
+            background: rgba(26, 26, 26, 0.5);
+            color: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.2);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-next:disabled::before {
+            display: none;
+        }
+        
+        .btn-back {
+            background: var(--dark-card);
+            color: var(--neon-pink);
+            border-color: var(--neon-pink);
+        }
+        
+        .btn-back:hover {
+            background: var(--neon-pink);
+            color: var(--dark-bg);
+            box-shadow: 0 0 30px var(--neon-pink);
+            transform: translateY(-2px);
+        }
+        
+        .progress {
+            background: rgba(26, 26, 26, 0.8);
+            height: 10px;
+            border-radius: 10px;
+            margin-bottom: 40px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink), var(--neon-purple));
+            height: 100%;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 
+                0 0 20px var(--neon-cyan),
+                0 0 40px var(--neon-pink);
+            animation: progressGlow 2s ease-in-out infinite;
+        }
+        
+        @keyframes progressGlow {
+            0%, 100% { 
+                box-shadow: 
+                    0 0 20px var(--neon-cyan),
+                    0 0 40px var(--neon-pink);
+            }
+            50% { 
+                box-shadow: 
+                    0 0 30px var(--neon-cyan),
+                    0 0 60px var(--neon-pink);
+            }
         }
         
         .results {
@@ -162,22 +368,35 @@
         }
         
         .result-item {
-            background: #f5f5f5;
-            padding: 20px;
-            margin: 15px 0;
+            background: linear-gradient(135deg, rgba(26, 26, 26, 0.9), rgba(40, 40, 40, 0.9));
+            padding: 25px;
+            margin: 20px 0;
             border-radius: 15px;
-            border-left: 5px solid #667eea;
+            border-left: 4px solid var(--neon-cyan);
+            box-shadow: 
+                0 0 20px rgba(0, 255, 255, 0.2),
+                inset 0 0 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+        }
+        
+        .result-item:hover {
+            border-left-color: var(--neon-pink);
+            box-shadow: 
+                0 0 30px rgba(255, 0, 110, 0.3),
+                inset 0 0 20px rgba(0, 0, 0, 0.3);
         }
         
         .result-q {
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 10px;
+            font-weight: 700;
+            color: var(--neon-yellow);
+            margin-bottom: 12px;
+            text-shadow: 0 0 10px var(--neon-yellow);
+            letter-spacing: 1px;
         }
         
         .result-a {
-            color: #333;
-            font-family: Arial, sans-serif;
+            color: #fff;
+            line-height: 1.6;
         }
         
         .start-screen {
@@ -185,50 +404,98 @@
         }
         
         .start-screen h2 {
-            color: #667eea;
+            font-family: 'Bebas Neue', sans-serif;
+            color: var(--neon-pink);
             margin: 30px 0;
-            font-size: 1.8em;
+            font-size: 2.5em;
+            letter-spacing: 3px;
+            text-shadow: 
+                0 0 10px var(--neon-pink),
+                0 0 20px var(--neon-pink),
+                0 0 40px var(--neon-pink);
         }
         
         .start-screen p {
-            font-family: Arial, sans-serif;
-            color: #666;
-            font-size: 1.2em;
-            margin: 20px 0;
-            line-height: 1.6;
+            color: #fff;
+            font-size: 1.15em;
+            margin: 25px 0;
+            line-height: 1.8;
         }
         
         .dj-emoji {
-            font-size: 5em;
-            animation: bounce 2s infinite;
+            font-size: 6em;
+            animation: vinylSpin 4s linear infinite, emojiGlow 2s ease-in-out infinite alternate;
+            display: inline-block;
+            filter: drop-shadow(0 0 20px var(--neon-cyan));
         }
         
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
+        @keyframes vinylSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes emojiGlow {
+            0% { 
+                filter: drop-shadow(0 0 20px var(--neon-cyan));
+            }
+            100% { 
+                filter: drop-shadow(0 0 40px var(--neon-pink));
+            }
         }
         
         .copy-button {
-            background: #667eea;
-            color: white;
-            padding: 12px 25px;
-            border: none;
-            border-radius: 10px;
-            font-size: 1em;
+            background: var(--dark-card);
+            color: var(--neon-purple);
+            padding: 18px 35px;
+            border: 2px solid var(--neon-purple);
+            border-radius: 12px;
+            font-size: 1.1em;
             cursor: pointer;
-            margin-top: 20px;
-            font-weight: bold;
+            margin-top: 25px;
+            font-weight: 700;
+            font-family: 'Space Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .copy-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(177, 0, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .copy-button:hover::before {
+            left: 100%;
         }
         
         .copy-button:hover {
-            background: #764ba2;
+            background: var(--neon-purple);
+            color: var(--dark-bg);
+            box-shadow: 0 0 40px var(--neon-purple);
+            transform: translateY(-3px);
         }
         
         .copied-message {
             display: none;
-            color: #4CAF50;
-            margin-top: 10px;
-            font-weight: bold;
+            color: var(--neon-cyan);
+            margin-top: 15px;
+            font-weight: 700;
+            text-shadow: 0 0 10px var(--neon-cyan);
+            animation: fadeInOut 3s ease-in-out;
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(-10px); }
+            20%, 80% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-10px); }
         }
     </style>
 </head>
@@ -366,12 +633,12 @@
         <!-- Results -->
         <div class="results" id="results">
             <div class="header">
-                <h2 style="color: #667eea;">🎉 Awesome! Thanks DJ Slammer! 🎉</h2>
-                <p style="margin-top: 15px;">Here's what you told us:</p>
+                <h2 style="font-family: 'Bebas Neue', sans-serif; color: var(--neon-cyan); font-size: 2.5em; letter-spacing: 3px; text-shadow: 0 0 20px var(--neon-cyan), 0 0 40px var(--neon-cyan);">🎉 Awesome! Thanks DJ Slammer! 🎉</h2>
+                <p style="margin-top: 20px; color: var(--neon-pink); text-shadow: 0 0 10px var(--neon-pink);">Here's what you told us:</p>
             </div>
             <div id="resultsContent"></div>
             <div style="text-align: center; margin-top: 30px;">
-                <p style="font-family: Arial, sans-serif; color: #666;">
+                <p style="color: #fff; font-size: 1.1em; margin-bottom: 10px;">
                     Your dad can copy these answers and send them to Clinton!
                 </p>
                 <button class="copy-button" onclick="copyResults()">📋 Copy Answers</button>
@@ -433,13 +700,20 @@
         }
         
         function selectOption(questionNum, optionIndex, element) {
+            // Remove selected class from all options in this question
             const allOptions = element.parentElement.querySelectorAll('.option');
             allOptions.forEach(opt => opt.classList.remove('selected'));
+            
+            // Add selected class to clicked option
             element.classList.add('selected');
+            
+            // Store answer
             answers[questionNum] = {
                 question: questions[questionNum - 1].text,
                 answer: questions[questionNum - 1].options[optionIndex]
             };
+            
+            // Enable next button
             document.getElementById('next' + questionNum).disabled = false;
         }
         
@@ -467,24 +741,37 @@
         function showResults() {
             document.getElementById('q4').classList.remove('active');
             document.getElementById('progress').style.display = 'none';
+            
             const resultsContent = document.getElementById('resultsContent');
             let html = '';
+            
             for (let i = 1; i <= 4; i++) {
-                html += `<div class="result-item"><div class="result-q">Q${i}: ${answers[i].question}</div><div class="result-a">✅ ${answers[i].answer}</div></div>`;
+                html += `
+                    <div class="result-item">
+                        <div class="result-q">Q${i}: ${answers[i].question}</div>
+                        <div class="result-a">✅ ${answers[i].answer}</div>
+                    </div>
+                `;
             }
+            
             resultsContent.innerHTML = html;
             document.getElementById('results').classList.add('active');
         }
         
         function copyResults() {
             let text = "🎧 Tanner's DJ App Answers 🎧\n\n";
+            
             for (let i = 1; i <= 4; i++) {
-                text += `Question ${i}: ${answers[i].question}\nAnswer: ${answers[i].answer}\n\n`;
+                text += `Question ${i}: ${answers[i].question}\n`;
+                text += `Answer: ${answers[i].answer}\n\n`;
             }
+            
             navigator.clipboard.writeText(text).then(() => {
                 const msg = document.getElementById('copiedMsg');
                 msg.style.display = 'block';
-                setTimeout(() => { msg.style.display = 'none'; }, 3000);
+                setTimeout(() => {
+                    msg.style.display = 'none';
+                }, 3000);
             });
         }
     </script>
