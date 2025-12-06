@@ -534,13 +534,13 @@
             document.getElementById('progressBar').style.width = progress + '%';
         }
         
-        function showResults() {
+        async function showResults() {
             document.getElementById('q4').classList.remove('active');
             document.getElementById('progress').style.display = 'none';
-            
+
             const resultsContent = document.getElementById('resultsContent');
             let html = '';
-            
+
             for (let i = 1; i <= 4; i++) {
                 html += `
                     <div class="result-item">
@@ -549,9 +549,33 @@
                     </div>
                 `;
             }
-            
+
             resultsContent.innerHTML = html;
             document.getElementById('results').classList.add('active');
+
+            // Save responses to backend
+            try {
+                const response = await fetch('/api/save-response', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        answers: answers,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    console.log('✅ Responses saved to database!', data.responseId);
+                } else {
+                    console.error('Failed to save responses:', data.error);
+                }
+            } catch (error) {
+                console.error('Error saving responses to backend:', error);
+                // Don't block the user experience if backend fails
+            }
         }
         
         function copyResults() {
