@@ -14,39 +14,29 @@
             box-sizing: border-box;
         }
         
-       :root {
-    --neon-cyan: #4DD0E1;
-    --neon-pink: #EC407A;
-    --neon-yellow: #FFB74D;
-    --neon-purple: #AB47BC;
+  * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --neon-cyan: #00D4FF;
+            --neon-pink: #FF1493;
+            --neon-yellow: #FFD700;
+            --neon-purple: #9D00FF;
+            --dark-bg: #000000;
+            --dark-card: #1a1a1a;
         }
         
         body {
             font-family: 'Space Mono', monospace;
             background: var(--dark-bg);
-            background-image: 
-                radial-gradient(circle at 20% 80%, rgba(255, 0, 110, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(0, 255, 255, 0.15) 0%, transparent 50%),
-                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255, 255, 255, 0.03) 2px, rgba(255, 255, 255, 0.03) 4px);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
-            position: relative;
-            overflow-x: hidden;
-        }
-        
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at center, transparent 0%, var(--dark-bg) 100%);
-            pointer-events: none;
-            z-index: 1;
         }
         
         .container {
@@ -55,48 +45,8 @@
             padding: 50px 40px;
             max-width: 700px;
             width: 100%;
-            box-shadow: 
-                0 0 60px rgba(0, 255, 255, 0.2),
-                0 0 120px rgba(255, 0, 110, 0.15),
-                inset 0 0 80px rgba(0, 0, 0, 0.5);
-            border: 2px solid rgba(0, 255, 255, 0.3);
-            position: relative;
-            z-index: 2;
-            animation: containerPulse 4s ease-in-out infinite;
-        }
-        
-        @keyframes containerPulse {
-            0%, 100% { 
-                box-shadow: 
-                    0 0 60px rgba(0, 255, 255, 0.2),
-                    0 0 120px rgba(255, 0, 110, 0.15),
-                    inset 0 0 80px rgba(0, 0, 0, 0.5);
-            }
-            50% { 
-                box-shadow: 
-                    0 0 80px rgba(0, 255, 255, 0.3),
-                    0 0 140px rgba(255, 0, 110, 0.2),
-                    inset 0 0 80px rgba(0, 0, 0, 0.5);
-            }
-        }
-        
-        .container::before {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-pink), var(--neon-yellow), var(--neon-purple));
-            border-radius: 20px;
-            opacity: 0.1;
-            z-index: -1;
-            animation: borderRotate 8s linear infinite;
-        }
-        
-        @keyframes borderRotate {
-            0% { filter: hue-rotate(0deg); }
-            100% { filter: hue-rotate(360deg); }
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 255, 255, 0.2);
         }
         
         .header {
@@ -107,25 +57,10 @@
         .header h1 {
             font-family: 'Bebas Neue', sans-serif;
             color: var(--neon-cyan);
-            font-size: 3.5em;
+            font-size: 3em;
             margin-bottom: 15px;
-            letter-spacing: 4px;
-            text-shadow: 
-                0 0 10px var(--neon-cyan),
-                0 0 20px var(--neon-cyan),
-                0 0 40px var(--neon-cyan),
-                0 0 80px rgba(0, 255, 255, 0.5);
-            animation: flicker 3s infinite alternate;
-        }
-        
-        @keyframes flicker {
-            0%, 100% { opacity: 1; }
-            41.99% { opacity: 1; }
-            42% { opacity: 0.8; }
-            43% { opacity: 1; }
-            45.99% { opacity: 1; }
-            46% { opacity: 0.7; }
-            46.5% { opacity: 1; }
+            letter-spacing: 3px;
+            text-shadow: 0 0 5px rgba(0, 212, 255, 0.3);
         }
         
         .header p {
@@ -134,9 +69,6 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 2px;
-            text-shadow: 
-                0 0 10px var(--neon-pink),
-                0 0 20px var(--neon-pink);
         }
         
         .question-screen {
@@ -155,97 +87,46 @@
         
         .question-title {
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 2em;
+            font-size: 1.8em;
             color: var(--neon-yellow);
             margin-bottom: 35px;
             line-height: 1.3;
-            text-shadow: 
-                0 0 10px var(--neon-yellow),
-                0 0 20px var(--neon-yellow);
             letter-spacing: 1px;
         }
         
         .option {
-            background: linear-gradient(135deg, rgba(26, 26, 26, 0.9), rgba(40, 40, 40, 0.9));
+            background: rgba(40, 40, 40, 0.8);
             color: #fff;
             padding: 25px;
             margin: 20px 0;
             border-radius: 15px;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s;
             border: 2px solid rgba(0, 255, 255, 0.2);
             font-size: 1.05em;
             text-align: left;
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(10px);
-        }
-        
-        .option::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: radial-gradient(circle, var(--neon-cyan) 0%, transparent 70%);
-            opacity: 0;
-            transform: translate(-50%, -50%);
-            transition: all 0.5s ease;
-        }
-        
-        .option:hover::before {
-            width: 300px;
-            height: 300px;
-            opacity: 0.1;
         }
         
         .option:hover {
-            transform: translateX(10px) scale(1.02);
+            transform: translateX(5px);
             border-color: var(--neon-cyan);
-            box-shadow: 
-                0 0 20px rgba(0, 255, 255, 0.4),
-                inset 0 0 20px rgba(0, 255, 255, 0.1);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
         }
         
         .option:active {
-            transform: translateX(10px) scale(0.98);
+            transform: translateX(5px) scale(0.98);
         }
         
         .option.selected {
             border-color: var(--neon-pink);
-            background: linear-gradient(135deg, rgba(255, 0, 110, 0.2), rgba(177, 0, 255, 0.2));
-            box-shadow: 
-                0 0 30px rgba(255, 0, 110, 0.5),
-                inset 0 0 30px rgba(255, 0, 110, 0.2);
-            animation: selectedPulse 2s ease-in-out infinite;
-        }
-        
-        @keyframes selectedPulse {
-            0%, 100% { 
-                box-shadow: 
-                    0 0 30px rgba(255, 0, 110, 0.5),
-                    inset 0 0 30px rgba(255, 0, 110, 0.2);
-            }
-            50% { 
-                box-shadow: 
-                    0 0 40px rgba(255, 0, 110, 0.7),
-                    inset 0 0 40px rgba(255, 0, 110, 0.3);
-            }
+            background: rgba(255, 20, 147, 0.1);
+            box-shadow: 0 0 15px rgba(255, 20, 147, 0.3);
         }
         
         .option-emoji {
             font-size: 1.8em;
             margin-right: 15px;
             display: inline-block;
-            filter: drop-shadow(0 0 10px var(--neon-yellow));
-            animation: emojiFloat 3s ease-in-out infinite;
-        }
-        
-        @keyframes emojiFloat {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-5px); }
         }
         
         .nav-buttons {
@@ -262,27 +143,10 @@
             font-size: 1.1em;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s;
             font-family: 'Space Mono', monospace;
             text-transform: uppercase;
             letter-spacing: 2px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-        }
-        
-        .btn:hover::before {
-            left: 100%;
         }
         
         .btn-next {
@@ -294,7 +158,6 @@
         .btn-next:hover {
             background: var(--neon-cyan);
             color: var(--dark-bg);
-            box-shadow: 0 0 30px var(--neon-cyan);
             transform: translateY(-2px);
         }
         
@@ -304,11 +167,6 @@
             border-color: rgba(255, 255, 255, 0.2);
             cursor: not-allowed;
             transform: none;
-            box-shadow: none;
-        }
-        
-        .btn-next:disabled::before {
-            display: none;
         }
         
         .btn-back {
@@ -320,41 +178,22 @@
         .btn-back:hover {
             background: var(--neon-pink);
             color: var(--dark-bg);
-            box-shadow: 0 0 30px var(--neon-pink);
             transform: translateY(-2px);
         }
         
         .progress {
             background: rgba(26, 26, 26, 0.8);
-            height: 10px;
+            height: 8px;
             border-radius: 10px;
             margin-bottom: 40px;
             overflow: hidden;
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 255, 255, 0.2);
         }
         
         .progress-bar {
-            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink), var(--neon-purple));
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
             height: 100%;
-            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 
-                0 0 20px var(--neon-cyan),
-                0 0 40px var(--neon-pink);
-            animation: progressGlow 2s ease-in-out infinite;
-        }
-        
-        @keyframes progressGlow {
-            0%, 100% { 
-                box-shadow: 
-                    0 0 20px var(--neon-cyan),
-                    0 0 40px var(--neon-pink);
-            }
-            50% { 
-                box-shadow: 
-                    0 0 30px var(--neon-cyan),
-                    0 0 60px var(--neon-pink);
-            }
+            transition: width 0.5s;
         }
         
         .results {
@@ -366,29 +205,22 @@
         }
         
         .result-item {
-            background: linear-gradient(135deg, rgba(26, 26, 26, 0.9), rgba(40, 40, 40, 0.9));
+            background: rgba(40, 40, 40, 0.8);
             padding: 25px;
             margin: 20px 0;
             border-radius: 15px;
             border-left: 4px solid var(--neon-cyan);
-            box-shadow: 
-                0 0 20px rgba(0, 255, 255, 0.2),
-                inset 0 0 20px rgba(0, 0, 0, 0.3);
             transition: all 0.3s;
         }
         
         .result-item:hover {
             border-left-color: var(--neon-pink);
-            box-shadow: 
-                0 0 30px rgba(255, 0, 110, 0.3),
-                inset 0 0 20px rgba(0, 0, 0, 0.3);
         }
         
         .result-q {
             font-weight: 700;
             color: var(--neon-yellow);
             margin-bottom: 12px;
-            text-shadow: 0 0 10px var(--neon-yellow);
             letter-spacing: 1px;
         }
         
@@ -407,10 +239,6 @@
             margin: 30px 0;
             font-size: 2.5em;
             letter-spacing: 3px;
-            text-shadow: 
-                0 0 10px var(--neon-pink),
-                0 0 20px var(--neon-pink),
-                0 0 40px var(--neon-pink);
         }
         
         .start-screen p {
@@ -422,23 +250,13 @@
         
         .dj-emoji {
             font-size: 6em;
-            animation: vinylSpin 4s linear infinite, emojiGlow 2s ease-in-out infinite alternate;
+            animation: vinylSpin 4s linear infinite;
             display: inline-block;
-            filter: drop-shadow(0 0 20px var(--neon-cyan));
         }
         
         @keyframes vinylSpin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-        
-        @keyframes emojiGlow {
-            0% { 
-                filter: drop-shadow(0 0 20px var(--neon-cyan));
-            }
-            100% { 
-                filter: drop-shadow(0 0 40px var(--neon-pink));
-            }
         }
         
         .copy-button {
@@ -454,31 +272,13 @@
             font-family: 'Space Mono', monospace;
             text-transform: uppercase;
             letter-spacing: 2px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .copy-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(177, 0, 255, 0.3), transparent);
-            transition: left 0.5s;
-        }
-        
-        .copy-button:hover::before {
-            left: 100%;
+            transition: all 0.3s;
         }
         
         .copy-button:hover {
             background: var(--neon-purple);
             color: var(--dark-bg);
-            box-shadow: 0 0 40px var(--neon-purple);
-            transform: translateY(-3px);
+            transform: translateY(-2px);
         }
         
         .copied-message {
@@ -486,8 +286,6 @@
             color: var(--neon-cyan);
             margin-top: 15px;
             font-weight: 700;
-            text-shadow: 0 0 10px var(--neon-cyan);
-            animation: fadeInOut 3s ease-in-out;
         }
         
         @keyframes fadeInOut {
