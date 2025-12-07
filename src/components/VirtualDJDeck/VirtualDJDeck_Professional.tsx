@@ -1,14 +1,19 @@
 /**
- * VirtualDJDeck Component - Professional Version
+ * VirtualDJDeck Component - Professional Version with Centralized State
  *
  * Complete DJ deck with all professional UI components integrated.
- * This is the production-ready version with waveforms, professional controls, and polish.
+ * This version uses DeckContext for centralized state management where
+ * Deck A and Deck B are the central focal points.
+ *
+ * Architecture:
+ * - DeckContext provides centralized state for both decks
+ * - All controls (crossfader, tempo, volume, playback) read from and write to deck state
+ * - State changes propagate bidirectionally to all components
+ * - AudioEngine is controlled through DeckContext, not directly by UI components
  */
 
 import { useEffect, useRef, useState, useImperativeHandle, forwardRef } from 'react';
-import { AudioEngine } from './AudioEngine';
-import { VirtualDJDeckConfig, VirtualDJDeckState, DeckId, DeckState } from './types';
-import { generateWaveformData } from '../../utils/waveformUtils';
+import { VirtualDJDeckConfig, VirtualDJDeckState, DeckId } from './types';
 import { DeckControls } from './DeckControls';
 import { Waveform } from './Waveform';
 import { BPMDisplay } from './BPMDisplay';
@@ -19,6 +24,7 @@ import { useTutorial } from './useTutorial';
 import { TutorialConfig } from './tutorialTypes';
 import { TutorialOverlay } from './TutorialOverlay';
 import { TutorialInstructionPanel } from './TutorialInstructionPanel';
+import { DeckProvider, useDeck } from './DeckContext';
 import styles from './VirtualDJDeck_Professional.module.css';
 
 export interface VirtualDJDeckHandle {
@@ -41,202 +47,36 @@ interface VirtualDJDeckProps {
   onReplayLesson?: () => void;
 }
 
-const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps>(
+/**
+ * Internal component that consumes DeckContext
+ */
+const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps>(
   ({ config, tutorialConfig, className, mode = 'tutorial', onModeChange, onReplayLesson }, ref) => {
-    const audioEngineRef = useRef<AudioEngine | null>(null);
-    const [isInitialized, setIsInitialized] = useState(false);
+    // Use the centralized deck context
+    const deck = useDeck();
+    
+    const [needsUserGesture, setNeedsUserGesture] = useState(true);
     const [error, setError] = useState<Error | null>(null);
-    const [needsUserGesture, setNeedsUserGesture] = useState(true); // Start with button visible
-    const [loadErrors, setLoadErrors] = useState<{ A?: string; B?: string }>({});
 
-    // Deck states
-    const [deckAState, setDeckAState] = useState<DeckState>({
-      isPlaying: false,
-      isPaused: false,
-      currentTime: 0,
-      duration: 0,
-      originalBPM: config.deckA.initialBPM,
-      currentBPM: config.deckA.initialBPM,
-      playbackRate: 1,
-      volume: 1,
-      isLoaded: false,
-      cuePoint: config.deckA.cuePoint,
-      waveformData: [],
-    });
+    // Use the centralized deck context
+    const deck = useDeck();
+    
+    const [needsUserGesture, setNeedsUserGesture] = useState(true);
+    const [error, setError] = useState<Error | null>(null);
 
-    const [deckBState, setDeckBState] = useState<DeckState>({
-      isPlaying: false,
-      isPaused: false,
-      currentTime: 0,
-      duration: 0,
-      originalBPM: config.deckB.initialBPM,
-      currentBPM: config.deckB.initialBPM,
-      playbackRate: 1,
-      volume: 1,
-      isLoaded: false,
-      cuePoint: config.deckB.cuePoint,
-      waveformData: [],
-    });
-
-    const [crossfaderPosition, setCrossfaderPosition] = useState(0);
-
-    // Don't auto-initialize - wait for user gesture
     // Cleanup on unmount
     useEffect(() => {
       return () => {
-        if (audioEngineRef.current) {
-          audioEngineRef.current.destroy();
-          audioEngineRef.current = null;
+        if (deck.audioEngine) {
+          deck.audioEngine.destroy();
         }
       };
     }, []);
 
-    // Load a track for a deck
-    const loadTrack = async (deck: DeckId, url: string) => {
-      if (!audioEngineRef.current) return;
+    // Get current state for tutorial system
+    const getState = (): VirtualDJDeckState => deck.getState();
 
-      try {
-        await audioEngineRef.current.loadTrack(deck, url);
-
-        const buffer = audioEngineRef.current.getAudioBuffer(deck);
-        const waveformData = buffer ? generateWaveformData(buffer, 200) : [];
-        const duration = audioEngineRef.current.getDuration(deck);
-
-        const updateState = deck === 'A' ? setDeckAState : setDeckBState;
-        updateState((prev) => ({
-          ...prev,
-          isLoaded: true,
-          duration,
-          waveformData,
-        }));
-
-        // Clear any previous load error for this deck
-        setLoadErrors((prev) => {
-          const newErrors = { ...prev };
-          delete newErrors[deck];
-          return newErrors;
-        });
-
-        console.log(`[VirtualDJDeck] Track loaded for Deck ${deck}`);
-      } catch (err) {
-        console.error(`[VirtualDJDeck] Failed to load track for Deck ${deck}:`, err);
-
-        // Store the error message for this specific deck
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load track';
-        setLoadErrors((prev) => ({ ...prev, [deck]: errorMessage }));
-
-        // Still call the error callback but don't set global error
-        config.onError?.(err as Error);
-      }
-    };
-
-    // Play a deck
-    const playDeck = (deck: DeckId) => {
-      if (!audioEngineRef.current || !isInitialized) return;
-
-      try {
-        audioEngineRef.current.play(deck);
-
-        const updateState = deck === 'A' ? setDeckAState : setDeckBState;
-        updateState((prev) => ({ ...prev, isPlaying: true, isPaused: false }));
-
-        notifyStateChange();
-        tutorial.validateStep(getState());
-      } catch (err) {
-        console.error(`[VirtualDJDeck] Failed to play Deck ${deck}:`, err);
-        setError(err as Error);
-        config.onError?.(err as Error);
-      }
-    };
-
-    // Pause a deck
-    const pauseDeck = (deck: DeckId) => {
-      if (!audioEngineRef.current || !isInitialized) return;
-
-      try {
-        audioEngineRef.current.pause(deck);
-
-        const updateState = deck === 'A' ? setDeckAState : setDeckBState;
-        updateState((prev) => ({ ...prev, isPlaying: false, isPaused: true }));
-
-        notifyStateChange();
-        tutorial.validateStep(getState());
-      } catch (err) {
-        console.error(`[VirtualDJDeck] Failed to pause Deck ${deck}:`, err);
-        setError(err as Error);
-        config.onError?.(err as Error);
-      }
-    };
-
-    // Cue a deck
-    const cueDeck = (deck: DeckId) => {
-      if (!audioEngineRef.current || !isInitialized) return;
-
-      try {
-        const cuePoint = deck === 'A' ? deckAState.cuePoint : deckBState.cuePoint;
-        audioEngineRef.current.cue(deck, cuePoint);
-
-        const updateState = deck === 'A' ? setDeckAState : setDeckBState;
-        updateState((prev) => ({ ...prev, isPlaying: true, isPaused: false }));
-
-        notifyStateChange();
-        tutorial.validateStep(getState());
-      } catch (err) {
-        console.error(`[VirtualDJDeck] Failed to cue Deck ${deck}:`, err);
-        setError(err as Error);
-        config.onError?.(err as Error);
-      }
-    };
-
-    // Set BPM for a deck
-    const setBPM = (deck: DeckId, bpm: number) => {
-      if (!audioEngineRef.current || !isInitialized) return;
-
-      const state = deck === 'A' ? deckAState : deckBState;
-      const playbackRate = bpm / state.originalBPM;
-
-      try {
-        audioEngineRef.current.setPlaybackRate(deck, playbackRate);
-
-        const updateState = deck === 'A' ? setDeckAState : setDeckBState;
-        updateState((prev) => ({ ...prev, currentBPM: bpm, playbackRate }));
-
-        notifyStateChange();
-        tutorial.validateStep(getState());
-      } catch (err) {
-        console.error(`[VirtualDJDeck] Failed to set BPM for Deck ${deck}:`, err);
-        setError(err as Error);
-        config.onError?.(err as Error);
-      }
-    };
-
-    // Set crossfader position
-    const setCrossfader = (position: number) => {
-      if (!audioEngineRef.current || !isInitialized) return;
-
-      try {
-        audioEngineRef.current.setCrossfade(position);
-        setCrossfaderPosition(position);
-
-        notifyStateChange();
-        tutorial.validateStep(getState());
-      } catch (err) {
-        console.error('[VirtualDJDeck] Failed to set crossfader:', err);
-        setError(err as Error);
-        config.onError?.(err as Error);
-      }
-    };
-
-    // Get current state
-    const getState = (): VirtualDJDeckState => {
-      return {
-        deckA: deckAState,
-        deckB: deckBState,
-        crossfaderPosition,
-      };
-    };
-
-    // Initialize tutorial system (after getState is defined)
+    // Initialize tutorial system
     const tutorial = useTutorial(tutorialConfig || null, getState());
 
     // Get highlight target once for rendering
@@ -248,21 +88,6 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
       console.log('[DEBUG] Tutorial active:', tutorial.progress.isActive);
       console.log('[DEBUG] Current step:', tutorial.currentStep?.instruction);
     }, [tutorial.currentStep, tutorial.progress.isActive, highlightTarget]);
-
-    // Set volume for a deck
-    const setVolume = (deck: DeckId, volume: number) => {
-      if (!audioEngineRef.current) return;
-      audioEngineRef.current.setDeckVolume(deck, volume);
-      const updateState = deck === 'A' ? setDeckAState : setDeckBState;
-      updateState((prev) => ({ ...prev, volume }));
-      notifyStateChange();
-      tutorial.validateStep(getState());
-    };
-
-    // Notify parent of state changes
-    const notifyStateChange = () => {
-      config.onStateChange?.(getState());
-    };
 
     // Handle lesson completion actions
     const handleReplayLesson = () => {
@@ -277,26 +102,21 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
 
     const handleMoreLessons = () => {
       console.log('[VirtualDJDeck] More lessons requested');
-      // Placeholder - could navigate to lesson selection screen
       alert('More lessons coming soon! 🎧');
     };
 
     // Handle "tap to enable audio" button
     const handleEnableAudio = async () => {
       try {
-        // Create and initialize AudioEngine INSIDE the click handler
-        const engine = new AudioEngine();
-        audioEngineRef.current = engine;
-
-        // Initialize Tone.js (this MUST happen in the click handler)
-        await engine.init();
+        // Initialize AudioEngine through context
+        await deck.initializeAudioEngine();
 
         console.log('[VirtualDJDeck] AudioEngine initialized after user gesture');
 
         // Load tracks (continue even if some fail)
         const loadResults = await Promise.allSettled([
-          loadTrack('A', config.deckA.trackUrl),
-          loadTrack('B', config.deckB.trackUrl),
+          deck.loadTrack('A', config.deckA.trackUrl, config.deckA.initialBPM, config.deckA.cuePoint),
+          deck.loadTrack('B', config.deckB.trackUrl, config.deckB.initialBPM, config.deckB.cuePoint),
         ]);
 
         // Check if any tracks failed to load
@@ -307,10 +127,7 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
           );
         }
 
-        // Set initialized even if tracks failed to load
-        // This allows the UI to render with error messages per deck
         setNeedsUserGesture(false);
-        setIsInitialized(true);
       } catch (err) {
         console.error('[VirtualDJDeck] Failed to enable audio:', err);
         setError(err as Error);
@@ -320,34 +137,65 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
 
     // Expose public API via ref
     useImperativeHandle(ref, () => ({
-      playDeck,
-      pauseDeck,
-      cueDeck,
-      setBPM,
-      setCrossfader,
-      getState,
+      playDeck: deck.playDeck,
+      pauseDeck: deck.pauseDeck,
+      cueDeck: deck.cueDeck,
+      setBPM: deck.setBPM,
+      setCrossfader: deck.setCrossfader,
+      getState: deck.getState,
     }));
 
     // Update playback time periodically
     useEffect(() => {
-      if (!isInitialized || !audioEngineRef.current) return;
+      if (!deck.isInitialized || !deck.audioEngine) return;
 
       const interval = setInterval(() => {
-        if (!audioEngineRef.current) return;
+        if (!deck.audioEngine) return;
 
-        if (deckAState.isPlaying) {
-          const currentTime = audioEngineRef.current.getCurrentTime('A');
-          setDeckAState((prev) => ({ ...prev, currentTime }));
+        if (deck.deckAState.isPlaying) {
+          const currentTime = deck.audioEngine.getCurrentTime('A');
+          deck.updateCurrentTime('A', currentTime);
         }
 
-        if (deckBState.isPlaying) {
-          const currentTime = audioEngineRef.current.getCurrentTime('B');
-          setDeckBState((prev) => ({ ...prev, currentTime }));
+        if (deck.deckBState.isPlaying) {
+          const currentTime = deck.audioEngine.getCurrentTime('B');
+          deck.updateCurrentTime('B', currentTime);
         }
       }, 16); // 60fps updates
 
       return () => clearInterval(interval);
-    }, [isInitialized, deckAState.isPlaying, deckBState.isPlaying]);
+    }, [deck]);
+
+    // Wrap deck operations to include tutorial validation
+    const playDeckWithTutorial = (deckId: DeckId) => {
+      deck.playDeck(deckId);
+      tutorial.validateStep(getState());
+    };
+
+    const pauseDeckWithTutorial = (deckId: DeckId) => {
+      deck.pauseDeck(deckId);
+      tutorial.validateStep(getState());
+    };
+
+    const cueDeckWithTutorial = (deckId: DeckId) => {
+      deck.cueDeck(deckId);
+      tutorial.validateStep(getState());
+    };
+
+    const setBPMWithTutorial = (deckId: DeckId, bpm: number) => {
+      deck.setBPM(deckId, bpm);
+      tutorial.validateStep(getState());
+    };
+
+    const setVolumeWithTutorial = (deckId: DeckId, volume: number) => {
+      deck.setVolume(deckId, volume);
+      tutorial.validateStep(getState());
+    };
+
+    const setCrossfaderWithTutorial = (position: number) => {
+      deck.setCrossfader(position);
+      tutorial.validateStep(getState());
+    };
 
     // Render error state
     if (error) {
@@ -381,7 +229,7 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
     }
 
     // Render loading state
-    if (!isInitialized) {
+    if (!deck.isInitialized) {
       return (
         <div className={`${styles.container} ${className || ''}`}>
           <div className={styles.loading}>
@@ -417,7 +265,7 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
               <h3 style={{ color: config.deckA.waveformColor }}>Deck A</h3>
             </div>
 
-            {loadErrors.A ? (
+            {deck.loadErrors.A ? (
               <div className={styles.deckError}>
                 <p className={styles.errorIcon}>⚠️</p>
                 <p className={styles.errorMessage}>Track failed to load</p>
@@ -426,26 +274,26 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
                   Add audio files to <code>public/audio/</code> directory
                 </p>
               </div>
-            ) : !deckAState.isLoaded ? (
+            ) : !deck.deckAState.isLoaded ? (
               <div className={styles.deckLoading}>
                 <p>Loading track...</p>
               </div>
             ) : null}
 
             <Waveform
-              waveformData={deckAState.waveformData}
+              waveformData={deck.deckAState.waveformData}
               color={config.deckA.waveformColor}
-              isPlaying={deckAState.isPlaying}
-              currentTime={deckAState.currentTime}
-              duration={deckAState.duration}
+              isPlaying={deck.deckAState.isPlaying}
+              currentTime={deck.deckAState.currentTime}
+              duration={deck.deckAState.duration}
               width={400}
               height={100}
               className={styles.waveform}
             />
 
             <BPMDisplay
-              originalBPM={deckAState.originalBPM}
-              currentBPM={deckAState.currentBPM}
+              originalBPM={deck.deckAState.originalBPM}
+              currentBPM={deck.deckAState.currentBPM}
               color={config.deckA.waveformColor}
               className={styles.bpmDisplay}
             />
@@ -453,9 +301,9 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
             <div className={styles.controlsRow}>
               <VolumeControl
                 deck="A"
-                volume={deckAState.volume}
+                volume={deck.deckAState.volume}
                 color={config.deckA.waveformColor}
-                onChange={(vol) => setVolume('A', vol)}
+                onChange={(vol) => setVolumeWithTutorial('A', vol)}
                 highlighted={
                   mode === 'tutorial' &&
                   highlightTarget?.type === 'slider' &&
@@ -466,10 +314,10 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
 
               <TempoSlider
                 deck="A"
-                originalBPM={deckAState.originalBPM}
-                currentBPM={deckAState.currentBPM}
+                originalBPM={deck.deckAState.originalBPM}
+                currentBPM={deck.deckAState.currentBPM}
                 color={config.deckA.waveformColor}
-                onChange={(bpm) => setBPM('A', bpm)}
+                onChange={(bpm) => setBPMWithTutorial('A', bpm)}
                 highlighted={
                   mode === 'tutorial' &&
                   highlightTarget?.type === 'slider' &&
@@ -480,12 +328,12 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
 
               <DeckControls
                 deck="A"
-                isPlaying={deckAState.isPlaying}
-                isLoaded={deckAState.isLoaded}
+                isPlaying={deck.deckAState.isPlaying}
+                isLoaded={deck.deckAState.isLoaded}
                 color={config.deckA.waveformColor}
-                onPlay={() => playDeck('A')}
-                onPause={() => pauseDeck('A')}
-                onCue={() => cueDeck('A')}
+                onPlay={() => playDeckWithTutorial('A')}
+                onPause={() => pauseDeckWithTutorial('A')}
+                onCue={() => cueDeckWithTutorial('A')}
                 highlightPlay={
                   mode === 'tutorial' &&
                   highlightTarget?.type === 'button' &&
@@ -514,7 +362,7 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
               <h3 style={{ color: config.deckB.waveformColor }}>Deck B</h3>
             </div>
 
-            {loadErrors.B ? (
+            {deck.loadErrors.B ? (
               <div className={styles.deckError}>
                 <p className={styles.errorIcon}>⚠️</p>
                 <p className={styles.errorMessage}>Track failed to load</p>
@@ -523,26 +371,26 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
                   Add audio files to <code>public/audio/</code> directory
                 </p>
               </div>
-            ) : !deckBState.isLoaded ? (
+            ) : !deck.deckBState.isLoaded ? (
               <div className={styles.deckLoading}>
                 <p>Loading track...</p>
               </div>
             ) : null}
 
             <Waveform
-              waveformData={deckBState.waveformData}
+              waveformData={deck.deckBState.waveformData}
               color={config.deckB.waveformColor}
-              isPlaying={deckBState.isPlaying}
-              currentTime={deckBState.currentTime}
-              duration={deckBState.duration}
+              isPlaying={deck.deckBState.isPlaying}
+              currentTime={deck.deckBState.currentTime}
+              duration={deck.deckBState.duration}
               width={400}
               height={100}
               className={styles.waveform}
             />
 
             <BPMDisplay
-              originalBPM={deckBState.originalBPM}
-              currentBPM={deckBState.currentBPM}
+              originalBPM={deck.deckBState.originalBPM}
+              currentBPM={deck.deckBState.currentBPM}
               color={config.deckB.waveformColor}
               className={styles.bpmDisplay}
             />
@@ -550,9 +398,9 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
             <div className={styles.controlsRow}>
               <VolumeControl
                 deck="B"
-                volume={deckBState.volume}
+                volume={deck.deckBState.volume}
                 color={config.deckB.waveformColor}
-                onChange={(vol) => setVolume('B', vol)}
+                onChange={(vol) => setVolumeWithTutorial('B', vol)}
                 highlighted={
                   mode === 'tutorial' &&
                   highlightTarget?.type === 'slider' &&
@@ -563,10 +411,10 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
 
               <TempoSlider
                 deck="B"
-                originalBPM={deckBState.originalBPM}
-                currentBPM={deckBState.currentBPM}
+                originalBPM={deck.deckBState.originalBPM}
+                currentBPM={deck.deckBState.currentBPM}
                 color={config.deckB.waveformColor}
-                onChange={(bpm) => setBPM('B', bpm)}
+                onChange={(bpm) => setBPMWithTutorial('B', bpm)}
                 highlighted={
                   mode === 'tutorial' &&
                   highlightTarget?.type === 'slider' &&
@@ -577,12 +425,12 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
 
               <DeckControls
                 deck="B"
-                isPlaying={deckBState.isPlaying}
-                isLoaded={deckBState.isLoaded}
+                isPlaying={deck.deckBState.isPlaying}
+                isLoaded={deck.deckBState.isLoaded}
                 color={config.deckB.waveformColor}
-                onPlay={() => playDeck('B')}
-                onPause={() => pauseDeck('B')}
-                onCue={() => cueDeck('B')}
+                onPlay={() => playDeckWithTutorial('B')}
+                onPause={() => pauseDeckWithTutorial('B')}
+                onCue={() => cueDeckWithTutorial('B')}
                 highlightPlay={
                   mode === 'tutorial' &&
                   highlightTarget?.type === 'button' &&
@@ -606,14 +454,18 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
           </div>
         </div>
 
-        {/* Crossfader */}
+        {/* Enhanced Crossfader with Deck State Awareness */}
         <Crossfader
-          position={crossfaderPosition}
-          onChange={setCrossfader}
+          position={deck.crossfaderPosition}
+          onChange={setCrossfaderWithTutorial}
           colorA={config.deckA.waveformColor}
           colorB={config.deckB.waveformColor}
           snapToCenter={true}
           highlighted={mode === 'tutorial' && highlightTarget?.type === 'crossfader'}
+          deckALoaded={deck.deckAState.isLoaded}
+          deckBLoaded={deck.deckBState.isLoaded}
+          deckAPlaying={deck.deckAState.isPlaying}
+          deckBPlaying={deck.deckBState.isPlaying}
           className={styles.crossfader}
         />
 
@@ -634,6 +486,21 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
           />
         )}
       </div>
+    );
+  }
+);
+
+VirtualDJDeckInternal.displayName = 'VirtualDJDeckInternal';
+
+/**
+ * Main component that wraps internal component with DeckProvider
+ */
+const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps>(
+  (props, ref) => {
+    return (
+      <DeckProvider onStateChange={props.config.onStateChange} onError={props.config.onError}>
+        <VirtualDJDeckInternal ref={ref} {...props} />
+      </DeckProvider>
     );
   }
 );

@@ -7,6 +7,77 @@
   border-radius: 12px;
 }
 
+/* Deck Status Indicators - NEW */
+.statusIndicators {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.deckStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.deckStatus[data-deck="a"] {
+  justify-content: flex-start;
+}
+
+.deckStatus[data-deck="b"] {
+  justify-content: flex-end;
+}
+
+.statusDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #333;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 0px rgba(255, 255, 255, 0);
+}
+
+.statusDot.loaded {
+  box-shadow: 0 0 8px currentColor;
+}
+
+.statusDot.playing {
+  animation: pulse 1.5s ease-in-out infinite;
+  box-shadow: 0 0 15px currentColor;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+.statusLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: color 0.3s ease;
+}
+
+.volumeLevel {
+  font-size: 0.875rem;
+  font-weight: 700;
+  transition: opacity 0.3s ease;
+  text-shadow: 0 0 8px currentColor;
+}
+
 .labels {
   display: flex;
   justify-content: space-between;
@@ -20,6 +91,7 @@
 .labelA,
 .labelB {
   text-shadow: 0 0 10px currentColor;
+  transition: opacity 0.3s ease;
 }
 
 .labelCenter {
@@ -81,6 +153,33 @@
   pointer-events: none;
 }
 
+/* Active Region Indicators - NEW */
+.activeRegion {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 1;
+  animation: fadeIn 0.3s ease;
+}
+
+.activeRegion[data-side="left"] {
+  left: 0;
+}
+
+.activeRegion[data-side="right"] {
+  right: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .thumb {
   position: absolute;
   top: 50%;
@@ -93,6 +192,10 @@
   pointer-events: none;
   z-index: 10;
   transition: all 0.2s ease;
+}
+
+.thumb.active {
+  filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
 }
 
 .thumbInner {
@@ -132,6 +235,19 @@
 @media (max-width: 768px) {
   .container {
     padding: 1rem;
+  }
+
+  .statusIndicators {
+    padding: 0.375rem 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .statusLabel {
+    font-size: 0.625rem;
+  }
+
+  .volumeLevel {
+    font-size: 0.75rem;
   }
 
   .slider {
