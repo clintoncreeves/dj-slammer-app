@@ -72,6 +72,22 @@ export const yourFirstMixLesson: TutorialLesson = {
     },
 
     {
+      id: 'adjust-volume-b',
+      instruction: 'Lower Deck B volume to blend it in smoothly!',
+      highlightTarget: {
+        type: 'slider',
+        deck: 'B',
+        control: 'volume',
+      },
+      validate: (currentState, previousState) => {
+        // Check if Deck B volume was lowered
+        return currentState.deckB.volume < previousState.deckB.volume && currentState.deckB.volume < 0.7;
+      },
+      hint: 'Drag Deck B volume fader down to around 60%',
+      celebrationMessage: 'BALANCED! Smooth volume mixing!',
+    },
+
+    {
       id: 'crossfade-to-b',
       instruction: 'Slide the crossfader to B to transition fully to Deck B!',
       highlightTarget: {
@@ -102,7 +118,7 @@ export const yourFirstMixLesson: TutorialLesson = {
     },
   ],
 
-  completionMessage: '🔥 SKILLS UNLOCKED! You just completed your first DJ mix! 🔥\n\nYou learned:\n✅ Basic playback control\n✅ Crossfader blending\n✅ Smooth transitions\n✅ Professional deck control\n\nYou\'re ready for real DJ equipment like Pioneer & Rekordbox! 🎧',
+  completionMessage: '🔥 SKILLS UNLOCKED! You just completed your first DJ mix! 🔥\n\nYou learned:\n✅ Basic playback control\n✅ Volume mixing & balancing\n✅ Crossfader blending\n✅ Smooth transitions\n✅ Professional deck control\n\nYou\'re ready for real DJ equipment like Pioneer & Rekordbox! 🎧',
 
   badge: {
     icon: '🏆',

@@ -3,6 +3,7 @@ import { VirtualDJDeckConfig, VirtualDJDeckState, DeckState } from './types';
 import { TutorialConfig } from './tutorialTypes';
 import { TutorialInstructionPanel } from './TutorialInstructionPanel';
 import { Crossfader_Rekordbox } from './Crossfader_Rekordbox';
+import { Mixer_Rekordbox } from './Mixer_Rekordbox';
 import { useTutorial } from './useTutorial';
 
 export interface VirtualDJDeck_RekordboxProps {
@@ -63,6 +64,8 @@ export const VirtualDJDeck_Rekordbox: React.FC<VirtualDJDeck_RekordboxProps> = (
       elementId = `deck${target.deck}${target.control.charAt(0).toUpperCase()}${target.control.slice(1)}Button`;
     } else if (target.type === 'crossfader') {
       elementId = 'crossfader';
+    } else if (target.type === 'slider' && target.deck && target.control === 'volume') {
+      elementId = `volumeSlider${target.deck}`;
     } else if (target.type === 'deck' && target.deck) {
       // Highlight entire deck section
       const deckSections = document.querySelectorAll('.dj-deck');
@@ -194,6 +197,46 @@ export const VirtualDJDeck_Rekordbox: React.FC<VirtualDJDeck_RekordboxProps> = (
       showAchievement('🎚️', 'Crossfader Pro!', 'You moved the crossfader!');
       setAchievements(prev => [...prev, 'first-crossfade']);
     }
+  };
+
+  const handleVolumeAChange = (value: number) => {
+    console.log(`[Rekordbox] Deck A volume: ${value}`);
+
+    setDeckState(prevState => {
+      const newState = {
+        ...prevState,
+        deckA: { ...prevState.deckA, volume: value }
+      };
+
+      // Validate tutorial step
+      if (tutorialHook) {
+        tutorialHook.validateStep(newState);
+      }
+
+      return newState;
+    });
+
+    showFeedback('good');
+  };
+
+  const handleVolumeBChange = (value: number) => {
+    console.log(`[Rekordbox] Deck B volume: ${value}`);
+
+    setDeckState(prevState => {
+      const newState = {
+        ...prevState,
+        deckB: { ...prevState.deckB, volume: value }
+      };
+
+      // Validate tutorial step
+      if (tutorialHook) {
+        tutorialHook.validateStep(newState);
+      }
+
+      return newState;
+    });
+
+    showFeedback('good');
   };
 
   const generateWaveformBars = (count: number = 40) => {
@@ -388,6 +431,14 @@ export const VirtualDJDeck_Rekordbox: React.FC<VirtualDJDeck_RekordboxProps> = (
           </div>
         </div>
       </section>
+
+      {/* Professional Mixer Section - Volume Faders */}
+      <Mixer_Rekordbox
+        volumeA={deckState.deckA.volume}
+        volumeB={deckState.deckB.volume}
+        onVolumeAChange={handleVolumeAChange}
+        onVolumeBChange={handleVolumeBChange}
+      />
 
       {/* Crossfader - Professional Mixer Control */}
       <Crossfader_Rekordbox
