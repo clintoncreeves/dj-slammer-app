@@ -1,38 +1,60 @@
-import { VirtualDJDeck_Rekordbox } from './components/VirtualDJDeck/VirtualDJDeck_Rekordbox';
-import { VirtualDJDeckConfig } from './components/VirtualDJDeck/types';
-import { TutorialConfig } from './components/VirtualDJDeck/tutorialTypes';
-import { yourFirstMixLesson } from './components/VirtualDJDeck/lessons/yourFirstMix';
+import { useState } from 'react';
+import { FirstLesson } from './components/VirtualDJDeck/FirstLesson';
+import { KidsModeDemo } from './components/Demo/KidsModeDemo';
 
 function App() {
-  const config: VirtualDJDeckConfig = {
-    deckA: {
-      trackUrl: '/audio/alone-296348.mp3',
-      initialBPM: 120,
-      cuePoint: 0,
-      waveformColor: '#00F0FF',
-    },
-    deckB: {
-      trackUrl: '/audio/baby-mandala-nepalese-drill-music-169039.mp3',
-      initialBPM: 120,
-      cuePoint: 0,
-      waveformColor: '#FF006E',
-    },
-    onStateChange: (state) => {
-      console.log('[App] Deck state changed:', state);
-    },
-    onError: (error) => {
-      console.error('[App] DJ Deck error:', error);
-    },
-  };
+  const [mode, setMode] = useState<'slammer' | 'lesson'>('slammer');
 
-  const tutorialConfig: TutorialConfig = {
-    lesson: yourFirstMixLesson,
-    enableCelebrations: true,
-    hintDelaySeconds: 15,
-    autoAdvance: true, // Smooth auto-advance for fluid tutorial flow
-  };
+  return (
+    <div style={{ position: 'relative' }}>
+      {/* Mode Switcher */}
+      <div style={styles.modeSwitcher}>
+        <button
+          style={{
+            ...styles.modeButton,
+            backgroundColor: mode === 'slammer' ? '#4CAF50' : 'rgba(255, 255, 255, 0.1)',
+          }}
+          onClick={() => setMode('slammer')}
+        >
+          🎧 Slammer Mode
+        </button>
+        <button
+          style={{
+            ...styles.modeButton,
+            backgroundColor: mode === 'lesson' ? '#4CAF50' : 'rgba(255, 255, 255, 0.1)',
+          }}
+          onClick={() => setMode('lesson')}
+        >
+          📚 First Lesson
+        </button>
+      </div>
 
-  return <VirtualDJDeck_Rekordbox config={config} tutorialConfig={tutorialConfig} />;
+      {/* Content */}
+      {mode === 'slammer' ? <KidsModeDemo /> : <FirstLesson />}
+    </div>
+  );
 }
+
+const styles: Record<string, React.CSSProperties> = {
+  modeSwitcher: {
+    position: 'fixed',
+    top: '20px',
+    right: '20px',
+    display: 'flex',
+    gap: '8px',
+    zIndex: 1000,
+  },
+  modeButton: {
+    padding: '12px 20px',
+    border: '2px solid rgba(255, 255, 255, 0.3)',
+    borderRadius: '8px',
+    color: '#fff',
+    fontFamily: 'Arial, sans-serif',
+    fontSize: '14px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+  },
+};
 
 export default App;

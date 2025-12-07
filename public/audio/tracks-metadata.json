@@ -7,14 +7,14 @@
       "bpm": 152,
       "duration": 92,
       "filename": "alone-296348.mp3",
-      "cuePoints": [
-        0,
-        25,
-        50,
-        75
-      ],
+      "cuePoints": [0, 25, 50, 75],
       "waveformColor": "#00F0FF",
-      "key": "E"
+      "key": "E",
+      "keyMode": "minor",
+      "camelotCode": "9A",
+      "keyColor": "#FF6B9D",
+      "tempoCategory": "fast",
+      "compatibleKeys": ["9A", "8A", "10A", "9B"]
     },
     {
       "id": "baby-mandala-nepalese-drill-music-169039",
@@ -23,14 +23,14 @@
       "bpm": 72,
       "duration": 191,
       "filename": "baby-mandala-nepalese-drill-music-169039.mp3",
-      "cuePoints": [
-        0,
-        53,
-        106,
-        160
-      ],
+      "cuePoints": [0, 53, 106, 160],
       "waveformColor": "#FF006E",
-      "key": "A"
+      "key": "A",
+      "keyMode": "minor",
+      "camelotCode": "1A",
+      "keyColor": "#FFD700",
+      "tempoCategory": "slow",
+      "compatibleKeys": ["1A", "12A", "2A", "1B"]
     },
     {
       "id": "dance-gabino-latin-slap-house-background-music-for-vlog-video-stories-382424",
@@ -39,12 +39,14 @@
       "bpm": 96,
       "duration": 68,
       "filename": "dance-gabino-latin-slap-house-background-music-for-vlog-video-stories-382424.mp3",
-      "cuePoints": [
-        0,
-        40
-      ],
+      "cuePoints": [0, 40],
       "waveformColor": "#00FF00",
-      "key": "G"
+      "key": "G",
+      "keyMode": "major",
+      "camelotCode": "9B",
+      "keyColor": "#4CAF50",
+      "tempoCategory": "medium",
+      "compatibleKeys": ["9B", "8B", "10B", "9A"]
     },
     {
       "id": "dance-until-dark-329026",
@@ -53,16 +55,14 @@
       "bpm": 123,
       "duration": 184,
       "filename": "dance-until-dark-329026.mp3",
-      "cuePoints": [
-        0,
-        31,
-        62,
-        93,
-        124,
-        156
-      ],
+      "cuePoints": [0, 31, 62, 93, 124, 156],
       "waveformColor": "#FFFF00",
-      "key": "A"
+      "key": "A",
+      "keyMode": "major",
+      "camelotCode": "11B",
+      "keyColor": "#FFD700",
+      "tempoCategory": "medium",
+      "compatibleKeys": ["11B", "10B", "12B", "11A"]
     },
     {
       "id": "drive-breakbeat-173062",
@@ -71,13 +71,14 @@
       "bpm": 96,
       "duration": 109,
       "filename": "drive-breakbeat-173062.mp3",
-      "cuePoints": [
-        0,
-        40,
-        80
-      ],
+      "cuePoints": [0, 40, 80],
       "waveformColor": "#FF00FF",
-      "key": "D"
+      "key": "D",
+      "keyMode": "major",
+      "camelotCode": "3B",
+      "keyColor": "#FF6B6B",
+      "tempoCategory": "medium",
+      "compatibleKeys": ["3B", "2B", "4B", "3A"]
     },
     {
       "id": "futuristic-motivation-synthwave-431078",
@@ -86,15 +87,14 @@
       "bpm": 99,
       "duration": 172,
       "filename": "futuristic-motivation-synthwave-431078.mp3",
-      "cuePoints": [
-        0,
-        38,
-        77,
-        116,
-        155
-      ],
+      "cuePoints": [0, 38, 77, 116, 155],
       "waveformColor": "#00FFFF",
-      "key": "F#"
+      "key": "F#",
+      "keyMode": "minor",
+      "camelotCode": "11A",
+      "keyColor": "#9C27B0",
+      "tempoCategory": "medium",
+      "compatibleKeys": ["11A", "10A", "12A", "11B"]
     },
     {
       "id": "gorila-315977",
@@ -103,15 +103,14 @@
       "bpm": 161,
       "duration": 115,
       "filename": "gorila-315977.mp3",
-      "cuePoints": [
-        0,
-        23,
-        47,
-        71,
-        95
-      ],
+      "cuePoints": [0, 23, 47, 71, 95],
       "waveformColor": "#FF8800",
-      "key": "G#"
+      "key": "G#",
+      "keyMode": "minor",
+      "camelotCode": "1A",
+      "keyColor": "#FF9800",
+      "tempoCategory": "fast",
+      "compatibleKeys": ["1A", "12A", "2A", "1B"]
     },
     {
       "id": "happy-summer-145530",
@@ -120,15 +119,14 @@
       "bpm": 129,
       "duration": 140,
       "filename": "happy-summer-145530.mp3",
-      "cuePoints": [
-        0,
-        29,
-        59,
-        89,
-        119
-      ],
+      "cuePoints": [0, 29, 59, 89, 119],
       "waveformColor": "#8800FF",
-      "key": "A"
+      "key": "A",
+      "keyMode": "major",
+      "camelotCode": "11B",
+      "keyColor": "#FFD700",
+      "tempoCategory": "medium",
+      "compatibleKeys": ["11B", "10B", "12B", "11A"]
     },
     {
       "id": "legacy-of-tchaikovsky-swan-lake-house-background-music-for-video-vlog-398013",
@@ -137,12 +135,14 @@
       "bpm": 123,
       "duration": 61,
       "filename": "legacy-of-tchaikovsky-swan-lake-house-background-music-for-video-vlog-398013.mp3",
-      "cuePoints": [
-        0,
-        31
-      ],
+      "cuePoints": [0, 31],
       "waveformColor": "#FF0088",
-      "key": "F#"
+      "key": "F#",
+      "keyMode": "major",
+      "camelotCode": "2B",
+      "keyColor": "#9C27B0",
+      "tempoCategory": "medium",
+      "compatibleKeys": ["2B", "1B", "3B", "2A"]
     },
     {
       "id": "legendary-bach-badinerie-house-background-music-for-video-short-ver-394172",
@@ -151,12 +151,14 @@
       "bpm": 117,
       "duration": 54,
       "filename": "legendary-bach-badinerie-house-background-music-for-video-short-ver-394172.mp3",
-      "cuePoints": [
-        0,
-        32
-      ],
+      "cuePoints": [0, 32],
       "waveformColor": "#88FF00",
-      "key": "B"
+      "key": "B",
+      "keyMode": "minor",
+      "camelotCode": "10A",
+      "keyColor": "#2196F3",
+      "tempoCategory": "medium",
+      "compatibleKeys": ["10A", "9A", "11A", "10B"]
     },
     {
       "id": "lofi-chill-commercial-fashion-vlog-140858",
@@ -165,13 +167,14 @@
       "bpm": 86,
       "duration": 124,
       "filename": "lofi-chill-commercial-fashion-vlog-140858.mp3",
-      "cuePoints": [
-        0,
-        44,
-        89
-      ],
+      "cuePoints": [0, 44, 89],
       "waveformColor": "#0088FF",
-      "key": "F"
+      "key": "F",
+      "keyMode": "major",
+      "camelotCode": "7B",
+      "keyColor": "#00BCD4",
+      "tempoCategory": "slow",
+      "compatibleKeys": ["7B", "6B", "8B", "7A"]
     },
     {
       "id": "neon-overdrive-cyberpunk-gaming-edm-415723",
@@ -180,17 +183,14 @@
       "bpm": 136,
       "duration": 184,
       "filename": "neon-overdrive-cyberpunk-gaming-edm-415723.mp3",
-      "cuePoints": [
-        0,
-        28,
-        56,
-        84,
-        112,
-        141,
-        169
-      ],
+      "cuePoints": [0, 28, 56, 84, 112, 141, 169],
       "waveformColor": "#FF8888",
-      "key": "F"
+      "key": "F",
+      "keyMode": "minor",
+      "camelotCode": "7A",
+      "keyColor": "#00BCD4",
+      "tempoCategory": "fast",
+      "compatibleKeys": ["7A", "6A", "8A", "7B"]
     },
     {
       "id": "ootd-upbeat-summer-house-242100",
@@ -199,14 +199,14 @@
       "bpm": 123,
       "duration": 118,
       "filename": "ootd-upbeat-summer-house-242100.mp3",
-      "cuePoints": [
-        0,
-        31,
-        62,
-        93
-      ],
+      "cuePoints": [0, 31, 62, 93],
       "waveformColor": "#88FF88",
-      "key": "G"
+      "key": "G",
+      "keyMode": "major",
+      "camelotCode": "9B",
+      "keyColor": "#4CAF50",
+      "tempoCategory": "medium",
+      "compatibleKeys": ["9B", "8B", "10B", "9A"]
     },
     {
       "id": "party-music-348444",
@@ -215,15 +215,14 @@
       "bpm": 161,
       "duration": 117,
       "filename": "party-music-348444.mp3",
-      "cuePoints": [
-        0,
-        23,
-        47,
-        71,
-        95
-      ],
+      "cuePoints": [0, 23, 47, 71, 95],
       "waveformColor": "#8888FF",
-      "key": "D"
+      "key": "D",
+      "keyMode": "minor",
+      "camelotCode": "3A",
+      "keyColor": "#FF6B6B",
+      "tempoCategory": "fast",
+      "compatibleKeys": ["3A", "2A", "4A", "3B"]
     },
     {
       "id": "riding-through-blue-skies-298649",
@@ -232,18 +231,14 @@
       "bpm": 117,
       "duration": 240,
       "filename": "riding-through-blue-skies-298649.mp3",
-      "cuePoints": [
-        0,
-        32,
-        65,
-        98,
-        131,
-        164,
-        196,
-        229
-      ],
+      "cuePoints": [0, 32, 65, 98, 131, 164, 196, 229],
       "waveformColor": "#FFAA00",
-      "key": "D"
+      "key": "D",
+      "keyMode": "major",
+      "camelotCode": "3B",
+      "keyColor": "#FF6B6B",
+      "tempoCategory": "medium",
+      "compatibleKeys": ["3B", "2B", "4B", "3A"]
     },
     {
       "id": "running-night-393139",
@@ -252,13 +247,14 @@
       "bpm": 108,
       "duration": 112,
       "filename": "running-night-393139.mp3",
-      "cuePoints": [
-        0,
-        35,
-        71
-      ],
+      "cuePoints": [0, 35, 71],
       "waveformColor": "#AA00FF",
-      "key": "C#"
+      "key": "C#",
+      "keyMode": "minor",
+      "camelotCode": "12A",
+      "keyColor": "#E91E63",
+      "tempoCategory": "medium",
+      "compatibleKeys": ["12A", "11A", "1A", "12B"]
     },
     {
       "id": "solar-dream-330894",
@@ -267,12 +263,14 @@
       "bpm": 108,
       "duration": 77,
       "filename": "solar-dream-330894.mp3",
-      "cuePoints": [
-        0,
-        35
-      ],
+      "cuePoints": [0, 35],
       "waveformColor": "#00FFAA",
-      "key": "D"
+      "key": "D",
+      "keyMode": "major",
+      "camelotCode": "3B",
+      "keyColor": "#FF6B6B",
+      "tempoCategory": "medium",
+      "compatibleKeys": ["3B", "2B", "4B", "3A"]
     },
     {
       "id": "trance-no-copyright-dj-music-440685",
@@ -281,15 +279,14 @@
       "bpm": 129,
       "duration": 146,
       "filename": "trance-no-copyright-dj-music-440685.mp3",
-      "cuePoints": [
-        0,
-        29,
-        59,
-        89,
-        119
-      ],
+      "cuePoints": [0, 29, 59, 89, 119],
       "waveformColor": "#FF00AA",
-      "key": "F"
+      "key": "F",
+      "keyMode": "major",
+      "camelotCode": "7B",
+      "keyColor": "#00BCD4",
+      "tempoCategory": "medium",
+      "compatibleKeys": ["7B", "6B", "8B", "7A"]
     }
   ]
 }

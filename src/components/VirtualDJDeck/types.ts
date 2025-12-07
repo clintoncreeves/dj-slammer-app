@@ -130,14 +130,34 @@ export class DJDeckError extends Error {
  * Track metadata
  */
 export interface TrackMetadata {
+  /** Track ID */
+  id: string;
   /** Track title */
-  title?: string;
+  title: string;
   /** Artist name */
-  artist?: string;
+  artist: string;
   /** BPM (beats per minute) */
   bpm: number;
   /** Duration in seconds */
   duration: number;
+  /** Audio filename */
+  filename: string;
+  /** Full URL to audio file (constructed from filename) */
+  url?: string;
   /** Suggested cue points in seconds */
-  cuePoints?: number[];
+  cuePoints: number[];
+  /** Waveform display color */
+  waveformColor: string;
+  /** Musical key (e.g., "A", "C#", "F") */
+  key: string;
+  /** Key mode (major or minor) */
+  keyMode: 'major' | 'minor';
+  /** Camelot wheel code (e.g., "1A", "12B") */
+  camelotCode: string;
+  /** Color for key visualization */
+  keyColor: string;
+  /** Tempo category for kids */
+  tempoCategory: 'slow' | 'medium' | 'fast';
+  /** Array of compatible Camelot codes */
+  compatibleKeys: string[];
 }

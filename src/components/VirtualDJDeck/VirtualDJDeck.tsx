@@ -23,6 +23,7 @@ export interface VirtualDJDeckHandle {
   cueDeck: (deck: DeckId) => void;
   setBPM: (deck: DeckId, bpm: number) => void;
   setCrossfader: (position: number) => void;
+  setVolume: (deck: DeckId, volume: number) => void;
   getState: () => VirtualDJDeckState;
 }
 
@@ -262,6 +263,24 @@ const VirtualDJDeckComponent = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProp
       }
     };
 
+    // Set volume for a deck
+    const setVolume = (deck: DeckId, volume: number) => {
+      if (!audioEngineRef.current || !isInitialized) return;
+
+      try {
+        audioEngineRef.current.setDeckVolume(deck, volume);
+
+        const updateState = deck === 'A' ? setDeckAState : setDeckBState;
+        updateState((prev) => ({ ...prev, volume }));
+
+        notifyStateChange();
+      } catch (err) {
+        console.error(`[VirtualDJDeck] Failed to set volume for Deck ${deck}:`, err);
+        setError(err as Error);
+        config.onError?.(err as Error);
+      }
+    };
+
     // Get current state
     const getState = (): VirtualDJDeckState => {
       return {
@@ -304,6 +323,7 @@ const VirtualDJDeckComponent = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProp
       cueDeck,
       setBPM,
       setCrossfader,
+      setVolume,
       getState,
     }));
 
