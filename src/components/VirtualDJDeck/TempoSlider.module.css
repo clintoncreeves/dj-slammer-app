@@ -97,6 +97,27 @@
   text-align: center;
 }
 
+/* Tutorial highlight effect */
+.container.highlighted {
+  animation: highlightPulse 2s ease-in-out infinite;
+}
+
+.container.highlighted .slider {
+  box-shadow: 0 0 30px var(--slider-color, #00F0FF), 0 0 60px var(--slider-color, #00F0FF);
+  border-radius: 30px;
+}
+
+@keyframes highlightPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .slider {

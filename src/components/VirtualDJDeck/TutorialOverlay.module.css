@@ -15,6 +15,19 @@
   backdrop-filter: blur(4px);
 }
 
+.fadeIn {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .card {
   background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
   border-radius: 24px;
@@ -221,7 +234,28 @@
 
 .secondaryButton:hover {
   background: rgba(255, 215, 0, 0.2);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
   transform: scale(1.05);
+}
+
+.secondaryButton:active {
+  transform: scale(0.95);
+}
+
+.tertiaryButton {
+  background: rgba(255, 0, 110, 0.1);
+  border-color: #FF006E;
+  color: #FF006E;
+}
+
+.tertiaryButton:hover {
+  background: rgba(255, 0, 110, 0.2);
+  box-shadow: 0 0 20px rgba(255, 0, 110, 0.4);
+  transform: scale(1.05);
+}
+
+.tertiaryButton:active {
+  transform: scale(0.95);
 }
 
 .hint {
@@ -310,7 +344,7 @@
   font-weight: 700;
   color: #00F0FF;
   text-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   animation: titleGlow 2s ease-in-out infinite;
 }
 
@@ -321,6 +355,17 @@
   50% {
     text-shadow: 0 0 30px rgba(0, 240, 255, 1);
   }
+}
+
+.lessonName {
+  font-family: 'Space Mono', monospace;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #FF006E;
+  text-shadow: 0 0 15px rgba(255, 0, 110, 0.5);
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
 .completionMessage {
@@ -344,6 +389,7 @@
 
 .completionButtons {
   display: flex;
+  flex-wrap: wrap;
   gap: 1rem;
   justify-content: center;
 }
@@ -368,11 +414,15 @@
 
   .button {
     padding: 0.875rem 1.5rem;
-    font-size: 1rem;
+    font-size: 0.875rem;
   }
 
   .completionTitle {
     font-size: 2rem;
+  }
+
+  .lessonName {
+    font-size: 1.25rem;
   }
 
   .badgeIcon {
@@ -381,5 +431,13 @@
 
   .badgeTitle {
     font-size: 1.25rem;
+  }
+
+  .completionButtons {
+    flex-direction: column;
+  }
+
+  .completionButtons .button {
+    width: 100%;
   }
 }

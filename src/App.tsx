@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { FirstLesson } from './components/VirtualDJDeck/FirstLesson';
+import { TutorialLesson } from './components/VirtualDJDeck/TutorialLesson';
 import { KidsModeDemo } from './components/Demo/KidsModeDemo';
 
+type DemoMode = 'slammer' | 'simple-lesson' | 'pro-lesson';
+
 function App() {
-  const [mode, setMode] = useState<'slammer' | 'lesson'>('slammer');
+  const [demoMode, setDemoMode] = useState<DemoMode>('slammer');
 
   return (
     <div style={{ position: 'relative' }}>
@@ -12,25 +15,40 @@ function App() {
         <button
           style={{
             ...styles.modeButton,
-            backgroundColor: mode === 'slammer' ? '#4CAF50' : 'rgba(255, 255, 255, 0.1)',
+            backgroundColor: demoMode === 'slammer' ? '#4CAF50' : 'rgba(255, 255, 255, 0.1)',
           }}
-          onClick={() => setMode('slammer')}
+          onClick={() => setDemoMode('slammer')}
         >
           🎧 Slammer Mode
         </button>
         <button
           style={{
             ...styles.modeButton,
-            backgroundColor: mode === 'lesson' ? '#4CAF50' : 'rgba(255, 255, 255, 0.1)',
+            backgroundColor: demoMode === 'simple-lesson' ? '#4CAF50' : 'rgba(255, 255, 255, 0.1)',
           }}
-          onClick={() => setMode('lesson')}
+          onClick={() => setDemoMode('simple-lesson')}
         >
-          📚 First Lesson
+          📚 Simple Lesson
+        </button>
+        <button
+          style={{
+            ...styles.modeButton,
+            backgroundColor: demoMode === 'pro-lesson' ? '#4CAF50' : 'rgba(255, 255, 255, 0.1)',
+          }}
+          onClick={() => setDemoMode('pro-lesson')}
+        >
+          🎓 Pro Lesson
         </button>
       </div>
 
       {/* Content */}
-      {mode === 'slammer' ? <KidsModeDemo /> : <FirstLesson />}
+      {demoMode === 'slammer' ? (
+        <KidsModeDemo />
+      ) : demoMode === 'simple-lesson' ? (
+        <FirstLesson />
+      ) : (
+        <TutorialLesson />
+      )}
     </div>
   );
 }
