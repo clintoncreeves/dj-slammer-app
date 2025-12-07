@@ -1,10 +1,1 @@
-.App {
-  margin: 0;
-  padding: 0;
-  background: #000000;
-  min-height: 100vh;
-}
-
-h1 {
-  display: none; /* Hide title for fullscreen professional look */
-}
+/* Professional CSS is loaded from /dj-slammer-styles.css */

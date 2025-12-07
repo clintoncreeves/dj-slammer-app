@@ -1,6 +1,7 @@
-import { VirtualDJDeck, VirtualDJDeckConfig, TutorialConfig } from './components/VirtualDJDeck';
+import { VirtualDJDeck_Rekordbox } from './components/VirtualDJDeck/VirtualDJDeck_Rekordbox';
+import { VirtualDJDeckConfig } from './components/VirtualDJDeck/types';
+import { TutorialConfig } from './components/VirtualDJDeck/tutorialTypes';
 import { yourFirstMixLesson } from './components/VirtualDJDeck/lessons/yourFirstMix';
-import './App.css';
 
 function App() {
   const config: VirtualDJDeckConfig = {
@@ -31,12 +32,7 @@ function App() {
     autoAdvance: true, // Smooth auto-advance for fluid tutorial flow
   };
 
-  return (
-    <div className="App">
-      <h1>DJ Slammer - Virtual DJ Deck MVP</h1>
-      <VirtualDJDeck config={config} tutorialConfig={tutorialConfig} />
-    </div>
-  );
+  return <VirtualDJDeck_Rekordbox config={config} tutorialConfig={tutorialConfig} />;
 }
 
 export default App;
