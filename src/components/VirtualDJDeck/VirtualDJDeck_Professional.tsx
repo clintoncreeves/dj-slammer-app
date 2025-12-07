@@ -574,18 +574,37 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
           className={styles.crossfader}
         />
 
-        {/* Tutorial Overlay */}
-        {tutorial.progress.isActive && tutorial.currentStep && tutorialConfig && (
-          <TutorialOverlay
-            lesson={tutorialConfig.lesson}
-            progress={tutorial.progress}
-            currentStep={tutorial.currentStep}
-            showCelebration={tutorial.showCelebration}
-            onNextStep={tutorial.nextStep}
-            onShowHint={tutorial.showHint}
-            onExit={tutorial.exitTutorial}
-            showHintButton={tutorial.showHintButton}
-          />
+        {/* Tutorial Overlay - ONLY show for celebrations and completion, not for instructions */}
+        {tutorial.progress.isActive && tutorialConfig && (
+          <>
+            {/* Show celebration overlay when step is completed */}
+            {tutorial.showCelebration && tutorial.currentStep && !tutorial.progress.lessonCompleted && (
+              <TutorialOverlay
+                lesson={tutorialConfig.lesson}
+                progress={tutorial.progress}
+                currentStep={tutorial.currentStep}
+                showCelebration={tutorial.showCelebration}
+                onNextStep={tutorial.nextStep}
+                onShowHint={tutorial.showHint}
+                onExit={tutorial.exitTutorial}
+                showHintButton={tutorial.showHintButton}
+              />
+            )}
+
+            {/* Show completion screen when lesson is done */}
+            {tutorial.progress.lessonCompleted && (
+              <TutorialOverlay
+                lesson={tutorialConfig.lesson}
+                progress={tutorial.progress}
+                currentStep={null}
+                showCelebration={false}
+                onNextStep={tutorial.nextStep}
+                onShowHint={tutorial.showHint}
+                onExit={tutorial.exitTutorial}
+                showHintButton={false}
+              />
+            )}
+          </>
         )}
       </div>
     );
