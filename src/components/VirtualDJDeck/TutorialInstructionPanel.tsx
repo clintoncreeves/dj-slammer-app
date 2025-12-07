@@ -3,8 +3,9 @@
  *
  * Professional DJ training instruction panel - Guitar Hero style
  * UNMISSABLE instructions with bold text, progress dots, and professional aesthetic.
+ * Shows brief celebration messages inline when steps are completed.
  *
- * Design principle: This must be IMPOSSIBLE to miss (like Serato Practice Mode meets Guitar Hero)
+ * Design principle: Smooth, fluid tutorial flow at the top (like Serato Practice Mode meets Guitar Hero)
  */
 
 import { TutorialStep, TutorialProgress, TutorialLesson } from './tutorialTypes';
@@ -19,12 +20,16 @@ interface TutorialInstructionPanelProps {
 
   /** Current step */
   currentStep: TutorialStep;
+
+  /** Show celebration for completed step */
+  showCelebration?: boolean;
 }
 
 export function TutorialInstructionPanel({
   lesson,
   progress,
   currentStep,
+  showCelebration = false,
 }: TutorialInstructionPanelProps) {
   const stepNumber = progress.currentStepIndex + 1;
   const totalSteps = lesson.steps.length;
@@ -41,17 +46,26 @@ export function TutorialInstructionPanel({
     );
   });
 
+  // Show celebration message briefly when step is completed
+  const displayText = showCelebration && currentStep.celebrationMessage
+    ? currentStep.celebrationMessage
+    : currentStep.instruction;
+
+  const panelClass = showCelebration
+    ? `${styles.panel} ${styles.panelCelebrating}`
+    : styles.panel;
+
   return (
-    <div className={styles.panel}>
+    <div className={panelClass}>
       <div className={styles.container}>
         {/* Step counter */}
         <div className={styles.stepCounter}>
           STEP {stepNumber} OF {totalSteps}
         </div>
 
-        {/* Main instruction - BOLD and UNMISSABLE */}
+        {/* Main instruction or celebration - BOLD and UNMISSABLE */}
         <div className={styles.instruction}>
-          {currentStep.instruction}
+          {displayText}
         </div>
 
         {/* Progress dots */}

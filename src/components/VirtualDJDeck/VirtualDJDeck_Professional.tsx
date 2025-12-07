@@ -380,6 +380,7 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
             lesson={tutorialConfig.lesson}
             progress={tutorial.progress}
             currentStep={tutorial.currentStep}
+            showCelebration={tutorial.showCelebration}
           />
         )}
 
@@ -574,37 +575,18 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
           className={styles.crossfader}
         />
 
-        {/* Tutorial Overlay - ONLY show for celebrations and completion, not for instructions */}
-        {tutorial.progress.isActive && tutorialConfig && (
-          <>
-            {/* Show celebration overlay when step is completed */}
-            {tutorial.showCelebration && tutorial.currentStep && !tutorial.progress.lessonCompleted && (
-              <TutorialOverlay
-                lesson={tutorialConfig.lesson}
-                progress={tutorial.progress}
-                currentStep={tutorial.currentStep}
-                showCelebration={tutorial.showCelebration}
-                onNextStep={tutorial.nextStep}
-                onShowHint={tutorial.showHint}
-                onExit={tutorial.exitTutorial}
-                showHintButton={tutorial.showHintButton}
-              />
-            )}
-
-            {/* Show completion screen when lesson is done */}
-            {tutorial.progress.lessonCompleted && (
-              <TutorialOverlay
-                lesson={tutorialConfig.lesson}
-                progress={tutorial.progress}
-                currentStep={null}
-                showCelebration={false}
-                onNextStep={tutorial.nextStep}
-                onShowHint={tutorial.showHint}
-                onExit={tutorial.exitTutorial}
-                showHintButton={false}
-              />
-            )}
-          </>
+        {/* Tutorial Overlay - ONLY show for final lesson completion */}
+        {tutorial.progress.isActive && tutorial.progress.lessonCompleted && tutorialConfig && (
+          <TutorialOverlay
+            lesson={tutorialConfig.lesson}
+            progress={tutorial.progress}
+            currentStep={null}
+            showCelebration={false}
+            onNextStep={tutorial.nextStep}
+            onShowHint={tutorial.showHint}
+            onExit={tutorial.exitTutorial}
+            showHintButton={false}
+          />
         )}
       </div>
     );

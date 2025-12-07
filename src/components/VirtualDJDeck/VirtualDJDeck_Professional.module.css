@@ -1,62 +1,88 @@
 .container {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 2rem;
-  background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%);
-  border-radius: 24px;
-  box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+  padding: 0;
+  background: #0D0D0D; /* Darker, more professional */
   color: #ffffff;
-  font-family: 'Space Mono', monospace;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  min-height: 100vh;
 }
 
 .header {
   text-align: center;
-  margin-bottom: 2rem;
+  padding: 2rem 2rem 1rem;
+  background: linear-gradient(180deg, #1A1A1A 0%, #0D0D0D 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .title {
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
   background: linear-gradient(90deg, #00F0FF 0%, #FF006E 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin: 0;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
 }
 
 .decksContainer {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  margin-bottom: 2rem;
+  gap: 1px; /* Thin divider like Pioneer */
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0;
 }
 
 .deck {
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 16px;
-  padding: 1.5rem;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  transition: border-color 0.3s ease;
+  background: #1A1A1A; /* Professional deck surface */
+  padding: 2rem;
+  border: none;
+  position: relative;
+  transition: all 0.3s ease;
 }
 
-.deck[data-deck='a']:hover {
-  border-color: rgba(0, 240, 255, 0.3);
+.deck::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
 }
 
-.deck[data-deck='b']:hover {
-  border-color: rgba(255, 0, 110, 0.3);
+.deck[data-deck='a']::before {
+  background: linear-gradient(90deg, #00F0FF 0%, transparent 100%);
+}
+
+.deck[data-deck='b']::before {
+  background: linear-gradient(90deg, transparent 0%, #FF006E 100%);
+}
+
+.deck:hover::before {
+  opacity: 1;
 }
 
 .deckHeader {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   text-align: center;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .deckHeader h3 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
   margin: 0;
-  text-shadow: 0 0 10px currentColor;
+  text-shadow: 0 0 15px currentColor, 0 0 30px currentColor;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
 }
 
 .waveform {
@@ -75,8 +101,10 @@
 }
 
 .crossfader {
-  max-width: 800px;
-  margin: 0 auto;
+  background: #1A1A1A;
+  padding: 2rem 3rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 10px 20px rgba(0, 0, 0, 0.5);
 }
 
 /* Loading state */

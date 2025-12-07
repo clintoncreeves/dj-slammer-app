@@ -123,11 +123,11 @@ export function useTutorial(
         if (config.enableCelebrations !== false) {
           setShowCelebration(true);
 
-          // Hide celebration after 3 seconds if auto-advance is enabled
+          // Auto-advance after brief celebration (1.2 seconds for smooth flow)
           if (config.autoAdvance) {
             celebrationTimerRef.current = window.setTimeout(() => {
               nextStep();
-            }, 3000);
+            }, 1200);
           }
         }
 

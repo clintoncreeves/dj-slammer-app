@@ -28,7 +28,7 @@ function App() {
     lesson: yourFirstMixLesson,
     enableCelebrations: true,
     hintDelaySeconds: 15,
-    autoAdvance: false,
+    autoAdvance: true, // Smooth auto-advance for fluid tutorial flow
   };
 
   return (
