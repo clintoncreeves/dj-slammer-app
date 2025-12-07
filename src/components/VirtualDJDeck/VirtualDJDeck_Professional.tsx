@@ -25,6 +25,7 @@ import { TutorialConfig } from './tutorialTypes';
 import { TutorialOverlay } from './TutorialOverlay';
 import { TutorialInstructionPanel } from './TutorialInstructionPanel';
 import { DeckProvider, useDeck } from './DeckContext';
+import { BPMSyncResult } from '../../utils/bpmSync';
 import styles from './VirtualDJDeck_Professional.module.css';
 
 export interface VirtualDJDeckHandle {
@@ -32,6 +33,7 @@ export interface VirtualDJDeckHandle {
   pauseDeck: (deck: DeckId) => void;
   cueDeck: (deck: DeckId) => void;
   setBPM: (deck: DeckId, bpm: number) => void;
+  syncBPM: (slaveDeck: DeckId, masterDeck: DeckId) => BPMSyncResult | null;
   setCrossfader: (position: number) => void;
   getState: () => VirtualDJDeckState;
 }
@@ -141,6 +143,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
       pauseDeck: deck.pauseDeck,
       cueDeck: deck.cueDeck,
       setBPM: deck.setBPM,
+      syncBPM: deck.syncBPM,
       setCrossfader: deck.setCrossfader,
       getState: deck.getState,
     }));

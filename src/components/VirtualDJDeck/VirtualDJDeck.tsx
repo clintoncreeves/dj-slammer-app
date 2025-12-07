@@ -15,6 +15,7 @@ import { useEffect, useRef, useState, useImperativeHandle, forwardRef } from 're
 import { AudioEngine } from './AudioEngine';
 import { VirtualDJDeckConfig, VirtualDJDeckState, DeckId, DeckState } from './types';
 import { generateWaveformData } from '../../utils/waveformUtils';
+import { calculateBPMSync, BPMSyncResult } from '../../utils/bpmSync';
 import styles from './VirtualDJDeck.module.css';
 
 export interface VirtualDJDeckHandle {
@@ -22,6 +23,7 @@ export interface VirtualDJDeckHandle {
   pauseDeck: (deck: DeckId) => void;
   cueDeck: (deck: DeckId) => void;
   setBPM: (deck: DeckId, bpm: number) => void;
+  syncBPM: (slaveDeck: DeckId, masterDeck: DeckId) => BPMSyncResult | null;
   setCrossfader: (position: number) => void;
   setVolume: (deck: DeckId, volume: number) => void;
   getState: () => VirtualDJDeckState;
@@ -247,6 +249,44 @@ const VirtualDJDeckComponent = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProp
       }
     };
 
+    // Sync BPM between decks using professional DJ sync algorithm
+    const syncBPM = (slaveDeck: DeckId, masterDeck: DeckId): BPMSyncResult | null => {
+      if (!audioEngineRef.current || !isInitialized) return null;
+
+      const slaveState = slaveDeck === 'A' ? deckAState : deckBState;
+      const masterState = masterDeck === 'A' ? deckAState : deckBState;
+
+      if (!slaveState.isLoaded || !masterState.isLoaded) {
+        console.warn('[VirtualDJDeck] Cannot sync: Both decks must be loaded');
+        return null;
+      }
+
+      try {
+        // Calculate optimal BPM sync using professional algorithm
+        const syncResult = calculateBPMSync(
+          masterState.currentBPM,
+          slaveState.currentBPM,
+          slaveState.originalBPM
+        );
+
+        console.log(
+          `[VirtualDJDeck] Syncing Deck ${slaveDeck} to Deck ${masterDeck}:`,
+          `${slaveState.currentBPM.toFixed(1)} -> ${syncResult.targetBPM.toFixed(1)} BPM`,
+          `(${syncResult.syncType})`
+        );
+
+        // Apply the sync by setting the calculated BPM
+        setBPM(slaveDeck, syncResult.targetBPM);
+
+        return syncResult;
+      } catch (err) {
+        console.error('[VirtualDJDeck] Failed to sync BPM:', err);
+        setError(err as Error);
+        config.onError?.(err as Error);
+        return null;
+      }
+    };
+
     // Set crossfader position
     const setCrossfader = (position: number) => {
       if (!audioEngineRef.current || !isInitialized) return;
@@ -322,6 +362,7 @@ const VirtualDJDeckComponent = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProp
       pauseDeck,
       cueDeck,
       setBPM,
+      syncBPM,
       setCrossfader,
       setVolume,
       getState,
