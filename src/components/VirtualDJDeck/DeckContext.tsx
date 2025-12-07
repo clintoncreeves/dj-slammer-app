@@ -37,7 +37,7 @@ interface DeckContextValue {
   syncBPM: (slaveDeck: DeckId, masterDeck: DeckId) => BPMSyncResult | null;
   setVolume: (deck: DeckId, volume: number) => void;
   setCrossfader: (position: number) => void;
-  updateCurrentTime: (deck: DeckId) => void;
+  updateCurrentTime: (deck: DeckId, time: number) => void;
   
   // State Queries
   getState: () => VirtualDJDeckState;
