@@ -1,15 +1,10 @@
 .App {
-  text-align: center;
+  margin: 0;
+  padding: 0;
+  background: #000000;
+  min-height: 100vh;
 }
 
 h1 {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  color: #00F0FF;
-  text-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
-}
-
-p {
-  font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.7);
+  display: none; /* Hide title for fullscreen professional look */
 }
