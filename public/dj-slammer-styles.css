@@ -1522,3 +1522,190 @@ body::after {
     color: black;
   }
 }
+
+/* === CROSSFADER COMPONENT === */
+.crossfader-container {
+  background: var(--dj-panel);
+  border: 1px solid var(--dj-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl) var(--spacing-2xl);
+  margin: var(--spacing-xl) auto;
+  max-width: 600px;
+  box-shadow: var(--shadow-md);
+  position: relative;
+}
+
+.crossfader-label-top {
+  font-family: var(--font-tech);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: var(--spacing-md);
+  letter-spacing: 2px;
+  font-weight: 600;
+}
+
+.crossfader-track-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+}
+
+.crossfader-label {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.crossfader-label-left {
+  color: var(--neon-cyan);
+  text-shadow: 0 0 10px var(--neon-cyan-glow);
+}
+
+.crossfader-label-right {
+  color: var(--neon-magenta);
+  text-shadow: 0 0 10px var(--neon-magenta-glow);
+}
+
+.crossfader-track {
+  flex: 1;
+  position: relative;
+  height: 60px;
+  background: var(--dj-darker-panel);
+  border-radius: 30px;
+  border: 2px solid var(--dj-border);
+  overflow: visible;
+}
+
+.crossfader-slider {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.crossfader-center-marker {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--neon-orange);
+  transform: translateX(-50%);
+  box-shadow: 0 0 10px var(--neon-orange);
+  z-index: 1;
+}
+
+.crossfader-center-marker::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  background: var(--neon-orange);
+  border-radius: 50%;
+  box-shadow: 0 0 15px var(--neon-orange);
+}
+
+.crossfader-position-indicator {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  transition: left 0.1s ease-out;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.crossfader-handle {
+  width: 40px;
+  height: 70px;
+  background: linear-gradient(180deg, var(--dj-elevated), var(--dj-panel));
+  border: 2px solid var(--neon-cyan);
+  border-radius: var(--radius-md);
+  box-shadow: 
+    0 0 20px var(--neon-cyan-glow),
+    0 4px 12px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: grab;
+  transition: all 0.2s ease;
+}
+
+.crossfader-slider:active ~ .crossfader-position-indicator .crossfader-handle {
+  cursor: grabbing;
+  transform: scale(1.05);
+  box-shadow: 
+    0 0 30px var(--neon-cyan-glow),
+    0 6px 16px rgba(0, 0, 0, 0.6);
+}
+
+.crossfader-handle-line {
+  width: 20px;
+  height: 2px;
+  background: var(--neon-cyan);
+  border-radius: 1px;
+  box-shadow: 0 0 5px var(--neon-cyan-glow);
+}
+
+.crossfader-value-display {
+  text-align: center;
+  font-family: var(--font-tech);
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  font-weight: 600;
+  letter-spacing: 2px;
+  padding: var(--spacing-sm);
+  background: var(--dj-darker-panel);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--dj-border);
+}
+
+/* Highlight effect when tutorial targets crossfader */
+#crossfader.tutorial-highlight {
+  animation: crossfaderPulse 2s ease-in-out infinite;
+}
+
+@keyframes crossfaderPulse {
+  0%, 100% {
+    box-shadow: 0 0 20px var(--neon-cyan-glow), var(--shadow-md);
+  }
+  50% {
+    box-shadow: 0 0 40px var(--neon-cyan-glow), var(--shadow-lg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .crossfader-container {
+    padding: var(--spacing-lg);
+    max-width: 100%;
+    margin: var(--spacing-md);
+  }
+
+  .crossfader-track {
+    height: 50px;
+  }
+
+  .crossfader-handle {
+    width: 32px;
+    height: 60px;
+  }
+
+  .crossfader-handle-line {
+    width: 16px;
+  }
+
+  .crossfader-label {
+    font-size: 1.25rem;
+  }
+}
+

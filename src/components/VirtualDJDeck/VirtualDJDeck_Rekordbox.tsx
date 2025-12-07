@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { VirtualDJDeckConfig, VirtualDJDeckState, DeckState } from './types';
 import { TutorialConfig } from './tutorialTypes';
 import { TutorialInstructionPanel } from './TutorialInstructionPanel';
+import { Crossfader_Rekordbox } from './Crossfader_Rekordbox';
 import { useTutorial } from './useTutorial';
 
 export interface VirtualDJDeck_RekordboxProps {
@@ -135,6 +136,30 @@ export const VirtualDJDeck_Rekordbox: React.FC<VirtualDJDeck_RekordboxProps> = (
     // Validate tutorial step
     if (tutorialHook) {
       tutorialHook.validateStep(deckState);
+    }
+  };
+
+  const handleCrossfaderChange = (value: number) => {
+    console.log(`[Rekordbox] Crossfader moved to: ${value}`);
+
+    setDeckState(prevState => {
+      const newState = { ...prevState, crossfaderPosition: value };
+
+      // Validate tutorial step
+      if (tutorialHook) {
+        tutorialHook.validateStep(newState);
+      }
+
+      return newState;
+    });
+
+    showFeedback('good');
+    incrementCombo();
+
+    // Achievement for first crossfader use
+    if (Math.abs(value) > 0.1 && !achievements.includes('first-crossfade')) {
+      showAchievement('🎚️', 'Crossfader Pro!', 'You moved the crossfader!');
+      setAchievements(prev => [...prev, 'first-crossfade']);
     }
   };
 
@@ -330,6 +355,13 @@ export const VirtualDJDeck_Rekordbox: React.FC<VirtualDJDeck_RekordboxProps> = (
           </div>
         </div>
       </section>
+
+      {/* Crossfader - Professional Mixer Control */}
+      <Crossfader_Rekordbox
+        value={deckState.crossfaderPosition}
+        onChange={handleCrossfaderChange}
+        id="crossfader"
+      />
 
       {/* Main Content Area */}
       <div className="dj-main">
