@@ -16,6 +16,7 @@ import { createContext, useContext, useState, useRef, useCallback, ReactNode } f
 import { AudioEngine } from './AudioEngine';
 import { DeckState, DeckId, VirtualDJDeckState } from './types';
 import { generateWaveformData } from '../../utils/waveformUtils';
+import { calculateBPMSync, BPMSyncResult } from '../../utils/bpmSync';
 
 interface DeckContextValue {
   // Deck States
@@ -33,9 +34,10 @@ interface DeckContextValue {
   pauseDeck: (deck: DeckId) => void;
   cueDeck: (deck: DeckId) => void;
   setBPM: (deck: DeckId, bpm: number) => void;
+  syncBPM: (slaveDeck: DeckId, masterDeck: DeckId) => BPMSyncResult | null;
   setVolume: (deck: DeckId, volume: number) => void;
   setCrossfader: (position: number) => void;
-  updateCurrentTime: (deck: DeckId, time: number) => void;
+  updateCurrentTime: (deck: DeckId) => void;
   
   // State Queries
   getState: () => VirtualDJDeckState;
@@ -257,6 +259,46 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     }
   }, [isInitialized, deckAState, deckBState, notifyStateChange, onError]);
 
+  // Sync BPM between decks using professional algorithm
+  const syncBPM = useCallback((slaveDeck: DeckId, masterDeck: DeckId): BPMSyncResult | null => {
+    if (!audioEngineRef.current || !isInitialized) {
+      console.warn('[DeckContext] Cannot sync: AudioEngine not initialized');
+      return null;
+    }
+
+    const masterState = masterDeck === 'A' ? deckAState : deckBState;
+    const slaveState = slaveDeck === 'A' ? deckAState : deckBState;
+
+    if (!masterState.isLoaded || !slaveState.isLoaded) {
+      console.warn('[DeckContext] Cannot sync: Both decks must be loaded');
+      return null;
+    }
+
+    try {
+      // Calculate optimal BPM sync using professional algorithm
+      const syncResult = calculateBPMSync(
+        masterState.currentBPM,
+        slaveState.currentBPM,
+        slaveState.originalBPM
+      );
+
+      console.log(
+        `[DeckContext] Syncing Deck ${slaveDeck} to Deck ${masterDeck}:`,
+        `${slaveState.currentBPM.toFixed(1)} -> ${syncResult.targetBPM.toFixed(1)} BPM`,
+        `(${syncResult.syncType})`
+      );
+
+      // Apply the sync by setting the calculated BPM
+      setBPM(slaveDeck, syncResult.targetBPM);
+
+      return syncResult;
+    } catch (err) {
+      console.error('[DeckContext] Failed to sync BPM:', err);
+      onError?.(err as Error);
+      return null;
+    }
+  }, [isInitialized, deckAState, deckBState, setBPM, onError]);
+
   // Set volume for a deck
   const setVolume = useCallback((deck: DeckId, volume: number) => {
     if (!audioEngineRef.current) {
@@ -312,6 +354,7 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     pauseDeck,
     cueDeck,
     setBPM,
+    syncBPM,
     setVolume,
     setCrossfader,
     updateCurrentTime,

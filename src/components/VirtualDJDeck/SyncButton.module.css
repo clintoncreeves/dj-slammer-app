@@ -1,0 +1,132 @@
+/**
+ * SyncButton Styles
+ *
+ * Professional neon-styled sync button with animations
+ */
+
+.button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  
+  /* Touch-friendly size (Req 6.1: ≥44x44px) */
+  min-width: 60px;
+  min-height: 60px;
+  padding: 8px;
+  
+  /* Neon styling */
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid var(--button-color, #00ff88);
+  border-radius: 8px;
+  color: var(--button-color, #00ff88);
+  
+  /* Typography */
+  font-family: 'Arial', sans-serif;
+  font-weight: bold;
+  
+  /* Transitions */
+  transition: all 0.2s ease;
+  cursor: pointer;
+  
+  /* Neon glow effect */
+  box-shadow: 
+    0 0 5px var(--button-color, #00ff88),
+    inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.button:hover:not(:disabled) {
+  background: rgba(0, 255, 136, 0.1);
+  border-width: 3px;
+  box-shadow: 
+    0 0 15px var(--button-color, #00ff88),
+    0 0 30px rgba(0, 255, 136, 0.3),
+    inset 0 0 10px rgba(0, 0, 0, 0.3);
+  transform: scale(1.05);
+}
+
+.button:active:not(:disabled) {
+  transform: scale(0.98);
+  box-shadow: 
+    0 0 10px var(--button-color, #00ff88),
+    inset 0 0 15px rgba(0, 0, 0, 0.7);
+}
+
+.button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  border-color: #444;
+  color: #444;
+  box-shadow: none;
+}
+
+.icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Synced state animation */
+.button.synced {
+  animation: syncPulse 0.5s ease-out;
+}
+
+@keyframes syncPulse {
+  0% {
+    box-shadow: 
+      0 0 20px var(--button-color, #00ff88),
+      0 0 40px rgba(0, 255, 136, 0.6);
+    transform: scale(1.1);
+  }
+  100% {
+    box-shadow: 
+      0 0 5px var(--button-color, #00ff88);
+    transform: scale(1);
+  }
+}
+
+/* Sync type indicators */
+.button.half-time .icon {
+  color: #ffa500; /* Orange for half-time */
+}
+
+.button.double-time .icon {
+  color: #ff4500; /* Red-orange for double-time */
+}
+
+.button.direct .icon {
+  color: #00ff88; /* Green for direct sync */
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .button {
+    min-width: 50px;
+    min-height: 50px;
+  }
+  
+  .icon {
+    font-size: 20px;
+  }
+  
+  .label {
+    font-size: 9px;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .button {
+    border-width: 3px;
+  }
+  
+  .button:hover:not(:disabled) {
+    background: rgba(0, 255, 136, 0.3);
+  }
+}

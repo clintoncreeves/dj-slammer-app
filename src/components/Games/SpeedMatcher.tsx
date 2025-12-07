@@ -3,11 +3,13 @@
  *
  * Teaches kids to match BPM between two tracks by adjusting tempo
  * Visual characters bounce at different speeds based on BPM
+ * Now includes half-time and double-time detection for advanced matching
  */
 
 import React, { useState, useEffect } from 'react';
 import { TrackMetadata } from '../VirtualDJDeck/types';
 import { getTempoEmoji } from '../../utils/harmonicMixing';
+import { canSync, calculateBPMSync } from '../../utils/bpmSync';
 
 interface SpeedMatcherProps {
   trackA: TrackMetadata;
@@ -27,21 +29,32 @@ export const SpeedMatcher: React.FC<SpeedMatcherProps> = ({
   const [isMatched, setIsMatched] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [syncType, setSyncType] = useState<'direct' | 'half-time' | 'double-time' | null>(null);
 
-  const BPM_TOLERANCE = 3; // ±3 BPM is considered matched
-
-  // Check if BPMs are matched
+  // Check if BPMs are matched using professional sync algorithm
   useEffect(() => {
-    const matched = Math.abs(trackA.bpm - currentBPM_B) <= BPM_TOLERANCE;
-    setIsMatched(matched);
+    // Check if sync is possible between the two tracks
+    const syncPossible = canSync(trackA.bpm, currentBPM_B);
+    
+    if (syncPossible) {
+      // Calculate the sync result to determine what kind of match it is
+      const syncResult = calculateBPMSync(trackA.bpm, currentBPM_B, trackB.bpm);
+      const matched = Math.abs(syncResult.adjustment) <= 3; // Within ±3 BPM of target
+      
+      setIsMatched(matched);
+      setSyncType(matched ? syncResult.syncType : null);
 
-    if (matched && !showSuccess) {
-      setShowSuccess(true);
-      setTimeout(() => {
-        onSuccess?.();
-      }, 2000); // Show success for 2 seconds
+      if (matched && !showSuccess) {
+        setShowSuccess(true);
+        setTimeout(() => {
+          onSuccess?.();
+        }, 2000); // Show success for 2 seconds
+      }
+    } else {
+      setIsMatched(false);
+      setSyncType(null);
     }
-  }, [currentBPM_B, trackA.bpm, showSuccess, onSuccess]);
+  }, [currentBPM_B, trackA.bpm, trackB.bpm, showSuccess, onSuccess]);
 
   const handleSliderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newBPM = parseInt(event.target.value);
@@ -92,7 +105,17 @@ export const SpeedMatcher: React.FC<SpeedMatcherProps> = ({
             {isMatched ? (
               <div style={styles.matchSuccess}>
                 <div style={styles.matchIcon}>✨ 💚 ✨</div>
-                <div style={styles.matchText}>PERFECT MATCH!</div>
+                <div style={styles.matchText}>
+                  {syncType === 'direct' && 'PERFECT MATCH!'}
+                  {syncType === 'half-time' && 'HALF-TIME MATCH! 🐢'}
+                  {syncType === 'double-time' && 'DOUBLE-TIME MATCH! 🐰'}
+                </div>
+                {syncType !== 'direct' && (
+                  <div style={styles.syncTypeHint}>
+                    {syncType === 'half-time' && 'One track is twice as slow!'}
+                    {syncType === 'double-time' && 'One track is twice as fast!'}
+                  </div>
+                )}
               </div>
             ) : (
               <div style={styles.matchProgress}>
@@ -354,6 +377,12 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '24px',
     fontWeight: 'bold',
     textShadow: '0 0 10px rgba(76, 175, 80, 0.5)',
+  },
+  syncTypeHint: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontFamily: 'Arial, sans-serif',
+    fontSize: '14px',
+    marginTop: '8px',
   },
   matchProgress: {
     textAlign: 'center',
