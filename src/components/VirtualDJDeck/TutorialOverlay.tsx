@@ -32,6 +32,15 @@ interface TutorialOverlayProps {
 
   /** Whether to show the hint button */
   showHintButton: boolean;
+
+  /** Callback when user clicks "Replay Lesson" on completion screen */
+  onReplayLesson?: () => void;
+
+  /** Callback when user clicks "Free Play Mode" on completion screen */
+  onFreePlayMode?: () => void;
+
+  /** Callback when user clicks "More Lessons" on completion screen */
+  onMoreLessons?: () => void;
 }
 
 export function TutorialOverlay({
@@ -43,11 +52,14 @@ export function TutorialOverlay({
   onShowHint,
   onExit,
   showHintButton,
+  onReplayLesson,
+  onFreePlayMode,
+  onMoreLessons,
 }: TutorialOverlayProps) {
   // If lesson is completed, show completion screen
   if (progress.lessonCompleted) {
     return (
-      <div className={styles.overlay}>
+      <div className={`${styles.overlay} ${styles.fadeIn}`}>
         <div className={`${styles.card} ${styles.completionCard}`}>
           <div className={styles.completionAnimation}>
             {lesson.badge && (
@@ -58,7 +70,11 @@ export function TutorialOverlay({
             )}
           </div>
 
-          <h2 className={styles.completionTitle}>Lesson Complete!</h2>
+          <h2 className={styles.completionTitle}>
+            🔥 SKILL UNLOCKED! 🔥
+          </h2>
+
+          <h3 className={styles.lessonName}>{lesson.title}</h3>
 
           <div className={styles.completionMessage}>
             {lesson.completionMessage.split('\n').map((line, i) => (
@@ -68,10 +84,25 @@ export function TutorialOverlay({
 
           <div className={styles.completionButtons}>
             <button
-              className={`${styles.button} ${styles.primaryButton}`}
-              onClick={onExit}
+              className={`${styles.button} ${styles.secondaryButton}`}
+              onClick={onReplayLesson || onExit}
+              title="Replay this lesson from the beginning"
             >
-              Awesome! ✨
+              🔄 REPLAY LESSON
+            </button>
+            <button
+              className={`${styles.button} ${styles.primaryButton}`}
+              onClick={onFreePlayMode || onExit}
+              title="Practice freely without tutorial guidance"
+            >
+              🎧 FREE PLAY MODE
+            </button>
+            <button
+              className={`${styles.button} ${styles.tertiaryButton}`}
+              onClick={onMoreLessons || (() => alert('More lessons coming soon!'))}
+              title="Browse more lessons (coming soon)"
+            >
+              📚 MORE LESSONS
             </button>
           </div>
         </div>

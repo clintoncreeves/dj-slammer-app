@@ -25,6 +25,7 @@ interface TempoSliderProps {
   minPercent?: number; // default -8%
   maxPercent?: number; // default +8%
   className?: string;
+  highlighted?: boolean;
 }
 
 export function TempoSlider({
@@ -36,6 +37,7 @@ export function TempoSlider({
   minPercent = -8,
   maxPercent = 8,
   className,
+  highlighted = false,
 }: TempoSliderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -110,7 +112,7 @@ export function TempoSlider({
   };
 
   return (
-    <div className={`${styles.container} ${className || ''}`}>
+    <div className={`${styles.container} ${className || ''} ${highlighted ? styles.highlighted : ''}`}>
       <div className={styles.label}>Tempo</div>
 
       <div

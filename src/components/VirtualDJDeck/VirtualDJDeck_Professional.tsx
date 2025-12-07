@@ -30,14 +30,19 @@ export interface VirtualDJDeckHandle {
   getState: () => VirtualDJDeckState;
 }
 
+type AppMode = 'tutorial' | 'freeplay';
+
 interface VirtualDJDeckProps {
   config: VirtualDJDeckConfig;
   tutorialConfig?: TutorialConfig;
   className?: string;
+  mode?: AppMode;
+  onModeChange?: (mode: AppMode) => void;
+  onReplayLesson?: () => void;
 }
 
 const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps>(
-  ({ config, tutorialConfig, className }, ref) => {
+  ({ config, tutorialConfig, className, mode = 'tutorial', onModeChange, onReplayLesson }, ref) => {
     const audioEngineRef = useRef<AudioEngine | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
     const [error, setError] = useState<Error | null>(null);
@@ -259,6 +264,23 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
       config.onStateChange?.(getState());
     };
 
+    // Handle lesson completion actions
+    const handleReplayLesson = () => {
+      console.log('[VirtualDJDeck] Replaying lesson');
+      onReplayLesson?.();
+    };
+
+    const handleFreePlayMode = () => {
+      console.log('[VirtualDJDeck] Switching to free play mode');
+      onModeChange?.('freeplay');
+    };
+
+    const handleMoreLessons = () => {
+      console.log('[VirtualDJDeck] More lessons requested');
+      // Placeholder - could navigate to lesson selection screen
+      alert('More lessons coming soon! 🎧');
+    };
+
     // Handle "tap to enable audio" button
     const handleEnableAudio = async () => {
       try {
@@ -375,7 +397,7 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
     return (
       <div className={`${styles.container} ${className || ''}`}>
         {/* Tutorial Instruction Panel - Fixed at top, Guitar Hero style */}
-        {tutorial.progress.isActive && tutorial.currentStep && tutorialConfig && (
+        {mode === 'tutorial' && tutorial.progress.isActive && tutorial.currentStep && tutorialConfig && (
           <TutorialInstructionPanel
             lesson={tutorialConfig.lesson}
             progress={tutorial.progress}
@@ -435,6 +457,7 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
                 color={config.deckA.waveformColor}
                 onChange={(vol) => setVolume('A', vol)}
                 highlighted={
+                  mode === 'tutorial' &&
                   highlightTarget?.type === 'slider' &&
                   highlightTarget?.control === 'volume' &&
                   highlightTarget?.deck === 'A'
@@ -447,6 +470,12 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
                 currentBPM={deckAState.currentBPM}
                 color={config.deckA.waveformColor}
                 onChange={(bpm) => setBPM('A', bpm)}
+                highlighted={
+                  mode === 'tutorial' &&
+                  highlightTarget?.type === 'slider' &&
+                  highlightTarget?.control === 'tempo' &&
+                  highlightTarget?.deck === 'A'
+                }
               />
 
               <DeckControls
@@ -458,16 +487,19 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
                 onPause={() => pauseDeck('A')}
                 onCue={() => cueDeck('A')}
                 highlightPlay={
+                  mode === 'tutorial' &&
                   highlightTarget?.type === 'button' &&
                   highlightTarget?.control === 'play' &&
                   highlightTarget?.deck === 'A'
                 }
                 highlightPause={
+                  mode === 'tutorial' &&
                   highlightTarget?.type === 'button' &&
                   highlightTarget?.control === 'pause' &&
                   highlightTarget?.deck === 'A'
                 }
                 highlightCue={
+                  mode === 'tutorial' &&
                   highlightTarget?.type === 'button' &&
                   highlightTarget?.control === 'cue' &&
                   highlightTarget?.deck === 'A'
@@ -522,6 +554,7 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
                 color={config.deckB.waveformColor}
                 onChange={(vol) => setVolume('B', vol)}
                 highlighted={
+                  mode === 'tutorial' &&
                   highlightTarget?.type === 'slider' &&
                   highlightTarget?.control === 'volume' &&
                   highlightTarget?.deck === 'B'
@@ -534,6 +567,12 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
                 currentBPM={deckBState.currentBPM}
                 color={config.deckB.waveformColor}
                 onChange={(bpm) => setBPM('B', bpm)}
+                highlighted={
+                  mode === 'tutorial' &&
+                  highlightTarget?.type === 'slider' &&
+                  highlightTarget?.control === 'tempo' &&
+                  highlightTarget?.deck === 'B'
+                }
               />
 
               <DeckControls
@@ -545,16 +584,19 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
                 onPause={() => pauseDeck('B')}
                 onCue={() => cueDeck('B')}
                 highlightPlay={
+                  mode === 'tutorial' &&
                   highlightTarget?.type === 'button' &&
                   highlightTarget?.control === 'play' &&
                   highlightTarget?.deck === 'B'
                 }
                 highlightPause={
+                  mode === 'tutorial' &&
                   highlightTarget?.type === 'button' &&
                   highlightTarget?.control === 'pause' &&
                   highlightTarget?.deck === 'B'
                 }
                 highlightCue={
+                  mode === 'tutorial' &&
                   highlightTarget?.type === 'button' &&
                   highlightTarget?.control === 'cue' &&
                   highlightTarget?.deck === 'B'
@@ -571,12 +613,12 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
           colorA={config.deckA.waveformColor}
           colorB={config.deckB.waveformColor}
           snapToCenter={true}
-          highlighted={highlightTarget?.type === 'crossfader'}
+          highlighted={mode === 'tutorial' && highlightTarget?.type === 'crossfader'}
           className={styles.crossfader}
         />
 
         {/* Tutorial Overlay - ONLY show for final lesson completion */}
-        {tutorial.progress.isActive && tutorial.progress.lessonCompleted && tutorialConfig && (
+        {mode === 'tutorial' && tutorial.progress.isActive && tutorial.progress.lessonCompleted && tutorialConfig && (
           <TutorialOverlay
             lesson={tutorialConfig.lesson}
             progress={tutorial.progress}
@@ -586,6 +628,9 @@ const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckP
             onShowHint={tutorial.showHint}
             onExit={tutorial.exitTutorial}
             showHintButton={false}
+            onReplayLesson={handleReplayLesson}
+            onFreePlayMode={handleFreePlayMode}
+            onMoreLessons={handleMoreLessons}
           />
         )}
       </div>
