@@ -12,7 +12,7 @@
  * - AudioEngine is controlled through DeckContext, not directly by UI components
  */
 
-import { useEffect, useRef, useState, useImperativeHandle, forwardRef } from 'react';
+import { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
 import { VirtualDJDeckConfig, VirtualDJDeckState, DeckId } from './types';
 import { DeckControls } from './DeckControls';
 import { Waveform } from './Waveform';
@@ -54,12 +54,6 @@ interface VirtualDJDeckProps {
  */
 const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps>(
   ({ config, tutorialConfig, className, mode = 'tutorial', onModeChange, onReplayLesson }, ref) => {
-    // Use the centralized deck context
-    const deck = useDeck();
-    
-    const [needsUserGesture, setNeedsUserGesture] = useState(true);
-    const [error, setError] = useState<Error | null>(null);
-
     // Use the centralized deck context
     const deck = useDeck();
     
