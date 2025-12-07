@@ -49,6 +49,39 @@ export const VirtualDJDeck_Rekordbox: React.FC<VirtualDJDeck_RekordboxProps> = (
     }
   }, [tutorialHook?.progress, tutorialConfig]);
 
+  // Highlight tutorial target elements
+  useEffect(() => {
+    if (!tutorialHook?.currentStep) return;
+
+    const step = tutorialHook.currentStep;
+    const target = step.highlightTarget;
+
+    let elementId: string | null = null;
+
+    // Map highlight target to element ID
+    if (target.type === 'button' && target.deck && target.control) {
+      elementId = `deck${target.deck}${target.control.charAt(0).toUpperCase()}${target.control.slice(1)}Button`;
+    } else if (target.type === 'crossfader') {
+      elementId = 'crossfader';
+    } else if (target.type === 'deck' && target.deck) {
+      // Highlight entire deck section
+      const deckSections = document.querySelectorAll('.dj-deck');
+      const deckElement = target.deck === 'A' ? deckSections[0] : deckSections[1];
+      if (deckElement) {
+        deckElement.classList.add('tutorial-highlight');
+        return () => deckElement.classList.remove('tutorial-highlight');
+      }
+    }
+
+    if (!elementId) return;
+
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.classList.add('tutorial-highlight');
+      return () => element.classList.remove('tutorial-highlight');
+    }
+  }, [tutorialHook?.currentStep]);
+
   const incrementCombo = () => {
     setComboCount(prev => prev + 1);
 
