@@ -27,7 +27,11 @@ dj-slammer-app/
 
 ## Project Team
 Tanner - Chief Visionary, represents our target user, a 6-8 year old who wants to learn and improve their DJ skills!
+
 Zach - Tanner's Dad, advisor to the project.
+
 Clinton - Builder
+
 Kiro - Builder
+
 Claude - Builder
