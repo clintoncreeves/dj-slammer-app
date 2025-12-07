@@ -25,45 +25,9 @@ dj-slammer-app/
 └── .vercel/            # Vercel deployment config
 ```
 
-## 🚀 Quick Start
-
-1. **Local Development**
-   ```bash
-   # Install Vercel CLI if needed
-   npm i -g vercel
-   
-   # Run locally
-   vercel dev
-   ```
-
-2. **Deploy**
-   ```bash
-   vercel --prod
-   ```
-
-## 🔗 Links
-
-- **Live App**: [Your Vercel URL]
-- **Admin Dashboard**: `/admin.html`
-
-## 🛠 Tech Stack
-
-- **Frontend**: HTML, CSS, JavaScript (vanilla)
-- **Backend**: Vercel Serverless Functions
-- **Database**: Upstash KV (Redis)
-- **Hosting**: Vercel
-
-## 📝 Current Features
-
-- Home page with survey links
-- Tanner's survey (4 questions about app vision)
-- Parent survey (4 questions about setup/experience)
-- Admin dashboard to view responses
-- Backend API to save/retrieve responses
-
-## 🎯 Next Steps
-
-- Extract CSS into separate files
-- Extract JavaScript into modules
-- Add more interactive DJ features
-- Build the actual DJ learning app based on survey feedback
+## Project Team
+Tanner - Chief Visionary, represents our target user, a 6-8 year old who wants to learn and improve their DJ skills!
+Zach - Tanner's Dad, advisor to the project.
+Clinton - Builder
+Kiro - Builder
+Claude - Builder
