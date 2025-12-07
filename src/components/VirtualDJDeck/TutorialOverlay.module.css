@@ -1,0 +1,385 @@
+/* TutorialOverlay - Simon Says Style Tutorial UI */
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
+
+.card {
+  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  border-radius: 24px;
+  padding: 2rem;
+  max-width: 600px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 240, 255, 0.3);
+  border: 2px solid rgba(0, 240, 255, 0.4);
+  position: relative;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.lessonTitle {
+  font-family: 'Space Mono', monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #00F0FF;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+}
+
+.stepProgress {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.exitButton {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.exitButton:hover {
+  color: #FF006E;
+  transform: scale(1.1);
+}
+
+.progressBar {
+  background: rgba(255, 255, 255, 0.1);
+  height: 8px;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.progressFill {
+  background: linear-gradient(90deg, #00F0FF 0%, #FF006E 100%);
+  height: 100%;
+  transition: width 0.5s ease;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+}
+
+.instructionContainer {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: rgba(0, 240, 255, 0.1);
+  border: 2px solid rgba(0, 240, 255, 0.3);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.instructionIcon {
+  font-size: 2rem;
+  flex-shrink: 0;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(5px);
+  }
+}
+
+.instructionText {
+  font-family: 'Space Mono', monospace;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.6;
+}
+
+.celebration {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.2) 0%, rgba(255, 0, 110, 0.2) 100%);
+  border: 2px solid rgba(255, 215, 0, 0.5);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  animation: celebrationPulse 0.6s ease-out;
+}
+
+@keyframes celebrationPulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.celebrationIcon {
+  font-size: 2.5rem;
+  animation: spin 1s ease-in-out;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.celebrationText {
+  font-family: 'Space Mono', monospace;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #FFD700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.button {
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-family: 'Space Mono', monospace;
+  font-size: 1.125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 2px solid;
+  min-width: 44px;
+  min-height: 44px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.primaryButton {
+  background: rgba(0, 240, 255, 0.2);
+  border-color: #00F0FF;
+  color: #00F0FF;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+}
+
+.primaryButton:hover {
+  background: rgba(0, 240, 255, 0.3);
+  box-shadow: 0 0 30px rgba(0, 240, 255, 0.5);
+  transform: scale(1.05);
+}
+
+.primaryButton:active {
+  transform: scale(0.95);
+}
+
+.secondaryButton {
+  background: rgba(255, 215, 0, 0.1);
+  border-color: #FFD700;
+  color: #FFD700;
+}
+
+.secondaryButton:hover {
+  background: rgba(255, 215, 0, 0.2);
+  transform: scale(1.05);
+}
+
+.hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-top: 1rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.hintIcon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.hintText {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+}
+
+/* Completion Screen */
+.completionCard {
+  text-align: center;
+  max-width: 700px;
+}
+
+.completionAnimation {
+  margin-bottom: 2rem;
+}
+
+.badge {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  animation: badgeReveal 1s ease-out;
+}
+
+@keyframes badgeReveal {
+  0% {
+    transform: scale(0) rotate(-180deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2) rotate(10deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.badgeIcon {
+  font-size: 6rem;
+  filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
+}
+
+.badgeTitle {
+  font-family: 'Space Mono', monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #FFD700;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.completionTitle {
+  font-family: 'Space Mono', monospace;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #00F0FF;
+  text-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
+  margin-bottom: 1.5rem;
+  animation: titleGlow 2s ease-in-out infinite;
+}
+
+@keyframes titleGlow {
+  0%, 100% {
+    text-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
+  }
+  50% {
+    text-shadow: 0 0 30px rgba(0, 240, 255, 1);
+  }
+}
+
+.completionMessage {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  line-height: 1.8;
+}
+
+.completionMessage p {
+  font-family: 'Space Mono', monospace;
+  font-size: 1.125rem;
+  color: #ffffff;
+  margin-bottom: 1rem;
+}
+
+.completionMessage p:last-child {
+  margin-bottom: 0;
+}
+
+.completionButtons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .card {
+    padding: 1.5rem;
+  }
+
+  .lessonTitle {
+    font-size: 1.25rem;
+  }
+
+  .stepProgress {
+    font-size: 0.75rem;
+  }
+
+  .instructionText {
+    font-size: 1.125rem;
+  }
+
+  .button {
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .completionTitle {
+    font-size: 2rem;
+  }
+
+  .badgeIcon {
+    font-size: 4rem;
+  }
+
+  .badgeTitle {
+    font-size: 1.25rem;
+  }
+}

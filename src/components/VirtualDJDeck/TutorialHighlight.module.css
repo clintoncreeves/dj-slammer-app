@@ -1,0 +1,244 @@
+/**
+ * Tutorial Highlight System - Professional DJ Equipment Glow
+ *
+ * ENHANCED professional highlighting that glows like real DJ equipment.
+ * Design specs from .kiro/specs/virtual-dj-deck/design.md lines 370-413
+ *
+ * Requirements:
+ * - Professional pulsing animation (opacity 70%-100%)
+ * - Drop-shadow glow (20-40px blur)
+ * - Scale effect (1.08x)
+ * - Deck-specific colors (cyan for A, magenta for B)
+ */
+
+/* Apply this class to any control that should be highlighted */
+.highlighted {
+  position: relative;
+  z-index: 100;
+  animation: professionalPulse 1.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 30px var(--highlight-color, #00F0FF));
+  transform: scale(1.08);
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Professional pulsing glow animation - like real DJ equipment LEDs */
+@keyframes professionalPulse {
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 20px var(--highlight-color, #00F0FF));
+  }
+  50% {
+    opacity: 0.7;
+    filter: drop-shadow(0 0 40px var(--highlight-color, #00F0FF));
+  }
+}
+
+/* Additional visual effects - pulsing border around highlighted element */
+.highlighted::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border: 2px solid var(--highlight-color, #00F0FF);
+  border-radius: inherit;
+  opacity: 0.6;
+  animation: borderPulse 1.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes borderPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.3;
+  }
+}
+
+/* Extra emphasis for very important highlights */
+.highlightedStrong {
+  composes: highlighted;
+  animation: professionalPulseStrong 1s ease-in-out infinite;
+  transform: scale(1.12);
+}
+
+@keyframes professionalPulseStrong {
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 25px var(--highlight-color, #00F0FF)) drop-shadow(0 0 40px var(--highlight-color, #00F0FF));
+  }
+  50% {
+    opacity: 0.6;
+    filter: drop-shadow(0 0 50px var(--highlight-color, #00F0FF)) drop-shadow(0 0 80px var(--highlight-color, #00F0FF));
+  }
+}
+
+/* Subtle highlight for less critical controls */
+.highlightedSubtle {
+  box-shadow: 0 0 15px var(--highlight-color, #FFD700);
+  border-color: var(--highlight-color, #FFD700);
+  animation: highlightPulseSubtle 2s ease-in-out infinite;
+}
+
+@keyframes highlightPulseSubtle {
+  0%, 100% {
+    box-shadow: 0 0 15px var(--highlight-color, #FFD700);
+    opacity: 0.9;
+  }
+  50% {
+    box-shadow: 0 0 25px var(--highlight-color, #FFD700);
+    opacity: 1;
+  }
+}
+
+/* Pointer/arrow indicator that can be positioned next to highlighted element */
+.highlightPointer {
+  position: absolute;
+  font-size: 3rem;
+  color: var(--highlight-color, #FFD700);
+  animation: pointerBounce 1s ease-in-out infinite;
+  z-index: 101;
+  filter: drop-shadow(0 0 10px var(--highlight-color, #FFD700));
+}
+
+@keyframes pointerBounce {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(10px);
+  }
+}
+
+/* Position variants for pointer */
+.highlightPointer.left {
+  right: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.highlightPointer.right {
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%) scaleX(-1);
+}
+
+.highlightPointer.top {
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) rotate(-90deg);
+}
+
+.highlightPointer.bottom {
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) rotate(90deg);
+}
+
+/* Disabled/dimmed state for non-highlighted controls during tutorial */
+.dimmed {
+  opacity: 0.3;
+  pointer-events: none;
+  filter: grayscale(50%);
+  transition: all 0.3s ease;
+}
+
+/* Gentle feedback when clicking wrong control */
+.wrongControl {
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-10px);
+  }
+  75% {
+    transform: translateX(10px);
+  }
+}
+
+/* Helper class to add spotlight effect around highlighted element */
+.spotlight {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    circle at var(--spotlight-x, 50%) var(--spotlight-y, 50%),
+    transparent 0%,
+    transparent 15%,
+    rgba(0, 0, 0, 0.7) 25%,
+    rgba(0, 0, 0, 0.85) 100%
+  );
+  pointer-events: none;
+  z-index: 99;
+  animation: spotlightPulse 2s ease-in-out infinite;
+}
+
+@keyframes spotlightPulse {
+  0%, 100% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Utility class to prevent interaction with non-highlighted elements */
+.tutorialMask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 98;
+  cursor: not-allowed;
+}
+
+/* Professional DJ equipment colors - deck-specific highlighting */
+.highlightCyan {
+  --highlight-color: #00F0FF; /* Neon Cyan - Deck A (like Pioneer blue) */
+}
+
+.highlightMagenta {
+  --highlight-color: #FF006E; /* Neon Magenta - Deck B (like Serato accents) */
+}
+
+.highlightWhite {
+  --highlight-color: #FFFFFF; /* White - for crossfader and neutral controls */
+}
+
+.highlightYellow {
+  --highlight-color: #FFD700; /* Gold - for cue points */
+}
+
+.highlightGreen {
+  --highlight-color: #00FF88; /* Neon Green - for success states */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .highlightPointer {
+    font-size: 2rem;
+  }
+
+  @keyframes highlightPulse {
+    0%, 100% {
+      box-shadow:
+        0 0 15px var(--highlight-color, #FFD700),
+        0 0 30px var(--highlight-color, #FFD700);
+      transform: scale(1);
+    }
+    50% {
+      box-shadow:
+        0 0 25px var(--highlight-color, #FFD700),
+        0 0 45px var(--highlight-color, #FFD700);
+      transform: scale(1.05);
+    }
+  }
+}

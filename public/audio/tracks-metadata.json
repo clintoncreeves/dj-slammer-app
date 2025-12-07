@@ -1,0 +1,295 @@
+{
+  "tracks": [
+    {
+      "id": "alone-296348",
+      "title": "Alone",
+      "artist": "Pixabay",
+      "bpm": 152,
+      "duration": 92,
+      "filename": "alone-296348.mp3",
+      "cuePoints": [
+        0,
+        25,
+        50,
+        75
+      ],
+      "waveformColor": "#00F0FF",
+      "key": "E"
+    },
+    {
+      "id": "baby-mandala-nepalese-drill-music-169039",
+      "title": "Baby Mandala Nepalese Drill Music",
+      "artist": "Pixabay",
+      "bpm": 72,
+      "duration": 191,
+      "filename": "baby-mandala-nepalese-drill-music-169039.mp3",
+      "cuePoints": [
+        0,
+        53,
+        106,
+        160
+      ],
+      "waveformColor": "#FF006E",
+      "key": "A"
+    },
+    {
+      "id": "dance-gabino-latin-slap-house-background-music-for-vlog-video-stories-382424",
+      "title": "Dance Gabino Latin Slap House Background Music For Vlog Video Stories",
+      "artist": "Pixabay",
+      "bpm": 96,
+      "duration": 68,
+      "filename": "dance-gabino-latin-slap-house-background-music-for-vlog-video-stories-382424.mp3",
+      "cuePoints": [
+        0,
+        40
+      ],
+      "waveformColor": "#00FF00",
+      "key": "G"
+    },
+    {
+      "id": "dance-until-dark-329026",
+      "title": "Dance Until Dark",
+      "artist": "Pixabay",
+      "bpm": 123,
+      "duration": 184,
+      "filename": "dance-until-dark-329026.mp3",
+      "cuePoints": [
+        0,
+        31,
+        62,
+        93,
+        124,
+        156
+      ],
+      "waveformColor": "#FFFF00",
+      "key": "A"
+    },
+    {
+      "id": "drive-breakbeat-173062",
+      "title": "Drive Breakbeat",
+      "artist": "Pixabay",
+      "bpm": 96,
+      "duration": 109,
+      "filename": "drive-breakbeat-173062.mp3",
+      "cuePoints": [
+        0,
+        40,
+        80
+      ],
+      "waveformColor": "#FF00FF",
+      "key": "D"
+    },
+    {
+      "id": "futuristic-motivation-synthwave-431078",
+      "title": "Futuristic Motivation Synthwave",
+      "artist": "Pixabay",
+      "bpm": 99,
+      "duration": 172,
+      "filename": "futuristic-motivation-synthwave-431078.mp3",
+      "cuePoints": [
+        0,
+        38,
+        77,
+        116,
+        155
+      ],
+      "waveformColor": "#00FFFF",
+      "key": "F#"
+    },
+    {
+      "id": "gorila-315977",
+      "title": "Gorila",
+      "artist": "Pixabay",
+      "bpm": 161,
+      "duration": 115,
+      "filename": "gorila-315977.mp3",
+      "cuePoints": [
+        0,
+        23,
+        47,
+        71,
+        95
+      ],
+      "waveformColor": "#FF8800",
+      "key": "G#"
+    },
+    {
+      "id": "happy-summer-145530",
+      "title": "Happy Summer",
+      "artist": "Pixabay",
+      "bpm": 129,
+      "duration": 140,
+      "filename": "happy-summer-145530.mp3",
+      "cuePoints": [
+        0,
+        29,
+        59,
+        89,
+        119
+      ],
+      "waveformColor": "#8800FF",
+      "key": "A"
+    },
+    {
+      "id": "legacy-of-tchaikovsky-swan-lake-house-background-music-for-video-vlog-398013",
+      "title": "Legacy Of Tchaikovsky Swan Lake House Background Music For Video Vlog",
+      "artist": "Pixabay",
+      "bpm": 123,
+      "duration": 61,
+      "filename": "legacy-of-tchaikovsky-swan-lake-house-background-music-for-video-vlog-398013.mp3",
+      "cuePoints": [
+        0,
+        31
+      ],
+      "waveformColor": "#FF0088",
+      "key": "F#"
+    },
+    {
+      "id": "legendary-bach-badinerie-house-background-music-for-video-short-ver-394172",
+      "title": "Legendary Bach Badinerie House Background Music For Video Short Ver",
+      "artist": "Pixabay",
+      "bpm": 117,
+      "duration": 54,
+      "filename": "legendary-bach-badinerie-house-background-music-for-video-short-ver-394172.mp3",
+      "cuePoints": [
+        0,
+        32
+      ],
+      "waveformColor": "#88FF00",
+      "key": "B"
+    },
+    {
+      "id": "lofi-chill-commercial-fashion-vlog-140858",
+      "title": "Lofi Chill Commercial Fashion Vlog",
+      "artist": "Pixabay",
+      "bpm": 86,
+      "duration": 124,
+      "filename": "lofi-chill-commercial-fashion-vlog-140858.mp3",
+      "cuePoints": [
+        0,
+        44,
+        89
+      ],
+      "waveformColor": "#0088FF",
+      "key": "F"
+    },
+    {
+      "id": "neon-overdrive-cyberpunk-gaming-edm-415723",
+      "title": "Neon Overdrive Cyberpunk Gaming Edm",
+      "artist": "Pixabay",
+      "bpm": 136,
+      "duration": 184,
+      "filename": "neon-overdrive-cyberpunk-gaming-edm-415723.mp3",
+      "cuePoints": [
+        0,
+        28,
+        56,
+        84,
+        112,
+        141,
+        169
+      ],
+      "waveformColor": "#FF8888",
+      "key": "F"
+    },
+    {
+      "id": "ootd-upbeat-summer-house-242100",
+      "title": "Ootd Upbeat Summer House",
+      "artist": "Pixabay",
+      "bpm": 123,
+      "duration": 118,
+      "filename": "ootd-upbeat-summer-house-242100.mp3",
+      "cuePoints": [
+        0,
+        31,
+        62,
+        93
+      ],
+      "waveformColor": "#88FF88",
+      "key": "G"
+    },
+    {
+      "id": "party-music-348444",
+      "title": "Party Music",
+      "artist": "Pixabay",
+      "bpm": 161,
+      "duration": 117,
+      "filename": "party-music-348444.mp3",
+      "cuePoints": [
+        0,
+        23,
+        47,
+        71,
+        95
+      ],
+      "waveformColor": "#8888FF",
+      "key": "D"
+    },
+    {
+      "id": "riding-through-blue-skies-298649",
+      "title": "Riding Through Blue Skies",
+      "artist": "Pixabay",
+      "bpm": 117,
+      "duration": 240,
+      "filename": "riding-through-blue-skies-298649.mp3",
+      "cuePoints": [
+        0,
+        32,
+        65,
+        98,
+        131,
+        164,
+        196,
+        229
+      ],
+      "waveformColor": "#FFAA00",
+      "key": "D"
+    },
+    {
+      "id": "running-night-393139",
+      "title": "Running Night",
+      "artist": "Pixabay",
+      "bpm": 108,
+      "duration": 112,
+      "filename": "running-night-393139.mp3",
+      "cuePoints": [
+        0,
+        35,
+        71
+      ],
+      "waveformColor": "#AA00FF",
+      "key": "C#"
+    },
+    {
+      "id": "solar-dream-330894",
+      "title": "Solar Dream",
+      "artist": "Pixabay",
+      "bpm": 108,
+      "duration": 77,
+      "filename": "solar-dream-330894.mp3",
+      "cuePoints": [
+        0,
+        35
+      ],
+      "waveformColor": "#00FFAA",
+      "key": "D"
+    },
+    {
+      "id": "trance-no-copyright-dj-music-440685",
+      "title": "Trance No Copyright Dj Music",
+      "artist": "Pixabay",
+      "bpm": 129,
+      "duration": 146,
+      "filename": "trance-no-copyright-dj-music-440685.mp3",
+      "cuePoints": [
+        0,
+        29,
+        59,
+        89,
+        119
+      ],
+      "waveformColor": "#FF00AA",
+      "key": "F"
+    }
+  ]
+}

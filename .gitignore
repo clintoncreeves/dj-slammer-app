@@ -4,3 +4,20 @@ node_modules/
 .vercel
 .env
 .env.local
+
+# Build outputs
+dist/
+dist-ssr/
+*.local
+
+# Test coverage
+coverage/
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

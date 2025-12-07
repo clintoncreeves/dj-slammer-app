@@ -1,0 +1,142 @@
+/**
+ * TutorialInstructionPanel Styles
+ *
+ * Professional DJ equipment aesthetic with UNMISSABLE instructions.
+ * Design specs from .kiro/specs/virtual-dj-deck/design.md lines 320-363
+ */
+
+/* Main panel - fixed at top of viewport */
+.panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(42, 42, 42, 0.95); /* Dark gray with 95% opacity */
+  border-bottom: 2px solid #00F0FF; /* Neon cyan border */
+  padding: 16px 24px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Content container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+/* Step counter - small and subtle */
+.stepCounter {
+  font-size: 14px;
+  font-weight: 700;
+  color: #CCCCCC; /* Light gray */
+  letter-spacing: 1px;
+  white-space: nowrap;
+  font-family: 'Inter', 'Space Grotesk', -apple-system, sans-serif;
+}
+
+/* Main instruction text - BOLD and UNMISSABLE */
+.instruction {
+  flex: 1;
+  font-size: 20px;
+  font-weight: 700;
+  color: #FFFFFF;
+  line-height: 1.4;
+  text-align: center;
+  font-family: 'Inter', 'Space Grotesk', -apple-system, sans-serif;
+  animation: instructionPulse 2s ease-in-out infinite;
+}
+
+/* Subtle pulsing animation for instruction text */
+@keyframes instructionPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+/* Progress dots container */
+.progressDots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Individual progress dot */
+.progressDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3A3A3A; /* Dark gray - inactive */
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Active progress dot - neon cyan */
+.progressDotActive {
+  background: #00F0FF; /* Neon cyan */
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+  transform: scale(1.2);
+}
+
+/* Fade in animation when panel appears */
+.panel {
+  animation: panelFadeIn 200ms ease-out;
+}
+
+@keyframes panelFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .panel {
+    padding: 12px 16px;
+  }
+
+  .container {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .instruction {
+    font-size: 18px;
+  }
+
+  .stepCounter {
+    font-size: 12px;
+  }
+
+  .progressDots {
+    gap: 6px;
+  }
+
+  .progressDot {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .panel {
+    background: rgba(0, 0, 0, 0.98);
+    border-bottom-width: 3px;
+  }
+
+  .instruction {
+    font-weight: 900;
+  }
+}
