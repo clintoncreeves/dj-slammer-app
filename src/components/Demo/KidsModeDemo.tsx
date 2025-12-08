@@ -16,6 +16,8 @@ export const KidsModeDemo: React.FC = () => {
   const [selectedTrackA, setSelectedTrackA] = useState<TrackMetadata | null>(null);
   const [selectedTrackB, setSelectedTrackB] = useState<TrackMetadata | null>(null);
   const [crossfaderPosition, setCrossfaderPosition] = useState<number>(-1);
+  const [volumeA, setVolumeA] = useState<number>(0.8);
+  const [volumeB, setVolumeB] = useState<number>(0.8);
   const [showSpeedMatcher, setShowSpeedMatcher] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -31,6 +33,8 @@ export const KidsModeDemo: React.FC = () => {
     trackAUrl: selectedTrackA?.url,
     trackBUrl: selectedTrackB?.url,
     crossfaderPosition,
+    volumeA,
+    volumeB,
     onError: (error) => console.error('Audio error:', error),
   });
 
@@ -151,6 +155,28 @@ export const KidsModeDemo: React.FC = () => {
             >
               {isPlayingA ? '⏸️ Pause' : '▶️ Drop'} DJ Dog
             </button>
+
+            {/* Volume Control for Deck A */}
+            <div style={styles.volumeControlSection}>
+              <label style={styles.volumeLabel}>DJ Dog Volume 🔊</label>
+              <div style={styles.volumeSliderContainer}>
+                <span style={styles.volumeIcon}>🔉</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={volumeA * 100}
+                  onChange={(e) => setVolumeA(parseFloat(e.target.value) / 100)}
+                  className="volumeSlider"
+                  style={{
+                    ...styles.volumeSlider,
+                    background: `linear-gradient(to right, #FF6B9D 0%, #FF6B9D ${volumeA * 100}%, rgba(255, 255, 255, 0.1) ${volumeA * 100}%, rgba(255, 255, 255, 0.1) 100%)`,
+                  }}
+                />
+                <span style={styles.volumeIcon}>🔊</span>
+              </div>
+              <div style={styles.volumeDisplay}>{Math.round(volumeA * 100)}%</div>
+            </div>
           </div>
 
           {/* Current Track Info */}
@@ -205,6 +231,28 @@ export const KidsModeDemo: React.FC = () => {
             >
               {isPlayingB ? '⏸️ Pause' : '▶️ Drop'} DJ Cat
             </button>
+
+            {/* Volume Control for Deck B */}
+            <div style={styles.volumeControlSection}>
+              <label style={styles.volumeLabel}>DJ Cat Volume 🔊</label>
+              <div style={styles.volumeSliderContainer}>
+                <span style={styles.volumeIcon}>🔉</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={volumeB * 100}
+                  onChange={(e) => setVolumeB(parseFloat(e.target.value) / 100)}
+                  className="volumeSlider"
+                  style={{
+                    ...styles.volumeSlider,
+                    background: `linear-gradient(to right, #4CAF50 0%, #4CAF50 ${volumeB * 100}%, rgba(255, 255, 255, 0.1) ${volumeB * 100}%, rgba(255, 255, 255, 0.1) 100%)`,
+                  }}
+                />
+                <span style={styles.volumeIcon}>🔊</span>
+              </div>
+              <div style={styles.volumeDisplay}>{Math.round(volumeB * 100)}%</div>
+            </div>
           </div>
 
           {/* DJ Cat Track Info */}
@@ -271,6 +319,32 @@ export const KidsModeDemo: React.FC = () => {
           🎵 DJ Slammer v1.0 - Slammer Mode 🎮
         </div>
       </div>
+
+      {/* Volume Slider Styling */}
+      <style>
+        {`
+          input[type="range"].volumeSlider::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            border: 2px solid #333;
+          }
+
+          input[type="range"].volumeSlider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            border: 2px solid #333;
+          }
+        `}
+      </style>
     </div>
   );
 };
@@ -489,6 +563,48 @@ const styles: Record<string, React.CSSProperties> = {
   footerText: {
     color: 'rgba(255, 255, 255, 0.5)',
     fontSize: '14px',
+  },
+  volumeControlSection: {
+    marginTop: '16px',
+    padding: '16px',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    borderRadius: '12px',
+    border: '2px solid rgba(255, 255, 255, 0.1)',
+  },
+  volumeLabel: {
+    display: 'block',
+    fontSize: '14px',
+    fontWeight: 'bold',
+    marginBottom: '12px',
+    color: '#fff',
+    textAlign: 'center',
+    fontFamily: 'Arial, sans-serif',
+  },
+  volumeSliderContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    marginBottom: '8px',
+  },
+  volumeIcon: {
+    fontSize: '20px',
+    flexShrink: 0,
+  },
+  volumeSlider: {
+    flex: 1,
+    height: '8px',
+    borderRadius: '4px',
+    outline: 'none',
+    cursor: 'pointer',
+    appearance: 'none',
+    WebkitAppearance: 'none',
+  },
+  volumeDisplay: {
+    textAlign: 'center',
+    fontSize: '18px',
+    fontWeight: 'bold',
+    color: '#fff',
+    fontFamily: 'Arial, sans-serif',
   },
 };
 

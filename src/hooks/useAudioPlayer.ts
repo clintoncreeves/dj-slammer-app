@@ -11,6 +11,8 @@ interface UseAudioPlayerProps {
   trackAUrl?: string;
   trackBUrl?: string;
   crossfaderPosition: number; // -1 to 1
+  volumeA?: number; // 0-1, individual deck volume
+  volumeB?: number; // 0-1, individual deck volume
   onError?: (error: Error) => void;
 }
 
@@ -33,6 +35,8 @@ export const useAudioPlayer = ({
   trackAUrl,
   trackBUrl,
   crossfaderPosition,
+  volumeA = 1.0,
+  volumeB = 1.0,
   onError,
 }: UseAudioPlayerProps): UseAudioPlayerReturn => {
   const audioARef = useRef<HTMLAudioElement | null>(null);
@@ -123,20 +127,22 @@ export const useAudioPlayer = ({
     }
   }, [trackBUrl, hasStarted, isPlayingB]);
 
-  // Update volumes based on crossfader position
+  // Update volumes based on crossfader position and individual deck volumes
   useEffect(() => {
     if (!hasStarted) return;
 
-    const { volumeA, volumeB } = calculateCrossfaderVolumes(crossfaderPosition);
+    const { volumeA: crossfadeVolumeA, volumeB: crossfadeVolumeB } = calculateCrossfaderVolumes(crossfaderPosition);
 
     if (audioARef.current) {
-      audioARef.current.volume = volumeA * 0.8; // Max 80% to prevent clipping
+      // Combine crossfader volume with individual deck volume
+      audioARef.current.volume = crossfadeVolumeA * volumeA * 0.8; // Max 80% to prevent clipping
     }
 
     if (audioBRef.current) {
-      audioBRef.current.volume = volumeB * 0.8;
+      // Combine crossfader volume with individual deck volume
+      audioBRef.current.volume = crossfadeVolumeB * volumeB * 0.8;
     }
-  }, [crossfaderPosition, hasStarted]);
+  }, [crossfaderPosition, volumeA, volumeB, hasStarted]);
 
   // Start (requires user gesture)
   const start = useCallback(() => {
