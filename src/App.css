@@ -1,1 +1,23 @@
 /* Professional CSS is loaded from /dj-slammer-styles.css */
+
+/* Skip link accessibility */
+a[href="#main-content"] {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  padding: 8px 16px;
+  background-color: #4CAF50;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 0 0 4px 0;
+  z-index: 2000;
+  font-weight: bold;
+  transition: top 0.2s;
+}
+
+a[href="#main-content"]:focus {
+  top: 0;
+  outline: 3px solid #FFD60A;
+  outline-offset: 2px;
+}
+

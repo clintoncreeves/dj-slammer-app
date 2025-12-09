@@ -7,6 +7,7 @@
 
 import { TutorialStep, TutorialProgress, TutorialLesson } from './tutorialTypes';
 import styles from './TutorialOverlay.module.css';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 interface TutorialOverlayProps {
   /** Current lesson */
@@ -56,15 +57,21 @@ export function TutorialOverlay({
   onFreePlayMode,
   onMoreLessons,
 }: TutorialOverlayProps) {
+  // Focus trap for accessibility
+  const trapRef = useFocusTrap({ 
+    active: true, 
+    onEscape: onExit 
+  });
+
   // If lesson is completed, show completion screen
   if (progress.lessonCompleted) {
     return (
-      <div className={`${styles.overlay} ${styles.fadeIn}`}>
+      <div className={`${styles.overlay} ${styles.fadeIn}`} ref={trapRef}>
         <div className={`${styles.card} ${styles.completionCard}`}>
           <div className={styles.completionAnimation}>
             {lesson.badge && (
               <div className={styles.badge}>
-                <span className={styles.badgeIcon}>{lesson.badge.icon}</span>
+                <span className={styles.badgeIcon} aria-hidden="true">{lesson.badge.icon}</span>
                 <span className={styles.badgeTitle}>{lesson.badge.title}</span>
               </div>
             )}
@@ -87,6 +94,7 @@ export function TutorialOverlay({
               className={`${styles.button} ${styles.secondaryButton}`}
               onClick={onReplayLesson || onExit}
               title="Replay this lesson from the beginning"
+              aria-label="Replay this lesson from the beginning"
             >
               🔄 REPLAY LESSON
             </button>
@@ -94,6 +102,7 @@ export function TutorialOverlay({
               className={`${styles.button} ${styles.primaryButton}`}
               onClick={onFreePlayMode || onExit}
               title="Practice freely without tutorial guidance"
+              aria-label="Exit tutorial and enter free play mode"
             >
               🎧 FREE PLAY MODE
             </button>
@@ -101,6 +110,7 @@ export function TutorialOverlay({
               className={`${styles.button} ${styles.tertiaryButton}`}
               onClick={onMoreLessons || (() => alert('More lessons coming soon!'))}
               title="Browse more lessons (coming soon)"
+              aria-label="Browse more DJ lessons"
             >
               📚 MORE LESSONS
             </button>
@@ -119,7 +129,7 @@ export function TutorialOverlay({
   const totalSteps = lesson.steps.length;
 
   return (
-    <div className={styles.overlay}>
+    <div className={styles.overlay} ref={trapRef}>
       <div className={styles.card}>
         {/* Header with progress */}
         <div className={styles.header}>
@@ -127,7 +137,12 @@ export function TutorialOverlay({
           <div className={styles.stepProgress}>
             Step {stepNumber} of {totalSteps}
           </div>
-          <button className={styles.exitButton} onClick={onExit} title="Exit Tutorial">
+          <button 
+            className={styles.exitButton} 
+            onClick={onExit} 
+            title="Exit Tutorial"
+            aria-label="Exit tutorial and return to free play mode"
+          >
             ✕
           </button>
         </div>

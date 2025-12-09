@@ -168,18 +168,18 @@ export function Crossfader({
         <div className={styles.deckStatus} data-deck="a">
           <div className={`${styles.statusDot} ${deckALoaded ? styles.loaded : ''} ${deckAPlaying ? styles.playing : ''}`} 
                style={{ backgroundColor: deckALoaded ? colorA : '#333' }} />
-          <span className={styles.statusLabel} style={{ color: deckAPlaying ? colorA : '#666' }}>
+          <span className={styles.statusLabel} style={{ color: deckAPlaying ? colorA : '#777' }}>
             {deckALoaded ? (deckAPlaying ? 'Playing' : 'Ready') : 'No Track'}
           </span>
-          <span className={styles.volumeLevel} style={{ color: colorA, opacity: deckAVolume / 100 }}>
+          <span className={styles.volumeLevel} style={{ color: colorA, opacity: Math.max(0.6, deckAVolume / 100) }}>
             {Math.round(deckAVolume)}%
           </span>
         </div>
         <div className={styles.deckStatus} data-deck="b">
-          <span className={styles.volumeLevel} style={{ color: colorB, opacity: deckBVolume / 100 }}>
+          <span className={styles.volumeLevel} style={{ color: colorB, opacity: Math.max(0.6, deckBVolume / 100) }}>
             {Math.round(deckBVolume)}%
           </span>
-          <span className={styles.statusLabel} style={{ color: deckBPlaying ? colorB : '#666' }}>
+          <span className={styles.statusLabel} style={{ color: deckBPlaying ? colorB : '#777' }}>
             {deckBLoaded ? (deckBPlaying ? 'Playing' : 'Ready') : 'No Track'}
           </span>
           <div className={`${styles.statusDot} ${deckBLoaded ? styles.loaded : ''} ${deckBPlaying ? styles.playing : ''}`}
@@ -188,11 +188,11 @@ export function Crossfader({
       </div>
 
       <div className={styles.labels}>
-        <span className={styles.labelA} style={{ color: colorA, opacity: deckAVolume / 100 + 0.3 }}>
+        <span className={styles.labelA} style={{ color: colorA, opacity: Math.max(0.5, deckAVolume / 100 + 0.3) }}>
           Deck A
         </span>
         <span className={styles.labelCenter}>Mix</span>
-        <span className={styles.labelB} style={{ color: colorB, opacity: deckBVolume / 100 + 0.3 }}>
+        <span className={styles.labelB} style={{ color: colorB, opacity: Math.max(0.5, deckBVolume / 100 + 0.3) }}>
           Deck B
         </span>
       </div>

@@ -111,6 +111,52 @@ export function TempoSlider({
     onChange(originalBPM);
   };
 
+  // Keyboard support for accessibility
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    const smallStep = 0.1; // Fine adjustment
+    const mediumStep = 0.5; // Normal adjustment
+    const largeStep = 2.0; // Large adjustment
+    
+    let handled = true;
+    
+    switch (e.key) {
+      case 'ArrowUp':
+        onChange(Math.min(currentBPM + mediumStep, maxBPM));
+        break;
+      case 'ArrowDown':
+        onChange(Math.max(currentBPM - mediumStep, minBPM));
+        break;
+      case 'ArrowLeft':
+        onChange(Math.max(currentBPM - smallStep, minBPM));
+        break;
+      case 'ArrowRight':
+        onChange(Math.min(currentBPM + smallStep, maxBPM));
+        break;
+      case 'PageUp':
+        onChange(Math.min(currentBPM + largeStep, maxBPM));
+        break;
+      case 'PageDown':
+        onChange(Math.max(currentBPM - largeStep, minBPM));
+        break;
+      case 'Home':
+        onChange(minBPM);
+        break;
+      case 'End':
+        onChange(maxBPM);
+        break;
+      case 'Enter':
+      case ' ':
+        onChange(originalBPM); // Reset to original
+        break;
+      default:
+        handled = false;
+    }
+    
+    if (handled) {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className={`${styles.container} ${className || ''} ${highlighted ? styles.highlighted : ''}`}>
       <div className={styles.label}>Tempo</div>
@@ -121,6 +167,14 @@ export function TempoSlider({
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
         onDoubleClick={handleDoubleClick}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        role="slider"
+        aria-label={`Tempo control for Deck ${_deck}`}
+        aria-valuemin={parseFloat(minBPM.toFixed(1))}
+        aria-valuemax={parseFloat(maxBPM.toFixed(1))}
+        aria-valuenow={parseFloat(currentBPM.toFixed(1))}
+        aria-valuetext={`Current BPM: ${currentBPM.toFixed(1)}, Range: ${minBPM.toFixed(1)} to ${maxBPM.toFixed(1)}`}
         style={{
           '--slider-color': color,
         } as React.CSSProperties}
