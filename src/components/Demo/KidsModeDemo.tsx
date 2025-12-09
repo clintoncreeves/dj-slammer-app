@@ -131,12 +131,17 @@ export const KidsModeDemo: React.FC = () => {
                   }}
                   onClick={() => setSelectedTrackA(track)}
                 >
-                  <div
-                    style={{
-                      ...styles.keyDot,
-                      backgroundColor: track.keyColor,
-                    }}
-                  />
+                  <div style={styles.trackButtonIcons}>
+                    <div
+                      style={{
+                        ...styles.keyDot,
+                        backgroundColor: track.keyColor,
+                      }}
+                    />
+                    <div style={styles.genreBadge} title={track.simplifiedGenre}>
+                      {track.genreEmoji}
+                    </div>
+                  </div>
                   <div style={styles.trackButtonText}>
                     <div style={styles.trackButtonTitle}>{track.title}</div>
                     <div style={styles.trackButtonInfo}>
@@ -207,12 +212,17 @@ export const KidsModeDemo: React.FC = () => {
                   }}
                   onClick={() => setSelectedTrackB(track)}
                 >
-                  <div
-                    style={{
-                      ...styles.keyDot,
-                      backgroundColor: track.keyColor,
-                    }}
-                  />
+                  <div style={styles.trackButtonIcons}>
+                    <div
+                      style={{
+                        ...styles.keyDot,
+                        backgroundColor: track.keyColor,
+                      }}
+                    />
+                    <div style={styles.genreBadge} title={track.simplifiedGenre}>
+                      {track.genreEmoji}
+                    </div>
+                  </div>
                   <div style={styles.trackButtonText}>
                     <div style={styles.trackButtonTitle}>{track.title}</div>
                     <div style={styles.trackButtonInfo}>
@@ -488,6 +498,12 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     transition: 'all 0.2s',
   },
+  trackButtonIcons: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    flexShrink: 0,
+  },
   keyDot: {
     width: '24px',
     height: '24px',
@@ -495,6 +511,12 @@ const styles: Record<string, React.CSSProperties> = {
     border: '2px solid rgba(255, 255, 255, 0.8)',
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
     flexShrink: 0,
+  },
+  genreBadge: {
+    fontSize: '20px',
+    lineHeight: 1,
+    flexShrink: 0,
+    filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))',
   },
   trackButtonText: {
     flex: 1,

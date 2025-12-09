@@ -127,6 +127,29 @@ export class DJDeckError extends Error {
 }
 
 /**
+ * Simplified genre categories for kids (ages 6-8)
+ */
+export type SimplifiedGenre =
+  | 'electronic'    // 🤖 Robot Music
+  | 'hiphop'        // 🎤 Rap & Rhymes
+  | 'pop'           // ⭐ Sing-Along
+  | 'rock'          // 🎸 Rock Power
+  | 'dance'         // 💃 Dance Party
+  | 'chill'         // 😌 Calm Vibes
+  | 'classical'     // 🎻 Orchestra
+  | 'world';        // 🌍 World Beats
+
+/**
+ * Genre compatibility level
+ */
+export type GenreCompatibility =
+  | 'perfect'    // Same genre
+  | 'excellent'  // Very compatible (e.g., electronic + dance)
+  | 'good'       // Somewhat compatible
+  | 'okay'       // Can work with skill
+  | 'challenging'; // Difficult to mix
+
+/**
  * Track metadata
  */
 export interface TrackMetadata {
@@ -160,4 +183,18 @@ export interface TrackMetadata {
   tempoCategory: 'slow' | 'medium' | 'fast';
   /** Array of compatible Camelot codes */
   compatibleKeys: string[];
+
+  // Genre fields
+  /** Raw genre (from Tidal API or manual classification) */
+  genre?: string;
+  /** Kid-friendly simplified genre category */
+  simplifiedGenre: SimplifiedGenre;
+  /** Emoji representation of genre */
+  genreEmoji: string;
+  /** Color for genre visualization */
+  genreColor: string;
+  /** Energy level of the track */
+  energy: 'low' | 'medium' | 'high';
+  /** Optional mood descriptor */
+  mood?: string;
 }
