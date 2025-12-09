@@ -35,20 +35,23 @@ export const SpeedMatcher: React.FC<SpeedMatcherProps> = ({
   useEffect(() => {
     // Check if sync is possible between the two tracks
     const syncPossible = canSync(trackA.bpm, currentBPM_B);
-    
+
     if (syncPossible) {
       // Calculate the sync result to determine what kind of match it is
       const syncResult = calculateBPMSync(trackA.bpm, currentBPM_B, trackB.bpm);
       const matched = Math.abs(syncResult.adjustment) <= 3; // Within ±3 BPM of target
-      
+
       setIsMatched(matched);
       setSyncType(matched ? syncResult.syncType : null);
 
       if (matched && !showSuccess) {
         setShowSuccess(true);
+        // Auto-hide success message after 3 seconds
         setTimeout(() => {
-          onSuccess?.();
-        }, 2000); // Show success for 2 seconds
+          setShowSuccess(false);
+        }, 3000);
+        // Call onSuccess callback if provided
+        onSuccess?.();
       }
     } else {
       setIsMatched(false);
@@ -178,9 +181,9 @@ export const SpeedMatcher: React.FC<SpeedMatcherProps> = ({
           </div>
         </div>
 
-        {/* Success Animation */}
+        {/* Success Toast Notification */}
         {showSuccess && (
-          <div style={styles.successOverlay}>
+          <div style={styles.successToast}>
             <div style={styles.successContent}>
               <div style={styles.successEmoji}>🎉</div>
               <div style={styles.successTitle}>You Did It!</div>
@@ -235,6 +238,20 @@ const BouncingCharacter: React.FC<BouncingCharacterProps> = ({
             }
             50% {
               transform: translateY(-30px) scale(1.1);
+            }
+          }
+
+          @keyframes successPop {
+            0% {
+              transform: translate(-50%, -50%) scale(0.8);
+              opacity: 0;
+            }
+            50% {
+              transform: translate(-50%, -50%) scale(1.05);
+            }
+            100% {
+              transform: translate(-50%, -50%) scale(1);
+              opacity: 1;
             }
           }
         `}
@@ -440,36 +457,41 @@ const styles: Record<string, React.CSSProperties> = {
     fontFamily: 'Arial, sans-serif',
     fontSize: '14px',
   },
-  successOverlay: {
+  successToast: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: '20px',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    backgroundColor: 'rgba(76, 175, 80, 0.95)',
+    padding: '24px 40px',
+    borderRadius: '16px',
+    boxShadow: '0 8px 32px rgba(76, 175, 80, 0.4), 0 0 0 3px rgba(255, 255, 255, 0.2)',
+    animation: 'successPop 0.3s ease-out',
+    zIndex: 100,
+    pointerEvents: 'none',
   },
   successContent: {
     textAlign: 'center',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '8px',
   },
   successEmoji: {
-    fontSize: '80px',
-    marginBottom: '20px',
+    fontSize: '48px',
+    lineHeight: 1,
   },
   successTitle: {
-    color: '#4CAF50',
-    fontFamily: 'Arial, sans-serif',
-    fontSize: '36px',
-    fontWeight: 'bold',
-    marginBottom: '12px',
-  },
-  successMessage: {
     color: '#fff',
     fontFamily: 'Arial, sans-serif',
-    fontSize: '20px',
+    fontSize: '24px',
+    fontWeight: 'bold',
+    textShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+  },
+  successMessage: {
+    color: 'rgba(255, 255, 255, 0.95)',
+    fontFamily: 'Arial, sans-serif',
+    fontSize: '16px',
   },
 };
 
