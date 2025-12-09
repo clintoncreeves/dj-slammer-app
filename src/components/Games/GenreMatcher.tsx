@@ -5,10 +5,10 @@
  * Multiple game modes with progressive difficulty
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import * as Tone from 'tone';
 import { TrackMetadata, SimplifiedGenre } from '../VirtualDJDeck/types';
 import { getGenreCompatibility, getCompatibilityMessage } from '../../utils/genreMapping';
-import { getGenreConfig } from '../../config/genreConfig';
 
 type GameMode = 'identify' | 'match' | 'compatibility';
 
@@ -33,25 +33,81 @@ export const GenreMatcher: React.FC<GenreMatcherProps> = ({
   const [isCorrect, setIsCorrect] = useState(false);
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  // Audio player ref
+  const playerRef = useRef<Tone.Player | null>(null);
 
   // Initialize game based on mode
   useEffect(() => {
     startNewRound();
+
+    // Cleanup audio on unmount
+    return () => {
+      if (playerRef.current) {
+        playerRef.current.stop();
+        playerRef.current.dispose();
+      }
+    };
   }, [mode, tracks]);
 
   const startNewRound = () => {
     setShowResult(false);
     setSelectedGenre(null);
+    stopAudio();
 
     if (mode === 'identify') {
       // Pick a random track
       const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
       setCurrentTrack(randomTrack);
+      loadAudio(randomTrack.url!);
     } else {
       // Pick two random tracks for matching/compatibility modes
       const shuffled = [...tracks].sort(() => Math.random() - 0.5);
       setTrackA(shuffled[0]);
       setTrackB(shuffled[1]);
+    }
+  };
+
+  const loadAudio = async (url: string) => {
+    try {
+      // Dispose previous player
+      if (playerRef.current) {
+        playerRef.current.stop();
+        playerRef.current.dispose();
+      }
+
+      // Create new player
+      playerRef.current = new Tone.Player({
+        url,
+        loop: true,
+        volume: -6,
+      }).toDestination();
+
+      await Tone.loaded();
+    } catch (error) {
+      console.error('Error loading audio:', error);
+    }
+  };
+
+  const togglePlayback = async () => {
+    if (!playerRef.current) return;
+
+    await Tone.start();
+
+    if (isPlaying) {
+      playerRef.current.stop();
+      setIsPlaying(false);
+    } else {
+      playerRef.current.start();
+      setIsPlaying(true);
+    }
+  };
+
+  const stopAudio = () => {
+    if (playerRef.current) {
+      playerRef.current.stop();
+      setIsPlaying(false);
     }
   };
 
@@ -92,12 +148,17 @@ export const GenreMatcher: React.FC<GenreMatcherProps> = ({
   };
 
   const getGenreOptions = (): SimplifiedGenre[] => {
-    // Return unique genres from available tracks
-    const uniqueGenres = Array.from(new Set(tracks.map(t => t.simplifiedGenre)));
-    return uniqueGenres.slice(0, 6) as SimplifiedGenre[]; // Limit to 6 options max
+    // Return unique genres from available tracks, filtering out any undefined
+    const uniqueGenres = Array.from(new Set(tracks.map(t => t.simplifiedGenre).filter(Boolean)));
+    return uniqueGenres.slice(0, 6) as SimplifiedGenre[];
   };
 
   const genreOptions = getGenreOptions();
+
+  // Get display name for genre (use actual genre if available, otherwise simplified)
+  const getGenreDisplayName = (track: TrackMetadata): string => {
+    return track.genre || track.simplifiedGenre;
+  };
 
   return (
     <div style={styles.overlay}>
@@ -138,9 +199,21 @@ export const GenreMatcher: React.FC<GenreMatcherProps> = ({
                 <div style={styles.trackInfo}>
                   {currentTrack.bpm} BPM • {currentTrack.tempoCategory} tempo
                 </div>
+
+                {/* Play/Pause Button */}
+                <button
+                  style={{
+                    ...styles.playButton,
+                    backgroundColor: isPlaying ? '#FF6B9D' : '#4CAF50',
+                  }}
+                  onClick={togglePlayback}
+                >
+                  {isPlaying ? '⏸️ Pause' : '▶️ Play'}
+                </button>
+
                 {showResult && (
                   <div style={styles.correctGenre}>
-                    {currentTrack.genreEmoji} {getGenreConfig(currentTrack.simplifiedGenre).kidFriendlyName}
+                    {currentTrack.genreEmoji} {getGenreDisplayName(currentTrack)}
                   </div>
                 )}
               </div>
@@ -149,7 +222,10 @@ export const GenreMatcher: React.FC<GenreMatcherProps> = ({
             {/* Genre Options */}
             <div style={styles.genreGrid}>
               {genreOptions.map(genre => {
-                const config = getGenreConfig(genre);
+                // Find a track with this genre to get the actual genre name
+                const trackWithGenre = tracks.find(t => t.simplifiedGenre === genre);
+                if (!trackWithGenre) return null;
+
                 const isSelected = selectedGenre === genre;
                 const isCorrectAnswer = showResult && genre === currentTrack.simplifiedGenre;
 
@@ -172,8 +248,8 @@ export const GenreMatcher: React.FC<GenreMatcherProps> = ({
                     onClick={() => handleGenreSelect(genre)}
                     disabled={showResult}
                   >
-                    <div style={styles.genreEmoji}>{config.emoji}</div>
-                    <div style={styles.genreName}>{config.kidFriendlyName}</div>
+                    <div style={styles.genreEmoji}>{trackWithGenre.genreEmoji}</div>
+                    <div style={styles.genreName}>{getGenreDisplayName(trackWithGenre)}</div>
                   </button>
                 );
               })}
@@ -195,7 +271,7 @@ export const GenreMatcher: React.FC<GenreMatcherProps> = ({
                 <div style={styles.trackTitle}>{trackA.title}</div>
                 {showResult && (
                   <div style={styles.genreTag}>
-                    {getGenreConfig(trackA.simplifiedGenre).kidFriendlyName}
+                    {getGenreDisplayName(trackA)}
                   </div>
                 )}
               </div>
@@ -208,7 +284,7 @@ export const GenreMatcher: React.FC<GenreMatcherProps> = ({
                 <div style={styles.trackTitle}>{trackB.title}</div>
                 {showResult && (
                   <div style={styles.genreTag}>
-                    {getGenreConfig(trackB.simplifiedGenre).kidFriendlyName}
+                    {getGenreDisplayName(trackB)}
                   </div>
                 )}
               </div>
@@ -429,6 +505,19 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'rgba(255, 255, 255, 0.6)',
     fontFamily: 'Arial, sans-serif',
     fontSize: '14px',
+    marginBottom: '16px',
+  },
+  playButton: {
+    padding: '12px 24px',
+    fontSize: '16px',
+    fontWeight: 'bold',
+    color: '#fff',
+    border: '2px solid rgba(255, 255, 255, 0.3)',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    marginBottom: '12px',
+    fontFamily: 'Arial, sans-serif',
+    transition: 'all 0.2s',
   },
   correctGenre: {
     marginTop: '12px',
