@@ -8,6 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { TrackMetadata } from '../VirtualDJDeck/types';
 import TrackInfo from '../VirtualDJDeck/TrackInfo';
 import SpeedMatcher from '../Games/SpeedMatcher';
+import GenreMatcher from '../Games/GenreMatcher';
 import CharacterCrossfader from '../Games/CharacterCrossfader';
 import { useAudioPlayer } from '../../hooks/useAudioPlayer';
 
@@ -19,6 +20,7 @@ export const KidsModeDemo: React.FC = () => {
   const [volumeA, setVolumeA] = useState<number>(0.8);
   const [volumeB, setVolumeB] = useState<number>(0.8);
   const [showSpeedMatcher, setShowSpeedMatcher] = useState(false);
+  const [showGenreMatcher, setShowGenreMatcher] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Audio player hook
@@ -297,10 +299,13 @@ export const KidsModeDemo: React.FC = () => {
             <div style={styles.gameButtonDesc}>Match the tempo!</div>
           </button>
 
-          <button style={styles.gameButton} disabled>
+          <button
+            style={styles.gameButton}
+            onClick={() => setShowGenreMatcher(true)}
+          >
             <div style={styles.gameButtonEmoji}>🎵</div>
-            <div style={styles.gameButtonTitle}>Key Harmony Wheel</div>
-            <div style={styles.gameButtonDesc}>Coming soon!</div>
+            <div style={styles.gameButtonTitle}>Genre Master</div>
+            <div style={styles.gameButtonDesc}>Learn music styles!</div>
           </button>
 
           <button style={styles.gameButton} disabled>
@@ -320,6 +325,18 @@ export const KidsModeDemo: React.FC = () => {
             console.log('Speed matched successfully!');
           }}
           onClose={() => setShowSpeedMatcher(false)}
+        />
+      )}
+
+      {/* Genre Matcher Game */}
+      {showGenreMatcher && (
+        <GenreMatcher
+          tracks={allTracks}
+          mode="identify"
+          onSuccess={() => {
+            console.log('Genre matched successfully!');
+          }}
+          onClose={() => setShowGenreMatcher(false)}
         />
       )}
 
