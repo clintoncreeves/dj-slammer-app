@@ -27,5 +27,6 @@
     }
   },
   "include": ["src"],
+  "exclude": ["src/components/_archive/**/*"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
