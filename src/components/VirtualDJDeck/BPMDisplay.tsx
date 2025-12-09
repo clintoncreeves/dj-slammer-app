@@ -28,7 +28,13 @@ export function BPMDisplay({
   const isAdjusted = Math.abs(difference) > 0.5;
 
   return (
-    <div className={`${styles.container} ${className || ''}`}>
+    <div 
+      className={`${styles.container} ${className || ''}`}
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      aria-label="Current BPM display"
+    >
       <div
         className={styles.currentBPM}
         style={{

@@ -45,10 +45,11 @@ export function calculateBPMSync(
   masterBPM: number,
   slaveBPM: number,
   slaveOriginalBPM: number,
-  options: BPMSyncOptions = {}
+  _options: BPMSyncOptions = {}
 ): BPMSyncResult {
-  const { directTolerance = 10, timeTolerance = 5 } = options;
-
+  // Note: _options parameter kept for API compatibility but not currently used
+  // The algorithm now always chooses the closest sync path
+  
   // Calculate potential sync targets
   const directTarget = masterBPM;
   const halfTimeTarget = masterBPM / 2;
@@ -69,28 +70,30 @@ export function calculateBPMSync(
   let targetBPM: number;
   let syncType: 'direct' | 'half-time' | 'double-time';
 
-  // Apply tolerance checks and choose sync type
-  if (minAdjustment === directAdjustment && directAdjustment <= directTolerance) {
-    // Direct tempo matching
+  // Choose the closest path (minimum adjustment), matching VirtualDJ's "closest path" algorithm
+  // When adjustments are very close (within 1 BPM), prefer direct over half/double time
+  const PREFERENCE_THRESHOLD = 1;
+
+  if (minAdjustment === directAdjustment) {
+    // Direct is closest or tied - prefer direct
     targetBPM = directTarget;
     syncType = 'direct';
   } else if (
     minAdjustment === halfTimeAdjustment &&
-    halfTimeAdjustment <= timeTolerance
+    halfTimeAdjustment < directAdjustment - PREFERENCE_THRESHOLD
   ) {
-    // Half-time matching
+    // Half-time is clearly better (not just tied)
     targetBPM = halfTimeTarget;
     syncType = 'half-time';
   } else if (
     minAdjustment === doubleTimeAdjustment &&
-    doubleTimeAdjustment <= timeTolerance
+    doubleTimeAdjustment < directAdjustment - PREFERENCE_THRESHOLD
   ) {
-    // Double-time matching
+    // Double-time is clearly better (not just tied)
     targetBPM = doubleTimeTarget;
     syncType = 'double-time';
   } else {
-    // If nothing matches within tolerance, use direct as fallback
-    // This matches VirtualDJ behavior where it always attempts to sync
+    // Default to direct when paths are very close or direct is best
     targetBPM = directTarget;
     syncType = 'direct';
   }
