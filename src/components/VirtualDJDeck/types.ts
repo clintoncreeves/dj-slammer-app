@@ -10,6 +10,10 @@
 export interface DeckConfig {
   /** URL to audio file (HTTP URL or blob URL from file upload) */
   trackUrl: string;
+  /** Track name/title */
+  trackName?: string;
+  /** Artist name */
+  artistName?: string;
   /** Initial BPM (beats per minute) of the track */
   initialBPM: number;
   /** Cue point position in seconds */
@@ -44,6 +48,11 @@ export interface DeckState {
   currentTime: number;
   /** Total duration of the track in seconds */
   duration: number;
+
+  /** Track name/title */
+  trackName: string;
+  /** Artist name */
+  artistName: string;
 
   /** Original BPM of the track */
   originalBPM: number;
@@ -105,7 +114,7 @@ export type DeckId = 'A' | 'B';
 /**
  * Playback command
  */
-export type PlaybackCommand = 'play' | 'pause' | 'cue';
+export type PlaybackCommand = 'play' | 'pause' | 'cue' | 'setCue';
 
 /**
  * Error types that can occur in the Virtual DJ Deck

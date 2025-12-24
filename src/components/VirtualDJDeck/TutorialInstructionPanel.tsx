@@ -23,6 +23,9 @@ interface TutorialInstructionPanelProps {
 
   /** Show celebration for completed step */
   showCelebration?: boolean;
+
+  /** Callback when close button is clicked to skip to free play */
+  onClose?: () => void;
 }
 
 export function TutorialInstructionPanel({
@@ -30,6 +33,7 @@ export function TutorialInstructionPanel({
   progress,
   currentStep,
   showCelebration = false,
+  onClose,
 }: TutorialInstructionPanelProps) {
   const stepNumber = progress.currentStepIndex + 1;
   const totalSteps = lesson.steps.length;
@@ -72,6 +76,18 @@ export function TutorialInstructionPanel({
         <div className={styles.progressDots}>
           {progressDots}
         </div>
+
+        {/* Close button to skip to free play */}
+        {onClose && (
+          <button
+            className={styles.closeButton}
+            onClick={onClose}
+            aria-label="Skip tutorial and start free play"
+            title="Skip to Free Play"
+          >
+            ✕
+          </button>
+        )}
       </div>
     </div>
   );

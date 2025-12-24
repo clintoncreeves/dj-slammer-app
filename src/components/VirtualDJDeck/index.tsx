@@ -20,6 +20,14 @@ export { VolumeControl } from './VolumeControl';
 export { TutorialOverlay } from './TutorialOverlay';
 export { TrackLibrary } from './TrackLibrary';
 
+// Export MIDI components
+export { MIDIProvider, useMIDI, useMIDIAvailable } from './MIDIContext';
+export { MIDISettings } from './MIDISettings';
+
+// Export DeckContext and types
+export { DeckProvider, useDeck } from './DeckContext';
+export type { TrackInfo } from './DeckContext';
+
 // Export tutorial system
 export { useTutorial } from './useTutorial';
 export type {

@@ -102,8 +102,20 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
 
         // Load tracks (continue even if some fail)
         await Promise.allSettled([
-          deck.loadTrack('A', config.deckA.trackUrl, config.deckA.initialBPM, config.deckA.cuePoint),
-          deck.loadTrack('B', config.deckB.trackUrl, config.deckB.initialBPM, config.deckB.cuePoint),
+          deck.loadTrack('A', {
+            url: config.deckA.trackUrl,
+            name: config.deckA.trackName || 'Track A',
+            artist: config.deckA.artistName || 'Unknown Artist',
+            bpm: config.deckA.initialBPM,
+            cuePoint: config.deckA.cuePoint,
+          }),
+          deck.loadTrack('B', {
+            url: config.deckB.trackUrl,
+            name: config.deckB.trackName || 'Track B',
+            artist: config.deckB.artistName || 'Unknown Artist',
+            bpm: config.deckB.initialBPM,
+            cuePoint: config.deckB.cuePoint,
+          }),
         ]);
 
         setNeedsUserGesture(false);
@@ -181,6 +193,11 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
       tutorial.validateStep(getState());
     };
 
+    const setCuePointWithTutorial = (deckId: DeckId) => {
+      deck.setCuePoint(deckId);
+      tutorial.validateStep(getState());
+    };
+
     const setBPMWithTutorial = (deckId: DeckId, bpm: number) => {
       deck.setBPM(deckId, bpm);
       const expectedState = createExpectedState({
@@ -236,16 +253,20 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
       );
     }
 
+    // Check if tutorial banner should be shown
+    const showTutorialBanner = mode === 'tutorial' && tutorial.progress.isActive && tutorial.currentStep && tutorialConfig;
+
     // Render main professional UI
     return (
-      <div className={`${styles.container} ${className || ''}`}>
+      <div className={`${styles.container} ${!showTutorialBanner ? styles.noTutorial : ''} ${className || ''}`}>
         {/* Tutorial Instruction Panel - Fixed at top, Guitar Hero style */}
-        {mode === 'tutorial' && tutorial.progress.isActive && tutorial.currentStep && tutorialConfig && (
+        {showTutorialBanner && tutorial.currentStep && (
           <TutorialInstructionPanel
             lesson={tutorialConfig.lesson}
             progress={tutorial.progress}
             currentStep={tutorial.currentStep}
             showCelebration={tutorial.showCelebration}
+            onClose={handleFreePlayMode}
           />
         )}
 
@@ -255,6 +276,12 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
           <div className={styles.deck} data-deck="a">
             <div className={styles.deckHeader}>
               <h3 style={{ color: config.deckA.waveformColor }}>Deck A</h3>
+              {deck.deckAState.isLoaded && (
+                <div className={styles.trackInfo}>
+                  <span className={styles.trackName}>{deck.deckAState.trackName || 'No Track'}</span>
+                  <span className={styles.artistName}>{deck.deckAState.artistName || ''}</span>
+                </div>
+              )}
             </div>
 
             {deck.loadErrors.A ? (
@@ -336,6 +363,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 onPlay={() => playDeckWithTutorial('A')}
                 onPause={() => pauseDeckWithTutorial('A')}
                 onCue={() => cueDeckWithTutorial('A')}
+                onSetCue={() => setCuePointWithTutorial('A')}
                 highlightPlay={
                   mode === 'tutorial' &&
                   highlightTarget?.type === 'button' &&
@@ -354,6 +382,12 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                   highlightTarget?.control === 'cue' &&
                   highlightTarget?.deck === 'A'
                 }
+                highlightSetCue={
+                  mode === 'tutorial' &&
+                  highlightTarget?.type === 'button' &&
+                  highlightTarget?.control === 'setCue' &&
+                  highlightTarget?.deck === 'A'
+                }
               />
             </div>
           </div>
@@ -362,6 +396,12 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
           <div className={styles.deck} data-deck="b">
             <div className={styles.deckHeader}>
               <h3 style={{ color: config.deckB.waveformColor }}>Deck B</h3>
+              {deck.deckBState.isLoaded && (
+                <div className={styles.trackInfo}>
+                  <span className={styles.trackName}>{deck.deckBState.trackName || 'No Track'}</span>
+                  <span className={styles.artistName}>{deck.deckBState.artistName || ''}</span>
+                </div>
+              )}
             </div>
 
             {deck.loadErrors.B ? (
@@ -443,6 +483,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 onPlay={() => playDeckWithTutorial('B')}
                 onPause={() => pauseDeckWithTutorial('B')}
                 onCue={() => cueDeckWithTutorial('B')}
+                onSetCue={() => setCuePointWithTutorial('B')}
                 highlightPlay={
                   mode === 'tutorial' &&
                   highlightTarget?.type === 'button' &&
@@ -459,6 +500,12 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                   mode === 'tutorial' &&
                   highlightTarget?.type === 'button' &&
                   highlightTarget?.control === 'cue' &&
+                  highlightTarget?.deck === 'B'
+                }
+                highlightSetCue={
+                  mode === 'tutorial' &&
+                  highlightTarget?.type === 'button' &&
+                  highlightTarget?.control === 'setCue' &&
                   highlightTarget?.deck === 'B'
                 }
               />

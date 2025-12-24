@@ -18,6 +18,15 @@ import { DeckState, DeckId, VirtualDJDeckState } from './types';
 import { generateWaveformData } from '../../utils/waveformUtils';
 import { calculateBPMSync, BPMSyncResult } from '../../utils/bpmSync';
 
+/** Track info for loading into a deck */
+export interface TrackInfo {
+  url: string;
+  name: string;
+  artist: string;
+  bpm: number;
+  cuePoint?: number;
+}
+
 interface DeckContextValue {
   // Deck States
   deckAState: DeckState;
@@ -29,17 +38,20 @@ interface DeckContextValue {
   isInitialized: boolean;
 
   // Deck Operations
-  loadTrack: (deck: DeckId, url: string, initialBPM: number, cuePoint: number) => Promise<void>;
+  loadTrack: (deck: DeckId, trackInfo: TrackInfo) => Promise<void>;
   playDeck: (deck: DeckId) => void;
   pauseDeck: (deck: DeckId) => void;
   cueDeck: (deck: DeckId) => void;
+  setCuePoint: (deck: DeckId) => void;
   seekDeck: (deck: DeckId, time: number) => void;
   setBPM: (deck: DeckId, bpm: number) => void;
   syncBPM: (slaveDeck: DeckId, masterDeck: DeckId) => BPMSyncResult | null;
+  syncDeck: (deck: DeckId) => BPMSyncResult | null;
   setVolume: (deck: DeckId, volume: number) => void;
   setCrossfader: (position: number) => void;
   updateCurrentTime: (deck: DeckId, time: number) => void;
   setDeckEQ: (deck: DeckId, band: 'low' | 'mid' | 'high', value: number) => void;
+  setPlaybackRate: (deck: DeckId, rate: number) => void;
 
   // State Queries
   getState: () => VirtualDJDeckState;
@@ -64,13 +76,18 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
   const audioEngineRef = useRef<AudioEngine | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [loadErrors, setLoadErrors] = useState<{ A?: string; B?: string }>({});
-  
+
+  // Track BPM detection initialization per deck
+  const bpmDetectionInitialized = useRef<{ A: boolean; B: boolean }>({ A: false, B: false });
+
   // Deck States - The central focal points
   const [deckAState, setDeckAState] = useState<DeckState>({
     isPlaying: false,
     isPaused: false,
     currentTime: 0,
     duration: 0,
+    trackName: '',
+    artistName: '',
     originalBPM: 0,
     currentBPM: 0,
     playbackRate: 1,
@@ -88,6 +105,8 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     isPaused: false,
     currentTime: 0,
     duration: 0,
+    trackName: '',
+    artistName: '',
     originalBPM: 0,
     currentBPM: 0,
     playbackRate: 1,
@@ -137,10 +156,12 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
   }, [onError]);
 
   // Load a track for a deck
-  const loadTrack = useCallback(async (deck: DeckId, url: string, initialBPM: number, cuePoint: number) => {
+  const loadTrack = useCallback(async (deck: DeckId, trackInfo: TrackInfo) => {
     if (!audioEngineRef.current) {
       throw new Error('AudioEngine not initialized');
     }
+
+    const { url, name, artist, bpm, cuePoint = 0 } = trackInfo;
 
     try {
       await audioEngineRef.current.loadTrack(deck, url);
@@ -155,10 +176,33 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
         isLoaded: true,
         duration,
         waveformData,
-        originalBPM: initialBPM,
-        currentBPM: initialBPM,
+        trackName: name,
+        artistName: artist,
+        originalBPM: bpm,
+        currentBPM: bpm,
         cuePoint,
       }));
+
+      // Initialize realtime BPM detection if not already initialized for this deck
+      if (!bpmDetectionInitialized.current[deck]) {
+        try {
+          await audioEngineRef.current.initRealtimeBpmDetection(deck);
+          bpmDetectionInitialized.current[deck] = true;
+          console.log(`[DeckContext] BPM detection initialized for Deck ${deck}`);
+        } catch (bpmError) {
+          // Don't fail track loading if BPM detection fails
+          console.warn(`[DeckContext] Failed to initialize BPM detection for Deck ${deck}:`, bpmError);
+        }
+      }
+
+      // Start BPM analysis for the loaded track
+      try {
+        audioEngineRef.current.startBpmAnalysis(deck);
+        console.log(`[DeckContext] BPM analysis started for Deck ${deck}`);
+      } catch (bpmError) {
+        // Don't fail track loading if BPM analysis fails
+        console.warn(`[DeckContext] Failed to start BPM analysis for Deck ${deck}:`, bpmError);
+      }
 
       // Clear any previous load error for this deck
       setLoadErrors((prev) => {
@@ -239,6 +283,31 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
       console.log(`[DeckContext] Deck ${deck} cued`);
     } catch (err) {
       console.error(`[DeckContext] Failed to cue Deck ${deck}:`, err);
+      onError?.(err as Error);
+    }
+  }, [isInitialized, deckAState, deckBState, notifyStateChange, onError]);
+
+  // Set cue point to current playback position
+  const setCuePoint = useCallback((deck: DeckId) => {
+    if (!isInitialized) {
+      console.warn('[DeckContext] Cannot set cue point: AudioEngine not initialized');
+      return;
+    }
+
+    try {
+      // Get current playback position from the deck state
+      // (which is updated every frame via updateCurrentTime)
+      const state = deck === 'A' ? deckAState : deckBState;
+      const currentPosition = state.currentTime;
+
+      // Update the deck state with new cue point
+      const updateState = deck === 'A' ? setDeckAState : setDeckBState;
+      updateState((prev) => ({ ...prev, cuePoint: currentPosition }));
+
+      notifyStateChange();
+      console.log(`[DeckContext] Deck ${deck} cue point set to ${currentPosition.toFixed(2)}s`);
+    } catch (err) {
+      console.error(`[DeckContext] Failed to set cue point for Deck ${deck}:`, err);
       onError?.(err as Error);
     }
   }, [isInitialized, deckAState, deckBState, notifyStateChange, onError]);
@@ -376,15 +445,52 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
       return;
     }
 
-    audioEngineRef.current.setEQ(deck, band, value);
+    try {
+      audioEngineRef.current.setEQ(deck, band, value);
 
-    const updateState = deck === 'A' ? setDeckAState : setDeckBState;
-    const eqKey = band === 'low' ? 'eqLow' : band === 'mid' ? 'eqMid' : 'eqHigh';
-    updateState((prev) => ({ ...prev, [eqKey]: value }));
+      const updateState = deck === 'A' ? setDeckAState : setDeckBState;
+      const eqKey = band === 'low' ? 'eqLow' : band === 'mid' ? 'eqMid' : 'eqHigh';
+      updateState((prev) => ({ ...prev, [eqKey]: value }));
 
-    notifyStateChange();
-    console.log(`[DeckContext] Deck ${deck} EQ ${band} set to ${value.toFixed(1)} dB`);
-  }, [notifyStateChange]);
+      notifyStateChange();
+      console.log(`[DeckContext] Deck ${deck} EQ ${band} set to ${value.toFixed(1)} dB`);
+    } catch (err) {
+      console.error(`[DeckContext] Failed to set EQ for Deck ${deck}:`, err);
+      onError?.(err as Error);
+    }
+  }, [notifyStateChange, onError]);
+
+  // Set playback rate directly for a deck
+  const setPlaybackRate = useCallback((deck: DeckId, rate: number) => {
+    if (!audioEngineRef.current || !isInitialized) {
+      console.warn('[DeckContext] Cannot set playback rate: AudioEngine not initialized');
+      return;
+    }
+
+    const state = deck === 'A' ? deckAState : deckBState;
+
+    try {
+      audioEngineRef.current.setPlaybackRate(deck, rate);
+
+      // Calculate new BPM based on playback rate
+      const newBPM = state.originalBPM * rate;
+
+      const updateState = deck === 'A' ? setDeckAState : setDeckBState;
+      updateState((prev) => ({ ...prev, currentBPM: newBPM, playbackRate: rate }));
+
+      notifyStateChange();
+      console.log(`[DeckContext] Deck ${deck} playback rate set to ${rate.toFixed(3)}`);
+    } catch (err) {
+      console.error(`[DeckContext] Failed to set playback rate for Deck ${deck}:`, err);
+      onError?.(err as Error);
+    }
+  }, [isInitialized, deckAState, deckBState, notifyStateChange, onError]);
+
+  // Sync a deck to the other deck (convenience method)
+  const syncDeck = useCallback((deck: DeckId): BPMSyncResult | null => {
+    const masterDeck: DeckId = deck === 'A' ? 'B' : 'A';
+    return syncBPM(deck, masterDeck);
+  }, [syncBPM]);
 
   // Update playback time periodically
   // This is handled by a useEffect in the component that uses the context
@@ -399,13 +505,16 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     playDeck,
     pauseDeck,
     cueDeck,
+    setCuePoint,
     seekDeck,
     setBPM,
     syncBPM,
+    syncDeck,
     setVolume,
     setCrossfader,
     updateCurrentTime,
     setDeckEQ,
+    setPlaybackRate,
     getState,
     getDeckState,
     initializeAudioEngine,

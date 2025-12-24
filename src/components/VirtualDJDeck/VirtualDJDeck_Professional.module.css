@@ -13,6 +13,12 @@
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
+  transition: padding-top 300ms ease;
+}
+
+/* Remove top padding when tutorial is closed/hidden */
+.container.noTutorial {
+  padding-top: 0;
 }
 
 .decksContainer {
@@ -73,6 +79,36 @@
   margin: 0;
   text-shadow: 0 0 15px currentColor, 0 0 30px currentColor;
   font-family: 'Space Grotesk', 'Inter', sans-serif;
+}
+
+.trackInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.trackName {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #ffffff;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.artistName {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.6);
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
 }
 
 .waveform {

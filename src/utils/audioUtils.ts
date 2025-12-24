@@ -16,9 +16,14 @@ export function calculatePlaybackRate(
   currentBPM: number,
   originalBPM: number
 ): number {
-  if (originalBPM === 0) {
-    return 1;
+  // Validate BPM inputs
+  if (!isFinite(currentBPM) || currentBPM <= 0) {
+    throw new Error(`Invalid currentBPM: ${currentBPM}. BPM must be a positive finite number.`);
   }
+  if (!isFinite(originalBPM) || originalBPM <= 0) {
+    throw new Error(`Invalid originalBPM: ${originalBPM}. BPM must be a positive finite number.`);
+  }
+
   return currentBPM / originalBPM;
 }
 

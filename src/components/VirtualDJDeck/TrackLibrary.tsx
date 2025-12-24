@@ -7,7 +7,7 @@
  * - Load tracks onto Deck A or Deck B
  */
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { DeckId } from './types';
 import { useDeck } from './DeckContext';
 import { detectBPM } from '../../utils/bpmDetection';
@@ -16,10 +16,26 @@ import styles from './TrackLibrary.module.css';
 interface Track {
   id: string;
   name: string;
+  artist?: string;
   url: string;
   bpm: number;
   isUserUploaded: boolean;
   duration?: number;
+}
+
+/**
+ * Parse track name to extract artist and title
+ * Handles formats like "Artist - Title" or just "Title"
+ */
+function parseTrackName(name: string): { artist: string; title: string } {
+  const separators = [' - ', ' – ', ' — ', ' by '];
+  for (const sep of separators) {
+    if (name.includes(sep)) {
+      const [artist, ...rest] = name.split(sep);
+      return { artist: artist.trim(), title: rest.join(sep).trim() };
+    }
+  }
+  return { artist: 'Unknown Artist', title: name };
 }
 
 interface TrackLibraryProps {
@@ -105,6 +121,18 @@ export function TrackLibrary({
   const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // Cleanup blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      // Revoke all blob URLs for user-uploaded tracks when component unmounts
+      tracks.forEach(track => {
+        if (track.isUserUploaded && track.url.startsWith('blob:')) {
+          URL.revokeObjectURL(track.url);
+        }
+      });
+    };
+  }, [tracks]);
+
   // Handle file upload
   const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -166,7 +194,18 @@ export function TrackLibrary({
   // Load track onto a deck
   const loadTrackToDeck = useCallback(async (track: Track, deckId: DeckId) => {
     try {
-      await deck.loadTrack(deckId, track.url, track.bpm, 0);
+      // Parse track name to get artist and title
+      const { artist, title } = track.artist
+        ? { artist: track.artist, title: track.name }
+        : parseTrackName(track.name);
+
+      await deck.loadTrack(deckId, {
+        url: track.url,
+        name: title,
+        artist: artist,
+        bpm: track.bpm,
+        cuePoint: 0,
+      });
       onTrackLoaded?.(deckId, track);
       setSelectedTrack(null);
     } catch (error) {
@@ -183,6 +222,25 @@ export function TrackLibrary({
   const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
+
+  // Remove track and cleanup blob URL
+  const removeTrack = useCallback((trackId: string) => {
+    setTracks(prev => {
+      const trackToRemove = prev.find(t => t.id === trackId);
+
+      // Revoke blob URL if it's a user-uploaded track
+      if (trackToRemove?.isUserUploaded && trackToRemove.url.startsWith('blob:')) {
+        URL.revokeObjectURL(trackToRemove.url);
+      }
+
+      return prev.filter(t => t.id !== trackId);
+    });
+
+    // Clear selection if the removed track was selected
+    if (selectedTrack === trackId) {
+      setSelectedTrack(null);
+    }
+  }, [selectedTrack]);
 
   return (
     <div className={`${styles.container} ${isExpanded ? styles.expanded : ''} ${className || ''}`}>
@@ -240,6 +298,21 @@ export function TrackLibrary({
                   <span className={styles.trackName}>{track.name}</span>
                   <span className={styles.trackBPM}>{track.bpm} BPM</span>
                 </button>
+
+                {/* Remove button for user-uploaded tracks */}
+                {track.isUserUploaded && (
+                  <button
+                    className={styles.removeButton}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeTrack(track.id);
+                    }}
+                    title="Remove track"
+                    aria-label={`Remove ${track.name}`}
+                  >
+                    ×
+                  </button>
+                )}
 
                 {/* Deck selection buttons */}
                 {selectedTrack === track.id && (

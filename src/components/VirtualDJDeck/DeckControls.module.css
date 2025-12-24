@@ -76,6 +76,16 @@
   border-style: dashed;
 }
 
+/* Set Cue button special styling */
+.setCueButton {
+  border-style: dotted;
+  border-width: 3px;
+}
+
+.setCueButton:hover:not(:disabled) {
+  background: rgba(var(--button-color-rgb, 0, 240, 255), 0.15);
+}
+
 /* Focus visible state for keyboard navigation */
 .button:focus-visible {
   outline: 2px solid var(--button-color, #00F0FF);

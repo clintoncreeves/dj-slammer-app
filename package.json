@@ -16,8 +16,10 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-rewards": "^2.1.0",
+    "realtime-bpm-analyzer": "^5.0.0",
     "tone": "^14.7.77",
-    "wavesurfer.js": "^7.12.1"
+    "wavesurfer.js": "^7.12.1",
+    "webmidi": "^3.1.14"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.1.5",

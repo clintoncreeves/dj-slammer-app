@@ -17,7 +17,15 @@
  */
 
 import * as Tone from 'tone';
+import { createRealtimeBpmAnalyzer, type BpmAnalyzer } from 'realtime-bpm-analyzer';
 import { DeckId, DJDeckError, DJDeckErrorType } from './types';
+import { MIN_PLAYBACK_RATE, MAX_PLAYBACK_RATE, clampPlaybackRate } from '../../utils/audioConstants';
+
+export interface BpmUpdateEvent {
+  deck: DeckId;
+  bpm: number;
+  confidence: number;
+}
 
 export interface AudioEngineConfig {
   /** Master volume (0-1) */
@@ -26,6 +34,8 @@ export interface AudioEngineConfig {
   initTimeout?: number;
   /** Track loading timeout in milliseconds (default: 10000ms) */
   loadTimeout?: number;
+  /** Callback for realtime BPM updates */
+  onBpmUpdate?: (event: BpmUpdateEvent) => void;
 }
 
 export class AudioEngine {
@@ -39,11 +49,21 @@ export class AudioEngine {
   private initTimeout: number;
   private loadTimeout: number;
 
+  // Realtime BPM detection
+  private bpmAnalyzers: Map<DeckId, BpmAnalyzer>;
+  private bpmNodes: Map<DeckId, { source: MediaStreamAudioSourceNode; processor: AudioWorkletNode }>;
+  private onBpmUpdate?: (event: BpmUpdateEvent) => void;
+  private detectedBpm: Map<DeckId, number>;
+
   constructor(config: AudioEngineConfig = {}) {
     this.players = new Map();
     this.eqs = new Map();
     this.gains = new Map();
     this.loadingPromises = new Map();
+    this.bpmAnalyzers = new Map();
+    this.bpmNodes = new Map();
+    this.detectedBpm = new Map();
+    this.onBpmUpdate = config.onBpmUpdate;
 
     // Initialize master gain
     this.masterGain = new Tone.Gain(config.masterVolume ?? 1);
@@ -328,6 +348,29 @@ export class AudioEngine {
   }
 
   /**
+   * Get current playback position for a deck
+   * Used for setting cue points at current position
+   *
+   * @param deck - Deck identifier ('A' or 'B')
+   * @returns Current playback position in seconds
+   */
+  getCurrentPosition(deck: DeckId): number {
+    this.assertInitialized();
+
+    const player = this.players.get(deck);
+    if (!player) {
+      throw new Error(`Player not found for deck ${deck}`);
+    }
+
+    if (!player.loaded) {
+      return 0;
+    }
+
+    // Get current position from Tone.js Player
+    return player.immediate();
+  }
+
+  /**
    * Set playback rate (tempo) for a deck
    * Requirements: 2.1, 2.2 - Adjust tempo without pitch shifting
    *
@@ -342,19 +385,20 @@ export class AudioEngine {
       throw new Error(`Player not found for deck ${deck}`);
     }
 
-    // Clamp rate to safe range (±20%)
-    const clampedRate = Math.max(0.8, Math.min(1.2, rate));
+    // Clamp rate to safe range using shared constants (safety net)
+    const clampedRate = clampPlaybackRate(rate);
 
     if (clampedRate !== rate) {
       console.warn(
-        `[AudioEngine] Playback rate ${rate} clamped to ${clampedRate} (0.8-1.2 range)`
+        `[AudioEngine] Playback rate ${rate.toFixed(3)} clamped to ${clampedRate.toFixed(3)} ` +
+        `(valid range: ${MIN_PLAYBACK_RATE}-${MAX_PLAYBACK_RATE})`
       );
     }
 
     // Set playback rate (Tone.js handles pitch preservation automatically)
     player.playbackRate = clampedRate;
 
-    console.log(`[AudioEngine] Deck ${deck} playback rate set to ${clampedRate}`);
+    console.log(`[AudioEngine] Deck ${deck} playback rate set to ${clampedRate.toFixed(3)}`);
   }
 
   /**
@@ -517,8 +561,8 @@ export class AudioEngine {
       );
     }
 
-    // Set the EQ band value
-    eq[band].value = clampedValue;
+    // Use rampTo for smooth transitions to prevent audio clicks
+    eq[band].rampTo(clampedValue, 0.05);
 
     console.log(`[AudioEngine] Deck ${deck} EQ ${band} set to ${clampedValue.toFixed(1)} dB`);
   }
@@ -540,6 +584,127 @@ export class AudioEngine {
       mid: eq.mid.value,
       high: eq.high.value,
     };
+  }
+
+  /**
+   * Initialize realtime BPM detection for a deck
+   * Uses the realtime-bpm-analyzer library with event-based API
+   *
+   * @param deck - Deck identifier ('A' or 'B')
+   */
+  async initRealtimeBpmDetection(deck: DeckId): Promise<void> {
+    try {
+      const audioContext = Tone.getContext().rawContext as AudioContext;
+
+      // Create the realtime BPM analyzer using the correct API (returns a Promise)
+      const realtimeAnalyzer = await createRealtimeBpmAnalyzer(audioContext, {
+        continuousAnalysis: true,
+        stabilizationTime: 5000, // 5 seconds to stabilize BPM
+      });
+
+      // Listen for BPM events using the event emitter pattern
+      // Data structure: { bpm: Array<{ tempo: number; count: number }> }
+      realtimeAnalyzer.on('bpm', (data) => {
+        if (data.bpm && data.bpm.length > 0) {
+          const topCandidate = data.bpm[0];
+          const bpm = Math.round(topCandidate.tempo);
+          const confidence = topCandidate.count || 0;
+
+          this.detectedBpm.set(deck, bpm);
+
+          if (this.onBpmUpdate) {
+            this.onBpmUpdate({
+              deck,
+              bpm,
+              confidence,
+            });
+          }
+
+          console.log(`[AudioEngine] Deck ${deck} realtime BPM: ${bpm} (confidence: ${confidence})`);
+        }
+      });
+
+      realtimeAnalyzer.on('bpmStable', (data) => {
+        if (data.bpm && data.bpm.length > 0) {
+          const bpm = Math.round(data.bpm[0].tempo);
+          this.detectedBpm.set(deck, bpm);
+
+          if (this.onBpmUpdate) {
+            this.onBpmUpdate({
+              deck,
+              bpm,
+              confidence: 100, // Stable = high confidence
+            });
+          }
+
+          console.log(`[AudioEngine] Deck ${deck} stable BPM: ${bpm}`);
+        }
+      });
+
+      this.bpmAnalyzers.set(deck, realtimeAnalyzer);
+      console.log(`[AudioEngine] Realtime BPM analyzer initialized for Deck ${deck}`);
+    } catch (error) {
+      console.warn(`[AudioEngine] Failed to initialize realtime BPM for Deck ${deck}:`, error);
+    }
+  }
+
+  /**
+   * Connect a deck's audio to the BPM analyzer for realtime detection
+   * Call this after loading a track to start BPM analysis
+   *
+   * @param deck - Deck identifier ('A' or 'B')
+   */
+  startBpmAnalysis(deck: DeckId): void {
+    const analyzer = this.bpmAnalyzers.get(deck);
+    const player = this.players.get(deck);
+
+    if (!analyzer || !player || !player.loaded) {
+      console.warn(`[AudioEngine] Cannot start BPM analysis for Deck ${deck}: not ready`);
+      return;
+    }
+
+    try {
+      const audioContext = Tone.getContext().rawContext as AudioContext;
+
+      // Create a MediaStreamDestination to capture audio
+      const streamDest = audioContext.createMediaStreamDestination();
+
+      // Connect player output to the stream destination (in parallel with normal output)
+      const eq = this.eqs.get(deck);
+      if (eq) {
+        // Tone.js node connection to Web Audio API node
+        eq.connect(streamDest as unknown as Tone.ToneAudioNode);
+      }
+
+      // Create source from the stream
+      const source = audioContext.createMediaStreamSource(streamDest.stream);
+
+      // Connect to the BPM analyzer's audio node
+      source.connect(analyzer.node);
+
+      console.log(`[AudioEngine] BPM analysis started for Deck ${deck}`);
+    } catch (error) {
+      console.warn(`[AudioEngine] Failed to start BPM analysis for Deck ${deck}:`, error);
+    }
+  }
+
+  /**
+   * Get the detected BPM for a deck
+   *
+   * @param deck - Deck identifier ('A' or 'B')
+   * @returns Detected BPM or null if not detected
+   */
+  getDetectedBpm(deck: DeckId): number | null {
+    return this.detectedBpm.get(deck) ?? null;
+  }
+
+  /**
+   * Set callback for BPM updates
+   *
+   * @param callback - Function to call when BPM is detected
+   */
+  setOnBpmUpdate(callback: (event: BpmUpdateEvent) => void): void {
+    this.onBpmUpdate = callback;
   }
 
   /**
@@ -577,11 +742,24 @@ export class AudioEngine {
     this.masterGain.disconnect();
     this.masterGain.dispose();
 
+    // Disconnect BPM analyzers
+    this.bpmAnalyzers.forEach((analyzer, deck) => {
+      try {
+        analyzer.node.disconnect();
+        console.log(`[AudioEngine] Disposed BPM analyzer for Deck ${deck}`);
+      } catch (e) {
+        // Ignore disconnect errors
+      }
+    });
+
     // Clear maps
     this.players.clear();
     this.eqs.clear();
     this.gains.clear();
     this.loadingPromises.clear();
+    this.bpmAnalyzers.clear();
+    this.bpmNodes.clear();
+    this.detectedBpm.clear();
 
     this.isInitialized = false;
 

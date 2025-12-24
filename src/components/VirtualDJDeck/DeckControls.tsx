@@ -22,9 +22,11 @@ interface DeckControlsProps {
   onPlay: () => void;
   onPause: () => void;
   onCue: () => void;
+  onSetCue: () => void;
   highlightPlay?: boolean;
   highlightPause?: boolean;
   highlightCue?: boolean;
+  highlightSetCue?: boolean;
   className?: string;
 }
 
@@ -36,9 +38,11 @@ export function DeckControls({
   onPlay,
   onPause,
   onCue,
+  onSetCue,
   highlightPlay,
   highlightPause,
   highlightCue,
+  highlightSetCue,
   className,
 }: DeckControlsProps) {
   return (
@@ -116,6 +120,34 @@ export function DeckControls({
           />
         </svg>
         <span className={styles.label}>Cue</span>
+      </button>
+
+      {/* Set Cue Button */}
+      <button
+        className={`${styles.button} ${styles.setCueButton} ${
+          highlightSetCue ? highlightStyles.highlighted : ''
+        }`}
+        onClick={onSetCue}
+        disabled={!isLoaded}
+        style={{
+          '--button-color': color,
+        } as React.CSSProperties}
+        aria-label={`Set Cue Point for Deck ${deck}`}
+      >
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"
+            fill="currentColor"
+          />
+          <circle cx="12" cy="12" r="3" fill="var(--button-color)" />
+        </svg>
+        <span className={styles.label}>Set</span>
       </button>
     </div>
   );

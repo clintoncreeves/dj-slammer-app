@@ -178,6 +178,73 @@ describe('BPM Sync Utilities', () => {
       const description = getSyncDescription(result);
       expect(description).toContain('Already in sync');
     });
+
+    it('should indicate when rate is limited for clamped sync', () => {
+      const result = calculateBPMSync(130, 100, 100); // Rate would be 1.3, clamped to 1.2
+      const description = getSyncDescription(result);
+      expect(description).toContain('rate limited');
+    });
+  });
+
+  describe('Playback rate validation and clamping', () => {
+    it('should mark sync as achievable when playback rate is within bounds', () => {
+      // Normal sync: 100 -> 110 BPM, rate = 1.1 (within 0.8-1.2)
+      const result = calculateBPMSync(110, 100, 100);
+      expect(result.isAchievable).toBe(true);
+      expect(result.requestedPlaybackRate).toBeCloseTo(1.1);
+      expect(result.playbackRate).toBeCloseTo(1.1);
+      expect(result.syncType).toBe('direct');
+    });
+
+    it('should mark sync as not achievable when playback rate exceeds max bounds', () => {
+      // Extreme case: 100 -> 130 BPM, rate = 1.3 (exceeds 1.2 max)
+      const result = calculateBPMSync(130, 100, 100);
+      expect(result.isAchievable).toBe(false);
+      expect(result.requestedPlaybackRate).toBeCloseTo(1.3);
+      expect(result.playbackRate).toBeCloseTo(1.2); // Clamped to max
+      expect(result.syncType).toBe('direct-clamped');
+    });
+
+    it('should mark sync as not achievable when playback rate is below min bounds', () => {
+      // Extreme case: 100 -> 75 BPM, rate = 0.75 (below 0.8 min)
+      const result = calculateBPMSync(75, 100, 100);
+      expect(result.isAchievable).toBe(false);
+      expect(result.requestedPlaybackRate).toBeCloseTo(0.75);
+      expect(result.playbackRate).toBeCloseTo(0.8); // Clamped to min
+      expect(result.syncType).toBe('direct-clamped');
+    });
+
+    it('should handle clamping for half-time sync', () => {
+      // Half-time that exceeds bounds: original 50, target 65 (half of 130), rate = 1.3
+      const result = calculateBPMSync(130, 62, 50);
+      expect(result.syncType).toBe('half-time-clamped');
+      expect(result.isAchievable).toBe(false);
+      expect(result.requestedPlaybackRate).toBeCloseTo(1.3);
+      expect(result.playbackRate).toBeCloseTo(1.2); // Clamped
+    });
+
+    it('should handle clamping for double-time sync', () => {
+      // Double-time that exceeds bounds
+      const result = calculateBPMSync(65, 135, 100);
+      expect(result.syncType).toBe('double-time-clamped');
+      expect(result.isAchievable).toBe(false);
+      expect(result.requestedPlaybackRate).toBeCloseTo(1.3);
+      expect(result.playbackRate).toBeCloseTo(1.2); // Clamped
+    });
+
+    it('should work at the edge of valid playback rate bounds', () => {
+      // Exactly at max: 100 -> 120 BPM, rate = 1.2
+      const resultMax = calculateBPMSync(120, 100, 100);
+      expect(resultMax.isAchievable).toBe(true);
+      expect(resultMax.playbackRate).toBeCloseTo(1.2);
+      expect(resultMax.syncType).toBe('direct');
+
+      // Exactly at min: 100 -> 80 BPM, rate = 0.8
+      const resultMin = calculateBPMSync(80, 100, 100);
+      expect(resultMin.isAchievable).toBe(true);
+      expect(resultMin.playbackRate).toBeCloseTo(0.8);
+      expect(resultMin.syncType).toBe('direct');
+    });
   });
 
   describe('Real-world DJ scenarios', () => {
@@ -185,6 +252,7 @@ describe('BPM Sync Utilities', () => {
       const result = calculateBPMSync(128, 124, 124);
       expect(result.syncType).toBe('direct');
       expect(result.targetBPM).toBe(128);
+      expect(result.isAchievable).toBe(true);
     });
 
     it('should handle hip-hop half-time mixing', () => {
