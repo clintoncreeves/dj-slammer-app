@@ -180,9 +180,9 @@ export function Waveform({
 
   // Handle click to seek
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!onSeek || !containerRef.current || duration <= 0) return;
+    if (!onSeek || !canvasRef.current || duration <= 0) return;
 
-    const rect = containerRef.current.getBoundingClientRect();
+    const rect = canvasRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const position = Math.max(0, Math.min(1, x / rect.width));
     const seekTime = position * duration;
@@ -191,9 +191,9 @@ export function Waveform({
 
   // Handle mouse move for hover preview
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current) return;
+    if (!canvasRef.current) return;
 
-    const rect = containerRef.current.getBoundingClientRect();
+    const rect = canvasRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const position = Math.max(0, Math.min(1, x / rect.width));
     setHoverPosition(position);
