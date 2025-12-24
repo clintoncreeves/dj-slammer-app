@@ -6,7 +6,6 @@
 
 // Export professional version as the default
 export { default as VirtualDJDeck } from './VirtualDJDeck_Professional';
-export { default as VirtualDJDeckBasic } from './VirtualDJDeck';
 
 // Export AudioEngine
 export { AudioEngine } from './AudioEngine';
