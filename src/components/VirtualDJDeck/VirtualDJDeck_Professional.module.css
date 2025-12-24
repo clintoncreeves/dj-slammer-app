@@ -102,6 +102,11 @@
   flex-shrink: 0;
 }
 
+.trackLibrary {
+  margin: 0 1rem 1rem;
+  flex-shrink: 0;
+}
+
 /* Loading state */
 .loading {
   text-align: center;

@@ -27,6 +27,7 @@ import { TutorialInstructionPanel } from './TutorialInstructionPanel';
 import { DeckProvider, useDeck } from './DeckContext';
 import { BPMSyncResult } from '../../utils/bpmSync';
 import { WelcomeScreen } from '../Welcome';
+import { TrackLibrary } from './TrackLibrary';
 import styles from './VirtualDJDeck_Professional.module.css';
 
 export interface VirtualDJDeckHandle {
@@ -431,6 +432,9 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
           deckBPlaying={deck.deckBState.isPlaying}
           className={styles.crossfader}
         />
+
+        {/* Track Library - Upload and load tracks */}
+        <TrackLibrary className={styles.trackLibrary} />
 
         {/* Tutorial Overlay - ONLY show for final lesson completion */}
         {mode === 'tutorial' && tutorial.progress.isActive && tutorial.progress.lessonCompleted && tutorialConfig && (

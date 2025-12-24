@@ -18,6 +18,7 @@ export { TempoSlider } from './TempoSlider';
 export { Crossfader } from './Crossfader';
 export { VolumeControl } from './VolumeControl';
 export { TutorialOverlay } from './TutorialOverlay';
+export { TrackLibrary } from './TrackLibrary';
 
 // Export tutorial system
 export { useTutorial } from './useTutorial';
