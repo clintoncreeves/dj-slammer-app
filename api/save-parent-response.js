@@ -1,13 +1,28 @@
 import { kv } from '@vercel/kv';
+import { rateLimit } from './utils/rateLimit.js';
+import { setCorsHeaders, handlePreflight } from './utils/cors.js';
+
+// Rate limiter: 10 requests per minute
+const limiter = rateLimit(10, 60000);
 
 export default async function handler(req, res) {
-  // Add CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  // Handle preflight requests
+  if (handlePreflight(req, res, ['POST', 'OPTIONS'])) {
+    return;
+  }
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+  // Set CORS headers for actual requests
+  const originAllowed = setCorsHeaders(req, res, ['POST', 'OPTIONS']);
+  if (!originAllowed && req.headers.origin) {
+    return res.status(403).json({ error: 'Origin not allowed' });
+  }
+
+  // Check rate limit
+  if (limiter(req)) {
+    return res.status(429).json({
+      error: 'Too many requests',
+      message: 'Rate limit exceeded. Please try again later.'
+    });
   }
 
   // Only allow POST requests
@@ -15,9 +30,28 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Validate Content-Type header
+  const contentType = req.headers['content-type'];
+  if (!contentType || !contentType.includes('application/json')) {
+    return res.status(400).json({ error: 'Content-Type must be application/json' });
+  }
+
   try {
     console.log('Saving parent response...');
     const { answers, timestamp } = req.body;
+
+    // Validate required fields
+    if (!answers || typeof answers !== 'object') {
+      return res.status(400).json({ error: 'Request body must contain "answers" object' });
+    }
+
+    // Validate timestamp if provided
+    if (timestamp && typeof timestamp !== 'string') {
+      return res.status(400).json({ error: 'Timestamp must be a string' });
+    }
+
+    // Sanitize timestamp (trim and limit length)
+    const sanitizedTimestamp = timestamp ? timestamp.trim().substring(0, 100) : undefined;
 
     // Generate a unique ID for this parent response
     const responseId = `parent-response:${Date.now()}`;
@@ -26,7 +60,7 @@ export default async function handler(req, res) {
     // Save to KV
     await kv.set(responseId, {
       answers,
-      timestamp: timestamp || new Date().toISOString(),
+      timestamp: sanitizedTimestamp || new Date().toISOString(),
       submittedAt: new Date().toISOString()
     });
     console.log('Saved response to KV');

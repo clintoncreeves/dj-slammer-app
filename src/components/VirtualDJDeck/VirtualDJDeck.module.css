@@ -266,23 +266,345 @@
   box-shadow: none;
 }
 
-/* Responsive design */
-@media (max-width: 768px) {
+/* Responsive design - Mobile First */
+
+/* Mobile (below 480px) */
+@media (max-width: 479px) {
+  .container {
+    padding: 0.75rem;
+    max-width: 100%;
+  }
+
+  .decksContainer {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .deck {
+    padding: 0.75rem;
+    border-radius: 8px;
+  }
+
+  .deck h3 {
+    font-size: 1.125rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .deck button {
+    margin: 0.25rem;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    min-width: 48px;
+    min-height: 48px;
+    border-radius: 6px;
+    /* Prevent text selection on touch */
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .crossfaderContainer {
+    padding: 1rem;
+    border-radius: 8px;
+  }
+
+  .crossfaderContainer label {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .crossfaderContainer input[type='range'] {
+    height: 48px;
+    border-radius: 24px;
+    /* Enhanced touch interaction */
+    touch-action: none;
+  }
+
+  .crossfaderContainer input[type='range']::-webkit-slider-thumb {
+    width: 52px;
+    height: 52px;
+  }
+
+  .crossfaderContainer input[type='range']::-moz-range-thumb {
+    width: 52px;
+    height: 52px;
+  }
+
+  .enableAudioButton {
+    padding: 1.25rem 2.5rem;
+    font-size: 1.125rem;
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  .loading {
+    padding: 3rem 1rem;
+  }
+
+  .error {
+    padding: 3rem 1rem;
+  }
+
+  .error h2 {
+    font-size: 1.25rem;
+  }
+
+  .error p {
+    font-size: 0.9375rem;
+  }
+}
+
+/* Small Mobile to Tablet (480px - 767px) */
+@media (min-width: 480px) and (max-width: 767px) {
   .container {
     padding: 1rem;
+    max-width: 100%;
   }
 
   .decksContainer {
     grid-template-columns: 1fr;
     gap: 1rem;
+    margin-bottom: 1.5rem;
   }
 
   .deck {
-    padding: 1rem;
+    padding: 1.25rem;
+  }
+
+  .deck h3 {
+    font-size: 1.25rem;
+  }
+
+  .deck button {
+    margin: 0.375rem;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9375rem;
+    min-width: 48px;
+    min-height: 48px;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .crossfaderContainer {
+    padding: 1.5rem;
+  }
+
+  .crossfaderContainer label {
+    font-size: 1.125rem;
+  }
+
+  .crossfaderContainer input[type='range'] {
+    height: 50px;
+    border-radius: 25px;
+    touch-action: none;
+  }
+
+  .crossfaderContainer input[type='range']::-webkit-slider-thumb {
+    width: 56px;
+    height: 56px;
+  }
+
+  .crossfaderContainer input[type='range']::-moz-range-thumb {
+    width: 56px;
+    height: 56px;
   }
 
   .enableAudioButton {
     padding: 1.5rem 3rem;
-    font-size: 1.2rem;
+    font-size: 1.25rem;
+  }
+}
+
+/* Tablet (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .container {
+    padding: 1.5rem;
+  }
+
+  .decksContainer {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  .deck {
+    padding: 1.5rem;
+  }
+
+  .deck h3 {
+    font-size: 1.375rem;
+  }
+
+  .deck button {
+    margin: 0.375rem;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9375rem;
+    /* Smaller touch targets acceptable on tablet */
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .crossfaderContainer input[type='range'] {
+    height: 52px;
+    border-radius: 26px;
+  }
+
+  .crossfaderContainer input[type='range']::-webkit-slider-thumb {
+    width: 58px;
+    height: 58px;
+  }
+
+  .crossfaderContainer input[type='range']::-moz-range-thumb {
+    width: 58px;
+    height: 58px;
+  }
+}
+
+/* Desktop (1024px - 1439px) */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .container {
+    padding: 2rem;
+    max-width: 1200px;
+  }
+
+  .decksContainer {
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  .deck button {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    /* Desktop can use standard touch targets */
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Large Desktop (1440px+) */
+@media (min-width: 1440px) {
+  .container {
+    padding: 2.5rem;
+    max-width: 1400px;
+  }
+
+  .decksContainer {
+    gap: 2.5rem;
+  }
+
+  .deck {
+    padding: 2.5rem;
+  }
+
+  .deck h3 {
+    font-size: 1.75rem;
+  }
+
+  .deck button {
+    padding: 0.875rem 1.75rem;
+    font-size: 1.0625rem;
+  }
+
+  .crossfaderContainer {
+    padding: 2.5rem;
+  }
+
+  .crossfaderContainer label {
+    font-size: 1.375rem;
+  }
+
+  .crossfaderContainer input[type='range'] {
+    max-width: 800px;
+    height: 50px;
+  }
+
+  .crossfaderContainer input[type='range']::-webkit-slider-thumb {
+    width: 64px;
+    height: 64px;
+  }
+
+  .crossfaderContainer input[type='range']::-moz-range-thumb {
+    width: 64px;
+    height: 64px;
+  }
+
+  .enableAudioButton {
+    padding: 2.25rem 4.5rem;
+    font-size: 1.625rem;
+  }
+}
+
+/* Landscape orientation adjustments for mobile devices */
+@media (max-width: 767px) and (orientation: landscape) {
+  .container {
+    padding: 0.5rem;
+  }
+
+  .decksContainer {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .deck {
+    padding: 0.75rem;
+  }
+
+  .deck h3 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .deck button {
+    margin: 0.25rem;
+    padding: 0.5rem 0.875rem;
+    font-size: 0.8125rem;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .crossfaderContainer {
+    padding: 0.75rem;
+  }
+
+  .crossfaderContainer label {
+    font-size: 0.9375rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .crossfaderContainer input[type='range'] {
+    height: 44px;
+    border-radius: 22px;
+  }
+
+  .crossfaderContainer input[type='range']::-webkit-slider-thumb {
+    width: 48px;
+    height: 48px;
+  }
+
+  .crossfaderContainer input[type='range']::-moz-range-thumb {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+/* Accessibility - Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .deck button,
+  .enableAudioButton,
+  .crossfaderContainer input[type='range']::-webkit-slider-thumb,
+  .crossfaderContainer input[type='range']::-moz-range-thumb {
+    transition: none;
+  }
+
+  .deck button:hover,
+  .deck button:active,
+  .enableAudioButton:hover,
+  .enableAudioButton:active {
+    transform: none;
+  }
+
+  .loading h2 {
+    animation: none;
   }
 }

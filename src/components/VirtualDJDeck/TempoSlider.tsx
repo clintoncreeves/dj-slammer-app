@@ -111,6 +111,34 @@ export function TempoSlider({
     onChange(originalBPM);
   };
 
+  // Keyboard support
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    const step = (maxBPM - minBPM) / 20; // 5% steps
+    switch (e.key) {
+      case 'ArrowUp':
+        onChange(Math.min(currentBPM + step, maxBPM));
+        e.preventDefault();
+        break;
+      case 'ArrowDown':
+        onChange(Math.max(currentBPM - step, minBPM));
+        e.preventDefault();
+        break;
+      case 'Home':
+        onChange(maxBPM);
+        e.preventDefault();
+        break;
+      case 'End':
+        onChange(minBPM);
+        e.preventDefault();
+        break;
+      case 'Enter':
+      case ' ':
+        onChange(originalBPM);
+        e.preventDefault();
+        break;
+    }
+  };
+
   return (
     <div className={`${styles.container} ${className || ''} ${highlighted ? styles.highlighted : ''}`}>
       <div className={styles.label}>Tempo</div>
@@ -121,6 +149,14 @@ export function TempoSlider({
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
         onDoubleClick={handleDoubleClick}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        role="slider"
+        aria-label={`Tempo control: ${currentBPM.toFixed(1)} BPM`}
+        aria-valuemin={minBPM}
+        aria-valuemax={maxBPM}
+        aria-valuenow={currentBPM}
+        aria-valuetext={`${currentBPM.toFixed(1)} BPM (${((currentBPM - originalBPM) / originalBPM * 100).toFixed(1)}%)`}
         style={{
           '--slider-color': color,
         } as React.CSSProperties}

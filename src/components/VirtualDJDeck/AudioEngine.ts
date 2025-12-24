@@ -22,6 +22,10 @@ import { DeckId, DJDeckError, DJDeckErrorType } from './types';
 export interface AudioEngineConfig {
   /** Master volume (0-1) */
   masterVolume?: number;
+  /** Initialization timeout in milliseconds (default: 5000ms) */
+  initTimeout?: number;
+  /** Track loading timeout in milliseconds (default: 10000ms) */
+  loadTimeout?: number;
 }
 
 export class AudioEngine {
@@ -31,6 +35,8 @@ export class AudioEngine {
   private masterGain: Tone.Gain;
   private isInitialized = false;
   private loadingPromises: Map<DeckId, Promise<void>>;
+  private initTimeout: number;
+  private loadTimeout: number;
 
   constructor(config: AudioEngineConfig = {}) {
     this.players = new Map();
@@ -42,6 +48,10 @@ export class AudioEngine {
 
     // Initialize crossfader (starts at center: 0.5)
     this.crossfader = new Tone.CrossFade(0.5);
+
+    // Set timeout values
+    this.initTimeout = config.initTimeout ?? 5000;
+    this.loadTimeout = config.loadTimeout ?? 10000;
   }
 
   /**
@@ -52,33 +62,46 @@ export class AudioEngine {
     const startTime = performance.now();
 
     try {
-      // Start Tone.js Audio Context
-      await Tone.start();
-      console.log('[AudioEngine] Tone.js Audio Context started');
+      // Wrap initialization in timeout promise race
+      await this.withTimeout(
+        (async () => {
+          // Start Tone.js Audio Context
+          await Tone.start();
+          console.log('[AudioEngine] Tone.js Audio Context started');
 
-      // Create players for both decks
-      this.createPlayer('A');
-      this.createPlayer('B');
+          // Create players for both decks
+          this.createPlayer('A');
+          this.createPlayer('B');
 
-      // Connect audio graph:
-      // Deck A -> Gain A -> Crossfader.a
-      // Deck B -> Gain B -> Crossfader.b
-      // Crossfader -> Master Gain -> Destination
-      this.gains.get('A')!.connect(this.crossfader.a);
-      this.gains.get('B')!.connect(this.crossfader.b);
-      this.crossfader.connect(this.masterGain);
-      this.masterGain.toDestination();
+          // Connect audio graph:
+          // Deck A -> Gain A -> Crossfader.a
+          // Deck B -> Gain B -> Crossfader.b
+          // Crossfader -> Master Gain -> Destination
+          this.gains.get('A')!.connect(this.crossfader.a);
+          this.gains.get('B')!.connect(this.crossfader.b);
+          this.crossfader.connect(this.masterGain);
+          this.masterGain.toDestination();
 
-      this.isInitialized = true;
+          this.isInitialized = true;
 
-      const initTime = performance.now() - startTime;
-      console.log(`[AudioEngine] Initialized in ${initTime.toFixed(2)}ms`);
+          const initTime = performance.now() - startTime;
+          console.log(`[AudioEngine] Initialized in ${initTime.toFixed(2)}ms`);
 
-      if (initTime > 500) {
-        console.warn('[AudioEngine] Initialization took longer than 500ms target');
-      }
+          if (initTime > 500) {
+            console.warn('[AudioEngine] Initialization took longer than 500ms target');
+          }
+        })(),
+        this.initTimeout,
+        'AudioContext initialization'
+      );
     } catch (error) {
       console.error('[AudioEngine] Initialization failed:', error);
+
+      // Check if it's already a DJDeckError
+      if (error instanceof DJDeckError) {
+        throw error;
+      }
+
       throw new DJDeckError(
         DJDeckErrorType.AUDIO_CONTEXT_CREATION_FAILED,
         'Failed to initialize Audio Context. Please ensure your browser supports Web Audio API.',
@@ -129,10 +152,20 @@ export class AudioEngine {
 
     const loadingPromise = (async () => {
       try {
-        await player.load(url);
+        await this.withTimeout(
+          player.load(url),
+          this.loadTimeout,
+          `Track loading for Deck ${deck}`
+        );
         console.log(`[AudioEngine] Track loaded for Deck ${deck}`);
       } catch (error) {
         console.error(`[AudioEngine] Failed to load track for Deck ${deck}:`, error);
+
+        // Check if it's already a DJDeckError
+        if (error instanceof DJDeckError) {
+          throw error;
+        }
+
         throw new DJDeckError(
           DJDeckErrorType.TRACK_LOAD_FAILED,
           `Failed to load track: ${url}`,
@@ -483,6 +516,29 @@ export class AudioEngine {
     this.isInitialized = false;
 
     console.log('[AudioEngine] Destroyed successfully');
+  }
+
+  /**
+   * Wrap a promise with a timeout using Promise.race
+   *
+   * @param promise - Promise to wrap
+   * @param timeoutMs - Timeout in milliseconds
+   * @param operation - Description of operation for error message
+   * @returns Promise that rejects on timeout
+   */
+  private withTimeout<T>(promise: Promise<T>, timeoutMs: number, operation: string): Promise<T> {
+    const timeoutPromise = new Promise<T>((_, reject) => {
+      setTimeout(() => {
+        reject(
+          new DJDeckError(
+            DJDeckErrorType.AUDIO_CONTEXT_CREATION_FAILED,
+            `${operation} timed out after ${timeoutMs}ms`
+          )
+        );
+      }, timeoutMs);
+    });
+
+    return Promise.race([promise, timeoutPromise]);
   }
 
   /**

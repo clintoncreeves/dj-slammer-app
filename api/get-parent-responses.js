@@ -1,16 +1,37 @@
 import { kv } from '@vercel/kv';
+import { rateLimit } from './utils/rateLimit.js';
+import { setCorsHeaders, handlePreflight } from './utils/cors.js';
+
+// Rate limiter: 30 requests per minute (lighter limit for GET)
+const limiter = rateLimit(30, 60000);
 
 export default async function handler(req, res) {
-  // Add CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  // Handle preflight requests
+  if (handlePreflight(req, res, ['GET', 'OPTIONS'])) {
+    return;
+  }
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+  // Set CORS headers for actual requests
+  const originAllowed = setCorsHeaders(req, res, ['GET', 'OPTIONS']);
+  if (!originAllowed && req.headers.origin) {
+    return res.status(403).json({ error: 'Origin not allowed' });
+  }
+
+  // Check rate limit
+  if (limiter(req)) {
+    return res.status(429).json({
+      error: 'Too many requests',
+      message: 'Rate limit exceeded. Please try again later.'
+    });
   }
 
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // Validate that this is a GET request with no body
+  if (req.body && Object.keys(req.body).length > 0) {
+    return res.status(400).json({ error: 'GET request should not contain a body' });
   }
 
   try {

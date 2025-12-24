@@ -1,8 +1,25 @@
 import { kv } from '@vercel/kv';
+import { rateLimit } from './utils/rateLimit.js';
+
+// Rate limiter: 30 requests per minute (lighter limit for GET)
+const limiter = rateLimit(30, 60000);
 
 export default async function handler(req, res) {
+  // Check rate limit
+  if (limiter(req)) {
+    return res.status(429).json({
+      error: 'Too many requests',
+      message: 'Rate limit exceeded. Please try again later.'
+    });
+  }
+
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // Validate that this is a GET request with no body
+  if (req.body && Object.keys(req.body).length > 0) {
+    return res.status(400).json({ error: 'GET request should not contain a body' });
   }
 
   try {

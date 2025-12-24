@@ -1,0 +1,703 @@
+/**
+ * DJ Slammer - Responsive Breakpoints System
+ *
+ * Mobile-first approach with comprehensive utilities for responsive design.
+ * Optimized for touch interactions and various screen sizes.
+ */
+
+/* ============================================================================
+   CSS Custom Properties - Breakpoint Values
+   ========================================================================= */
+
+:root {
+  /* Breakpoint values */
+  --breakpoint-xs: 480px;
+  --breakpoint-sm: 768px;
+  --breakpoint-md: 1024px;
+  --breakpoint-lg: 1440px;
+
+  /* Touch target sizes (WCAG 2.1 Level AAA) */
+  --touch-target-min: 44px;
+  --touch-target-comfortable: 48px;
+
+  /* Responsive spacing scale */
+  --space-xs-mobile: 0.25rem;
+  --space-sm-mobile: 0.5rem;
+  --space-md-mobile: 1rem;
+  --space-lg-mobile: 1.5rem;
+  --space-xl-mobile: 2rem;
+
+  --space-xs-tablet: 0.5rem;
+  --space-sm-tablet: 0.75rem;
+  --space-md-tablet: 1.25rem;
+  --space-lg-tablet: 2rem;
+  --space-xl-tablet: 3rem;
+
+  --space-xs-desktop: 0.5rem;
+  --space-sm-desktop: 1rem;
+  --space-md-desktop: 1.5rem;
+  --space-lg-desktop: 2.5rem;
+  --space-xl-desktop: 4rem;
+}
+
+/* ============================================================================
+   Media Query Mixins (As CSS Custom Properties for Reference)
+   ========================================================================= */
+
+/*
+  Usage in your CSS:
+
+  @media (min-width: 480px) { /* xs */ }
+  @media (min-width: 768px) { /* sm */ }
+  @media (min-width: 1024px) { /* md */ }
+  @media (min-width: 1440px) { /* lg */ }
+
+  @media (max-width: 479px) { /* below xs */ }
+  @media (max-width: 767px) { /* below sm */ }
+  @media (max-width: 1023px) { /* below md */ }
+  @media (max-width: 1439px) { /* below lg */ }
+*/
+
+/* ============================================================================
+   Responsive Display Utilities
+   ========================================================================= */
+
+/* Hide on mobile (below 480px) */
+.hide-mobile {
+  display: none !important;
+}
+
+@media (min-width: 480px) {
+  .hide-mobile {
+    display: initial !important;
+  }
+}
+
+/* Show only on mobile */
+.show-mobile {
+  display: initial !important;
+}
+
+@media (min-width: 480px) {
+  .show-mobile {
+    display: none !important;
+  }
+}
+
+/* Hide on tablet (below 768px) */
+@media (max-width: 767px) {
+  .hide-tablet-down {
+    display: none !important;
+  }
+}
+
+/* Show only on tablet and below */
+.show-tablet-down {
+  display: initial !important;
+}
+
+@media (min-width: 768px) {
+  .show-tablet-down {
+    display: none !important;
+  }
+}
+
+/* Hide on desktop (1024px+) */
+@media (min-width: 1024px) {
+  .hide-desktop {
+    display: none !important;
+  }
+}
+
+/* Show only on desktop */
+@media (max-width: 1023px) {
+  .show-desktop {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .show-desktop {
+    display: initial !important;
+  }
+}
+
+/* ============================================================================
+   Responsive Grid System
+   ========================================================================= */
+
+.grid-responsive {
+  display: grid;
+  gap: var(--space-md-mobile);
+  width: 100%;
+}
+
+@media (min-width: 480px) {
+  .grid-responsive {
+    gap: var(--space-md-tablet);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-responsive {
+    gap: var(--space-md-desktop);
+  }
+}
+
+/* 1 column on mobile, 2 on tablet+ */
+.grid-1-2 {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .grid-1-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* 1 column on mobile, 2 on tablet, 3 on desktop */
+.grid-1-2-3 {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .grid-1-2-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-1-2-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* 1 column on mobile, 2 on tablet, 4 on desktop */
+.grid-1-2-4 {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .grid-1-2-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-1-2-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Sidebar layout: stack on mobile, sidebar on desktop */
+.grid-sidebar {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 1024px) {
+  .grid-sidebar {
+    grid-template-columns: 300px 1fr;
+  }
+}
+
+/* Two-column split: stack on mobile, equal columns on tablet+ */
+.grid-split {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .grid-split {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ============================================================================
+   Responsive Spacing Utilities
+   ========================================================================= */
+
+/* Padding utilities */
+.p-responsive-xs {
+  padding: var(--space-xs-mobile);
+}
+
+.p-responsive-sm {
+  padding: var(--space-sm-mobile);
+}
+
+.p-responsive-md {
+  padding: var(--space-md-mobile);
+}
+
+.p-responsive-lg {
+  padding: var(--space-lg-mobile);
+}
+
+.p-responsive-xl {
+  padding: var(--space-xl-mobile);
+}
+
+@media (min-width: 768px) {
+  .p-responsive-xs { padding: var(--space-xs-tablet); }
+  .p-responsive-sm { padding: var(--space-sm-tablet); }
+  .p-responsive-md { padding: var(--space-md-tablet); }
+  .p-responsive-lg { padding: var(--space-lg-tablet); }
+  .p-responsive-xl { padding: var(--space-xl-tablet); }
+}
+
+@media (min-width: 1024px) {
+  .p-responsive-xs { padding: var(--space-xs-desktop); }
+  .p-responsive-sm { padding: var(--space-sm-desktop); }
+  .p-responsive-md { padding: var(--space-md-desktop); }
+  .p-responsive-lg { padding: var(--space-lg-desktop); }
+  .p-responsive-xl { padding: var(--space-xl-desktop); }
+}
+
+/* Margin utilities */
+.m-responsive-xs {
+  margin: var(--space-xs-mobile);
+}
+
+.m-responsive-sm {
+  margin: var(--space-sm-mobile);
+}
+
+.m-responsive-md {
+  margin: var(--space-md-mobile);
+}
+
+.m-responsive-lg {
+  margin: var(--space-lg-mobile);
+}
+
+.m-responsive-xl {
+  margin: var(--space-xl-mobile);
+}
+
+@media (min-width: 768px) {
+  .m-responsive-xs { margin: var(--space-xs-tablet); }
+  .m-responsive-sm { margin: var(--space-sm-tablet); }
+  .m-responsive-md { margin: var(--space-md-tablet); }
+  .m-responsive-lg { margin: var(--space-lg-tablet); }
+  .m-responsive-xl { margin: var(--space-xl-tablet); }
+}
+
+@media (min-width: 1024px) {
+  .m-responsive-xs { margin: var(--space-xs-desktop); }
+  .m-responsive-sm { margin: var(--space-sm-desktop); }
+  .m-responsive-md { margin: var(--space-md-desktop); }
+  .m-responsive-lg { margin: var(--space-lg-desktop); }
+  .m-responsive-xl { margin: var(--space-xl-desktop); }
+}
+
+/* Gap utilities for flex/grid */
+.gap-responsive-xs {
+  gap: var(--space-xs-mobile);
+}
+
+.gap-responsive-sm {
+  gap: var(--space-sm-mobile);
+}
+
+.gap-responsive-md {
+  gap: var(--space-md-mobile);
+}
+
+.gap-responsive-lg {
+  gap: var(--space-lg-mobile);
+}
+
+.gap-responsive-xl {
+  gap: var(--space-xl-mobile);
+}
+
+@media (min-width: 768px) {
+  .gap-responsive-xs { gap: var(--space-xs-tablet); }
+  .gap-responsive-sm { gap: var(--space-sm-tablet); }
+  .gap-responsive-md { gap: var(--space-md-tablet); }
+  .gap-responsive-lg { gap: var(--space-lg-tablet); }
+  .gap-responsive-xl { gap: var(--space-xl-tablet); }
+}
+
+@media (min-width: 1024px) {
+  .gap-responsive-xs { gap: var(--space-xs-desktop); }
+  .gap-responsive-sm { gap: var(--space-sm-desktop); }
+  .gap-responsive-md { gap: var(--space-md-desktop); }
+  .gap-responsive-lg { gap: var(--space-lg-desktop); }
+  .gap-responsive-xl { gap: var(--space-xl-desktop); }
+}
+
+/* ============================================================================
+   Touch Target Size Utilities
+   ========================================================================= */
+
+/* Ensure minimum touch target size for mobile */
+.touch-target {
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.touch-target-comfortable {
+  min-width: var(--touch-target-comfortable);
+  min-height: var(--touch-target-comfortable);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Apply touch-friendly spacing for interactive elements */
+.touch-spacing {
+  margin: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .touch-spacing {
+    margin: 0.25rem;
+  }
+}
+
+/* ============================================================================
+   Responsive Typography
+   ========================================================================= */
+
+.text-responsive-xs {
+  font-size: 0.75rem;
+}
+
+.text-responsive-sm {
+  font-size: 0.875rem;
+}
+
+.text-responsive-base {
+  font-size: 1rem;
+}
+
+.text-responsive-lg {
+  font-size: 1.125rem;
+}
+
+.text-responsive-xl {
+  font-size: 1.25rem;
+}
+
+.text-responsive-2xl {
+  font-size: 1.5rem;
+}
+
+.text-responsive-3xl {
+  font-size: 1.875rem;
+}
+
+@media (min-width: 768px) {
+  .text-responsive-xs { font-size: 0.8125rem; }
+  .text-responsive-sm { font-size: 0.9375rem; }
+  .text-responsive-base { font-size: 1.0625rem; }
+  .text-responsive-lg { font-size: 1.25rem; }
+  .text-responsive-xl { font-size: 1.5rem; }
+  .text-responsive-2xl { font-size: 1.875rem; }
+  .text-responsive-3xl { font-size: 2.25rem; }
+}
+
+@media (min-width: 1024px) {
+  .text-responsive-xs { font-size: 0.875rem; }
+  .text-responsive-sm { font-size: 1rem; }
+  .text-responsive-base { font-size: 1.125rem; }
+  .text-responsive-lg { font-size: 1.375rem; }
+  .text-responsive-xl { font-size: 1.75rem; }
+  .text-responsive-2xl { font-size: 2.25rem; }
+  .text-responsive-3xl { font-size: 3rem; }
+}
+
+/* ============================================================================
+   Responsive Flexbox Utilities
+   ========================================================================= */
+
+.flex-responsive {
+  display: flex;
+}
+
+/* Stack on mobile, row on tablet+ */
+.flex-stack-tablet {
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .flex-stack-tablet {
+    flex-direction: row;
+  }
+}
+
+/* Stack on mobile, row on desktop+ */
+.flex-stack-desktop {
+  flex-direction: column;
+}
+
+@media (min-width: 1024px) {
+  .flex-stack-desktop {
+    flex-direction: row;
+  }
+}
+
+/* Reverse direction on mobile */
+.flex-reverse-mobile {
+  flex-direction: column-reverse;
+}
+
+@media (min-width: 768px) {
+  .flex-reverse-mobile {
+    flex-direction: row;
+  }
+}
+
+/* ============================================================================
+   Responsive Width/Max-Width Utilities
+   ========================================================================= */
+
+.w-full {
+  width: 100%;
+}
+
+.max-w-mobile {
+  max-width: 100%;
+}
+
+@media (min-width: 480px) {
+  .max-w-mobile {
+    max-width: 480px;
+  }
+}
+
+.max-w-tablet {
+  max-width: 100%;
+}
+
+@media (min-width: 768px) {
+  .max-w-tablet {
+    max-width: 768px;
+  }
+}
+
+.max-w-desktop {
+  max-width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .max-w-desktop {
+    max-width: 1024px;
+  }
+}
+
+.max-w-wide {
+  max-width: 100%;
+}
+
+@media (min-width: 1440px) {
+  .max-w-wide {
+    max-width: 1440px;
+  }
+}
+
+/* ============================================================================
+   Mobile-Specific Optimizations
+   ========================================================================= */
+
+/* Prevent text selection on touch devices (useful for interactive controls) */
+.no-select-mobile {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+@media (min-width: 1024px) {
+  .no-select-mobile {
+    -webkit-user-select: auto;
+    user-select: auto;
+  }
+}
+
+/* Remove tap highlight on mobile (for custom button styles) */
+.no-tap-highlight {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth scrolling with momentum on iOS */
+.scroll-smooth-mobile {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+/* Prevent zoom on input focus (iOS Safari) */
+.no-zoom-mobile {
+  font-size: 16px;
+}
+
+@media (min-width: 768px) {
+  .no-zoom-mobile {
+    font-size: inherit;
+  }
+}
+
+/* ============================================================================
+   Container Queries (Modern Browsers)
+   ========================================================================= */
+
+.container-responsive {
+  container-type: inline-size;
+  width: 100%;
+}
+
+/* Example container query usage:
+@container (min-width: 480px) {
+  .child-element {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+*/
+
+/* ============================================================================
+   Responsive Aspect Ratios
+   ========================================================================= */
+
+.aspect-square {
+  aspect-ratio: 1 / 1;
+}
+
+.aspect-video {
+  aspect-ratio: 16 / 9;
+}
+
+.aspect-portrait {
+  aspect-ratio: 3 / 4;
+}
+
+/* Fallback for older browsers */
+@supports not (aspect-ratio: 1 / 1) {
+  .aspect-square::before {
+    content: '';
+    display: block;
+    padding-bottom: 100%;
+  }
+
+  .aspect-video::before {
+    content: '';
+    display: block;
+    padding-bottom: 56.25%;
+  }
+
+  .aspect-portrait::before {
+    content: '';
+    display: block;
+    padding-bottom: 133.33%;
+  }
+}
+
+/* ============================================================================
+   DJ Slammer Specific - DJ Deck Responsive Utilities
+   ========================================================================= */
+
+/* Vertical deck layout for mobile */
+.deck-layout-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .deck-layout-responsive {
+    flex-direction: row;
+    gap: 2rem;
+  }
+}
+
+/* Compact controls for mobile */
+.controls-compact-mobile {
+  padding: 0.5rem;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 768px) {
+  .controls-compact-mobile {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+  }
+}
+
+/* Full-width controls on mobile */
+.control-full-mobile {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .control-full-mobile {
+    width: auto;
+  }
+}
+
+/* Slider adjustments for mobile */
+.slider-responsive {
+  height: 50px;
+  touch-action: none;
+}
+
+@media (min-width: 768px) {
+  .slider-responsive {
+    height: 60px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .slider-responsive {
+    height: 70px;
+  }
+}
+
+/* ============================================================================
+   Orientation-Based Utilities
+   ========================================================================= */
+
+@media (orientation: portrait) {
+  .hide-portrait {
+    display: none !important;
+  }
+}
+
+@media (orientation: landscape) {
+  .hide-landscape {
+    display: none !important;
+  }
+}
+
+/* ============================================================================
+   Print Styles
+   ========================================================================= */
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+}
+
+@media not print {
+  .print-only {
+    display: none !important;
+  }
+}
+
+/* ============================================================================
+   Accessibility - Reduced Motion
+   ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .respect-motion-preference,
+  .respect-motion-preference * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

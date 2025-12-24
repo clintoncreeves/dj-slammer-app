@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { FirstLesson } from './components/VirtualDJDeck/FirstLesson';
 import { TutorialLesson } from './components/VirtualDJDeck/TutorialLesson';
 import { KidsModeDemo } from './components/Demo/KidsModeDemo';
+import { AudioErrorBoundary } from './components/ErrorBoundary';
 
 type DemoMode = 'slammer' | 'simple-lesson' | 'pro-lesson';
 
@@ -10,14 +11,21 @@ function App() {
 
   return (
     <div style={{ position: 'relative' }}>
+      {/* Skip to content link for keyboard users */}
+      <a href="#main-content" className="skip-to-content">
+        Skip to main content
+      </a>
+
       {/* Mode Switcher */}
-      <div style={styles.modeSwitcher}>
+      <div style={styles.modeSwitcher} role="navigation" aria-label="Mode selection">
         <button
           style={{
             ...styles.modeButton,
             backgroundColor: demoMode === 'slammer' ? '#4CAF50' : 'rgba(255, 255, 255, 0.1)',
           }}
           onClick={() => setDemoMode('slammer')}
+          aria-label="Switch to Slammer Mode"
+          aria-pressed={demoMode === 'slammer'}
         >
           🎧 Slammer Mode
         </button>
@@ -27,6 +35,8 @@ function App() {
             backgroundColor: demoMode === 'simple-lesson' ? '#4CAF50' : 'rgba(255, 255, 255, 0.1)',
           }}
           onClick={() => setDemoMode('simple-lesson')}
+          aria-label="Switch to Simple Lesson mode"
+          aria-pressed={demoMode === 'simple-lesson'}
         >
           📚 Simple Lesson
         </button>
@@ -36,19 +46,25 @@ function App() {
             backgroundColor: demoMode === 'pro-lesson' ? '#4CAF50' : 'rgba(255, 255, 255, 0.1)',
           }}
           onClick={() => setDemoMode('pro-lesson')}
+          aria-label="Switch to Pro Lesson mode"
+          aria-pressed={demoMode === 'pro-lesson'}
         >
           🎓 Pro Lesson
         </button>
       </div>
 
-      {/* Content */}
-      {demoMode === 'slammer' ? (
-        <KidsModeDemo />
-      ) : demoMode === 'simple-lesson' ? (
-        <FirstLesson />
-      ) : (
-        <TutorialLesson />
-      )}
+      {/* Content wrapped in Error Boundary */}
+      <main id="main-content">
+        <AudioErrorBoundary>
+          {demoMode === 'slammer' ? (
+            <KidsModeDemo />
+          ) : demoMode === 'simple-lesson' ? (
+            <FirstLesson />
+          ) : (
+            <TutorialLesson />
+          )}
+        </AudioErrorBoundary>
+      </main>
     </div>
   );
 }
