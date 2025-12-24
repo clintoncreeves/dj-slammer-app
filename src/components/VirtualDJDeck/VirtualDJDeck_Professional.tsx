@@ -20,6 +20,7 @@ import { BPMDisplay } from './BPMDisplay';
 import { TempoSlider } from './TempoSlider';
 import { Crossfader } from './Crossfader';
 import { VolumeControl } from './VolumeControl';
+import { EQControl } from './EQControl';
 import { useTutorial } from './useTutorial';
 import { TutorialConfig } from './tutorialTypes';
 import { TutorialOverlay } from './TutorialOverlay';
@@ -291,6 +292,15 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 }
               />
 
+              <EQControl
+                deck="A"
+                eqLow={deck.deckAState.eqLow}
+                eqMid={deck.deckAState.eqMid}
+                eqHigh={deck.deckAState.eqHigh}
+                color={config.deckA.waveformColor}
+                onChange={(band, value) => deck.setDeckEQ('A', band, value)}
+              />
+
               <DeckControls
                 deck="A"
                 isPlaying={deck.deckAState.isPlaying}
@@ -387,6 +397,15 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                   highlightTarget?.control === 'tempo' &&
                   highlightTarget?.deck === 'B'
                 }
+              />
+
+              <EQControl
+                deck="B"
+                eqLow={deck.deckBState.eqLow}
+                eqMid={deck.deckBState.eqMid}
+                eqHigh={deck.deckBState.eqHigh}
+                color={config.deckB.waveformColor}
+                onChange={(band, value) => deck.setDeckEQ('B', band, value)}
               />
 
               <DeckControls

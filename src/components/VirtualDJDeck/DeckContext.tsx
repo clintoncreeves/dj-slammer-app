@@ -39,6 +39,7 @@ interface DeckContextValue {
   setVolume: (deck: DeckId, volume: number) => void;
   setCrossfader: (position: number) => void;
   updateCurrentTime: (deck: DeckId, time: number) => void;
+  setDeckEQ: (deck: DeckId, band: 'low' | 'mid' | 'high', value: number) => void;
 
   // State Queries
   getState: () => VirtualDJDeckState;
@@ -77,6 +78,9 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     isLoaded: false,
     cuePoint: 0,
     waveformData: [],
+    eqLow: 0,
+    eqMid: 0,
+    eqHigh: 0,
   });
 
   const [deckBState, setDeckBState] = useState<DeckState>({
@@ -91,6 +95,9 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     isLoaded: false,
     cuePoint: 0,
     waveformData: [],
+    eqLow: 0,
+    eqMid: 0,
+    eqHigh: 0,
   });
 
   const [crossfaderPosition, setCrossfaderPositionState] = useState(0);
@@ -362,6 +369,23 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     updateState((prev) => ({ ...prev, currentTime: time }));
   }, []);
 
+  // Set EQ band value for a deck
+  const setDeckEQ = useCallback((deck: DeckId, band: 'low' | 'mid' | 'high', value: number) => {
+    if (!audioEngineRef.current) {
+      console.warn('[DeckContext] Cannot set EQ: AudioEngine not initialized');
+      return;
+    }
+
+    audioEngineRef.current.setEQ(deck, band, value);
+
+    const updateState = deck === 'A' ? setDeckAState : setDeckBState;
+    const eqKey = band === 'low' ? 'eqLow' : band === 'mid' ? 'eqMid' : 'eqHigh';
+    updateState((prev) => ({ ...prev, [eqKey]: value }));
+
+    notifyStateChange();
+    console.log(`[DeckContext] Deck ${deck} EQ ${band} set to ${value.toFixed(1)} dB`);
+  }, [notifyStateChange]);
+
   // Update playback time periodically
   // This is handled by a useEffect in the component that uses the context
 
@@ -381,6 +405,7 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     setVolume,
     setCrossfader,
     updateCurrentTime,
+    setDeckEQ,
     getState,
     getDeckState,
     initializeAudioEngine,

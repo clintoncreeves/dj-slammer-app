@@ -62,6 +62,13 @@ export interface DeckState {
 
   /** Pre-computed waveform data for visualization */
   waveformData: number[];
+
+  /** EQ low band value in dB (-12 to +12) */
+  eqLow: number;
+  /** EQ mid band value in dB (-12 to +12) */
+  eqMid: number;
+  /** EQ high band value in dB (-12 to +12) */
+  eqHigh: number;
 }
 
 /**

@@ -30,6 +30,7 @@ export interface AudioEngineConfig {
 
 export class AudioEngine {
   private players: Map<DeckId, Tone.Player>;
+  private eqs: Map<DeckId, Tone.EQ3>;
   private gains: Map<DeckId, Tone.Gain>;
   private crossfader: Tone.CrossFade;
   private masterGain: Tone.Gain;
@@ -40,6 +41,7 @@ export class AudioEngine {
 
   constructor(config: AudioEngineConfig = {}) {
     this.players = new Map();
+    this.eqs = new Map();
     this.gains = new Map();
     this.loadingPromises = new Map();
 
@@ -480,6 +482,56 @@ export class AudioEngine {
   }
 
   /**
+   * Set EQ band value for a deck
+   * Requirements: 3-band EQ control per deck
+   *
+   * @param deck - Deck identifier ('A' or 'B')
+   * @param band - EQ band ('low' | 'mid' | 'high')
+   * @param value - Value in decibels (-12 to +12)
+   */
+  setEQ(deck: DeckId, band: 'low' | 'mid' | 'high', value: number): void {
+    this.assertInitialized();
+
+    const eq = this.eqs.get(deck);
+    if (!eq) {
+      throw new Error(`EQ not found for deck ${deck}`);
+    }
+
+    // Clamp value to safe range (-12 to +12 dB)
+    const clampedValue = Math.max(-12, Math.min(12, value));
+
+    if (clampedValue !== value) {
+      console.warn(
+        `[AudioEngine] EQ ${band} value ${value} clamped to ${clampedValue} (-12 to +12 dB range)`
+      );
+    }
+
+    // Set the EQ band value
+    eq[band].value = clampedValue;
+
+    console.log(`[AudioEngine] Deck ${deck} EQ ${band} set to ${clampedValue.toFixed(1)} dB`);
+  }
+
+  /**
+   * Get current EQ values for a deck
+   *
+   * @param deck - Deck identifier ('A' or 'B')
+   * @returns Object with low, mid, high values in dB
+   */
+  getEQ(deck: DeckId): { low: number; mid: number; high: number } {
+    const eq = this.eqs.get(deck);
+    if (!eq) {
+      throw new Error(`EQ not found for deck ${deck}`);
+    }
+
+    return {
+      low: eq.low.value,
+      mid: eq.mid.value,
+      high: eq.high.value,
+    };
+  }
+
+  /**
    * Clean up resources
    * Requirements: 7.3 - Proper resource cleanup
    */
@@ -496,6 +548,12 @@ export class AudioEngine {
     });
 
     // Disconnect and dispose audio nodes
+    this.eqs.forEach((eq, deck) => {
+      eq.disconnect();
+      eq.dispose();
+      console.log(`[AudioEngine] Disposed EQ for Deck ${deck}`);
+    });
+
     this.gains.forEach((gain, deck) => {
       gain.disconnect();
       gain.dispose();
@@ -510,6 +568,7 @@ export class AudioEngine {
 
     // Clear maps
     this.players.clear();
+    this.eqs.clear();
     this.gains.clear();
     this.loadingPromises.clear();
 

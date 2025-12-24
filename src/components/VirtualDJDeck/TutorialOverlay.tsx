@@ -5,7 +5,9 @@
  * Based on Tanner's vision: "Like Simon Says - lights up buttons and you tap them when it tells you"
  */
 
+import { useEffect } from 'react';
 import { TutorialStep, TutorialProgress, TutorialLesson } from './tutorialTypes';
+import { useRewards, DJ_EMOJIS } from '../../hooks/useRewards';
 import styles from './TutorialOverlay.module.css';
 
 interface TutorialOverlayProps {
@@ -55,47 +57,72 @@ export function TutorialOverlay({
   onReplayLesson,
   onFreePlayMode,
 }: TutorialOverlayProps) {
+  // Initialize rewards for confetti celebrations
+  const { rewardSmall, rewardBig } = useRewards('tutorial-reward', {
+    type: 'emoji',
+    emoji: DJ_EMOJIS,
+  });
+
+  // Trigger confetti when step is completed
+  useEffect(() => {
+    if (showCelebration && progress.stepCompleted) {
+      // Small burst for step completion
+      rewardSmall();
+    }
+  }, [showCelebration, progress.stepCompleted, rewardSmall]);
+
+  // Trigger big confetti when lesson is completed
+  useEffect(() => {
+    if (progress.lessonCompleted) {
+      // Big explosion for lesson completion
+      rewardBig();
+    }
+  }, [progress.lessonCompleted, rewardBig]);
+
   // If lesson is completed, show completion banner at top (not a popup)
   if (progress.lessonCompleted) {
     return (
-      <div className={styles.completionBanner}>
-        <div className={styles.bannerContent}>
-          <div className={styles.bannerLeft}>
-            {lesson.badge && (
-              <span className={styles.bannerBadge}>{lesson.badge.icon}</span>
-            )}
-            <span className={styles.bannerTitle}>
-              🔥 SKILL UNLOCKED: {lesson.title}
-            </span>
-          </div>
+      <>
+        <span id="tutorial-reward" style={{ position: 'fixed', top: '50%', left: '50%', zIndex: 9999 }} />
+        <div className={styles.completionBanner}>
+          <div className={styles.bannerContent}>
+            <div className={styles.bannerLeft}>
+              {lesson.badge && (
+                <span className={styles.bannerBadge}>{lesson.badge.icon}</span>
+              )}
+              <span className={styles.bannerTitle}>
+                🔥 SKILL UNLOCKED: {lesson.title}
+              </span>
+            </div>
 
-          <div className={styles.bannerButtons}>
+            <div className={styles.bannerButtons}>
+              <button
+                className={`${styles.bannerButton} ${styles.bannerButtonSecondary}`}
+                onClick={onReplayLesson || onExit}
+                title="Replay this lesson"
+              >
+                🔄 Replay
+              </button>
+              <button
+                className={`${styles.bannerButton} ${styles.bannerButtonPrimary}`}
+                onClick={onFreePlayMode || onExit}
+                title="Start free play mode"
+              >
+                🎧 Free Play
+              </button>
+            </div>
+
             <button
-              className={`${styles.bannerButton} ${styles.bannerButtonSecondary}`}
-              onClick={onReplayLesson || onExit}
-              title="Replay this lesson"
-            >
-              🔄 Replay
-            </button>
-            <button
-              className={`${styles.bannerButton} ${styles.bannerButtonPrimary}`}
+              className={styles.bannerClose}
               onClick={onFreePlayMode || onExit}
-              title="Start free play mode"
+              title="Close and start free play"
+              aria-label="Close banner"
             >
-              🎧 Free Play
+              ✕
             </button>
           </div>
-
-          <button
-            className={styles.bannerClose}
-            onClick={onFreePlayMode || onExit}
-            title="Close and start free play"
-            aria-label="Close banner"
-          >
-            ✕
-          </button>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -108,8 +135,10 @@ export function TutorialOverlay({
   const totalSteps = lesson.steps.length;
 
   return (
-    <div className={styles.overlay}>
-      <div className={styles.card}>
+    <>
+      <span id="tutorial-reward" style={{ position: 'fixed', top: '50%', left: '50%', zIndex: 9999 }} />
+      <div className={styles.overlay}>
+        <div className={styles.card}>
         {/* Header with progress */}
         <div className={styles.header}>
           <div className={styles.lessonTitle}>{lesson.title}</div>
@@ -174,7 +203,8 @@ export function TutorialOverlay({
             <div className={styles.hintText}>{currentStep.hint}</div>
           </div>
         )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
