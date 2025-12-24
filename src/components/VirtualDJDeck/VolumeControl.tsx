@@ -1,11 +1,14 @@
 /**
  * VolumeControl Component - Vertical Volume Fader
  *
- * Realistic vertical slider styled like professional DJ equipment.
+ * Custom vertical fader styled like professional DJ equipment.
+ * Uses drag-based interaction for consistent cross-browser behavior.
  * Requirements: 10.1, 10.2 - Volume control per deck
  */
 
+import { useState, useRef, useEffect } from 'react';
 import { DeckId } from './types';
+import { clamp } from '../../utils/audioUtils';
 import styles from './VolumeControl.module.css';
 
 interface VolumeControlProps {
@@ -36,13 +39,99 @@ export function VolumeControl({
   highlighted = false,
   className,
 }: VolumeControlProps) {
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVolume = parseFloat(e.target.value);
-    onChange(newVolume);
-  };
+  const [isDragging, setIsDragging] = useState(false);
+  const sliderRef = useRef<HTMLDivElement>(null);
 
   // Convert 0-1 volume to percentage for display
   const volumePercent = Math.round(volume * 100);
+
+  const updateVolume = (clientY: number) => {
+    if (!sliderRef.current) return;
+
+    const rect = sliderRef.current.getBoundingClientRect();
+    const y = clientY - rect.top;
+    const height = rect.height;
+
+    // Invert because slider is vertical (top = max, bottom = min)
+    const ratio = clamp(1 - y / height, 0, 1);
+    onChange(ratio);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    updateVolume(e.clientY);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    updateVolume(e.touches[0].clientY);
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging) {
+        updateVolume(e.clientY);
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (isDragging) {
+        e.preventDefault();
+        updateVolume(e.touches[0].clientY);
+      }
+    };
+
+    const handleEnd = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleEnd);
+      window.addEventListener('touchmove', handleTouchMove, { passive: false });
+      window.addEventListener('touchend', handleEnd);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleEnd);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleEnd);
+    };
+  }, [isDragging]);
+
+  // Reset to 100% on double-click
+  const handleDoubleClick = () => {
+    onChange(1);
+  };
+
+  // Keyboard support
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    const step = 0.05; // 5% steps
+    switch (e.key) {
+      case 'ArrowUp':
+        onChange(Math.min(volume + step, 1));
+        e.preventDefault();
+        break;
+      case 'ArrowDown':
+        onChange(Math.max(volume - step, 0));
+        e.preventDefault();
+        break;
+      case 'Home':
+        onChange(1);
+        e.preventDefault();
+        break;
+      case 'End':
+        onChange(0);
+        e.preventDefault();
+        break;
+      case 'Enter':
+      case ' ':
+        onChange(1); // Reset to full volume
+        e.preventDefault();
+        break;
+    }
+  };
 
   return (
     <div
@@ -50,38 +139,44 @@ export function VolumeControl({
         className || ''
       }`}
     >
-      <label className={styles.label} htmlFor={`volume-${deck}`}>
-        VOLUME
-      </label>
+      <label className={styles.label}>VOLUME</label>
 
-      <div className={styles.faderContainer}>
-        {/* Volume level indicator */}
+      <div
+        ref={sliderRef}
+        className={`${styles.faderContainer} ${isDragging ? styles.dragging : ''}`}
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
+        onDoubleClick={handleDoubleClick}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        role="slider"
+        aria-label={`Volume control for Deck ${deck}`}
+        aria-valuenow={volumePercent}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuetext={`${volumePercent}%`}
+        style={{
+          '--slider-color': color,
+        } as React.CSSProperties}
+      >
+        {/* Track background */}
+        <div className={styles.track}>
+          {/* Volume level fill */}
+          <div
+            className={styles.fill}
+            style={{
+              height: `${volumePercent}%`,
+              background: color,
+            }}
+          />
+        </div>
+
+        {/* Fader thumb - rectangular like real DJ faders */}
         <div
-          className={styles.volumeLevel}
+          className={styles.thumb}
           style={{
-            height: `${volumePercent}%`,
-            background: color,
-            boxShadow: `0 0 10px ${color}`,
+            bottom: `${volumePercent}%`,
           }}
-        />
-
-        {/* Vertical slider */}
-        <input
-          id={`volume-${deck}`}
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
-          value={volume}
-          onChange={handleChange}
-          className={styles.slider}
-          style={{
-            '--slider-color': color,
-          } as React.CSSProperties}
-          aria-label={`Volume control for Deck ${deck}`}
-          aria-valuenow={volumePercent}
-          aria-valuemin={0}
-          aria-valuemax={100}
         />
 
         {/* Volume markers */}
@@ -98,9 +193,6 @@ export function VolumeControl({
       <div className={styles.volumeDisplay} style={{ color }}>
         {volumePercent}%
       </div>
-
-      {/* Double-click hint */}
-      <div className={styles.hint}>Double-click to reset</div>
     </div>
   );
 }

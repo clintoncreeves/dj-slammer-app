@@ -42,103 +42,97 @@
   position: relative;
   width: 50px;
   height: 120px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+  outline: none;
 }
 
-.volumeLevel {
+.faderContainer:focus-visible {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+}
+
+.faderContainer.dragging {
+  cursor: grabbing;
+}
+
+.track {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.fill {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  border-radius: 0 0 6px 6px;
-  transition: height 0.1s ease, box-shadow 0.1s ease;
-  opacity: 0.3;
+  opacity: 0.5;
+  transition: height 0.05s ease;
+  border-radius: 0 0 3px 3px;
+}
+
+/* Rectangular fader thumb - like real DJ mixers */
+.thumb {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 50%);
+  width: 44px;
+  height: 20px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(220, 220, 220, 0.9) 50%,
+    rgba(200, 200, 200, 0.9) 100%
+  );
+  border: 2px solid var(--slider-color, #00F0FF);
+  border-radius: 4px;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.5),
+    0 0 10px var(--slider-color, #00F0FF),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transition: all 0.15s ease;
   pointer-events: none;
 }
 
-.slider {
-  writing-mode: bt-lr; /* IE */
-  -webkit-appearance: slider-vertical; /* WebKit */
-  width: 44px; /* Touch target width */
-  height: 100px;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  background: transparent;
-  position: relative;
-  z-index: 2;
+/* Center groove on thumb */
+.thumb::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 2px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 1px;
 }
 
-/* Chrome, Safari, Edge */
-.slider::-webkit-slider-runnable-track {
-  width: 8px;
-  height: 100px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.faderContainer:hover .thumb {
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.6),
+    0 0 15px var(--slider-color, #00F0FF),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 44px;
-  height: 24px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(200, 200, 200, 0.9) 100%);
-  border: 2px solid var(--slider-color, #00F0FF);
-  border-radius: 6px;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 10px var(--slider-color, #00F0FF);
-  transition: all 0.2s ease;
-}
-
-.slider::-webkit-slider-thumb:hover {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.7), 0 0 15px var(--slider-color, #00F0FF);
-  transform: scale(1.05);
-}
-
-.slider::-webkit-slider-thumb:active {
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.8), 0 0 20px var(--slider-color, #00F0FF);
-  transform: scale(0.98);
-}
-
-/* Firefox */
-.slider::-moz-range-track {
-  width: 8px;
-  height: 100px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.slider::-moz-range-thumb {
-  width: 44px;
-  height: 24px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(200, 200, 200, 0.9) 100%);
-  border: 2px solid var(--slider-color, #00F0FF);
-  border-radius: 6px;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 10px var(--slider-color, #00F0FF);
-  transition: all 0.2s ease;
-}
-
-.slider::-moz-range-thumb:hover {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.7), 0 0 15px var(--slider-color, #00F0FF);
-  transform: scale(1.05);
-}
-
-.slider::-moz-range-thumb:active {
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.8), 0 0 20px var(--slider-color, #00F0FF);
-  transform: scale(0.98);
+.faderContainer.dragging .thumb {
+  box-shadow:
+    0 1px 6px rgba(0, 0, 0, 0.7),
+    0 0 20px var(--slider-color, #00F0FF),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transform: translate(-50%, 50%) scale(1.02);
 }
 
 .markers {
   position: absolute;
-  right: -20px;
+  right: -2px;
   top: 0;
   bottom: 0;
   display: flex;
@@ -149,9 +143,18 @@
 
 .marker {
   font-family: 'Space Mono', monospace;
-  font-size: 0.625rem;
+  font-size: 0.5rem;
   color: rgba(255, 255, 255, 0.4);
   text-align: right;
+  transform: translateY(-50%);
+}
+
+.marker:first-child {
+  transform: translateY(0);
+}
+
+.marker:last-child {
+  transform: translateY(-100%);
 }
 
 .volumeDisplay {
@@ -163,25 +166,6 @@
   text-align: center;
 }
 
-.hint {
-  display: none; /* Hide to save space */
-}
-
-/* Focus styles for accessibility */
-.slider:focus {
-  outline: none;
-}
-
-.slider:focus::-webkit-slider-thumb {
-  outline: 2px solid var(--slider-color, #00F0FF);
-  outline-offset: 2px;
-}
-
-.slider:focus::-moz-range-thumb {
-  outline: 2px solid var(--slider-color, #00F0FF);
-  outline-offset: 2px;
-}
-
 /* Responsive */
 @media (max-width: 768px) {
   .faderContainer {
@@ -189,17 +173,9 @@
     width: 50px;
   }
 
-  .slider {
-    height: 130px;
-    width: 44px;
-  }
-
-  .slider::-webkit-slider-runnable-track {
-    height: 130px;
-  }
-
-  .slider::-moz-range-track {
-    height: 130px;
+  .thumb {
+    width: 48px;
+    height: 24px;
   }
 
   .volumeDisplay {
