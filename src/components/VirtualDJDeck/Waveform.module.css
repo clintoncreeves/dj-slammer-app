@@ -8,6 +8,19 @@
   overflow: hidden;
 }
 
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:hover {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.clickable:focus-visible {
+  outline: 2px solid var(--color-primary, #00F0FF);
+  outline-offset: 2px;
+}
+
 .canvas {
   display: block;
   max-width: 100%;
@@ -19,4 +32,63 @@
   color: rgba(255, 255, 255, 0.3);
   font-size: 0.875rem;
   text-align: center;
+}
+
+/* Time display overlay */
+.timeOverlay {
+  position: absolute;
+  bottom: 4px;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.currentTime,
+.duration {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  font-family: 'Space Mono', monospace;
+}
+
+.duration {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Hover time tooltip */
+.hoverTime {
+  position: absolute;
+  top: -28px;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #fff;
+  white-space: nowrap;
+  pointer-events: none;
+  font-family: 'Space Mono', monospace;
+}
+
+.hoverTime::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid rgba(0, 0, 0, 0.9);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .clickable:hover {
+    background: rgba(0, 0, 0, 0.3);
+  }
 }

@@ -23,29 +23,30 @@ interface DeckContextValue {
   deckAState: DeckState;
   deckBState: DeckState;
   crossfaderPosition: number;
-  
+
   // Audio Engine
   audioEngine: AudioEngine | null;
   isInitialized: boolean;
-  
+
   // Deck Operations
   loadTrack: (deck: DeckId, url: string, initialBPM: number, cuePoint: number) => Promise<void>;
   playDeck: (deck: DeckId) => void;
   pauseDeck: (deck: DeckId) => void;
   cueDeck: (deck: DeckId) => void;
+  seekDeck: (deck: DeckId, time: number) => void;
   setBPM: (deck: DeckId, bpm: number) => void;
   syncBPM: (slaveDeck: DeckId, masterDeck: DeckId) => BPMSyncResult | null;
   setVolume: (deck: DeckId, volume: number) => void;
   setCrossfader: (position: number) => void;
   updateCurrentTime: (deck: DeckId, time: number) => void;
-  
+
   // State Queries
   getState: () => VirtualDJDeckState;
   getDeckState: (deck: DeckId) => DeckState;
-  
+
   // Initialization
   initializeAudioEngine: () => Promise<void>;
-  
+
   // Error handling
   loadErrors: { A?: string; B?: string };
 }
@@ -235,6 +236,27 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     }
   }, [isInitialized, deckAState, deckBState, notifyStateChange, onError]);
 
+  // Seek to a position in a deck
+  const seekDeck = useCallback((deck: DeckId, time: number) => {
+    if (!audioEngineRef.current || !isInitialized) {
+      console.warn('[DeckContext] Cannot seek: AudioEngine not initialized');
+      return;
+    }
+
+    try {
+      audioEngineRef.current.seek(deck, time);
+
+      const updateState = deck === 'A' ? setDeckAState : setDeckBState;
+      updateState((prev) => ({ ...prev, currentTime: time }));
+
+      notifyStateChange();
+      console.log(`[DeckContext] Deck ${deck} seeked to ${time}s`);
+    } catch (err) {
+      console.error(`[DeckContext] Failed to seek Deck ${deck}:`, err);
+      onError?.(err as Error);
+    }
+  }, [isInitialized, notifyStateChange, onError]);
+
   // Set BPM for a deck
   const setBPM = useCallback((deck: DeckId, bpm: number) => {
     if (!audioEngineRef.current || !isInitialized) {
@@ -353,6 +375,7 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     playDeck,
     pauseDeck,
     cueDeck,
+    seekDeck,
     setBPM,
     syncBPM,
     setVolume,

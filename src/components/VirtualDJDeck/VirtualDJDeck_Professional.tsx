@@ -253,6 +253,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
               width={400}
               height={100}
               className={styles.waveform}
+              onSeek={(time) => deck.seekDeck('A', time)}
             />
 
             <BPMDisplay
@@ -350,6 +351,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
               width={400}
               height={100}
               className={styles.waveform}
+              onSeek={(time) => deck.seekDeck('B', time)}
             />
 
             <BPMDisplay

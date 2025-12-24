@@ -1,8 +1,9 @@
 /**
  * Waveform Component
  *
- * Canvas-based waveform visualization with animated playhead.
- * Updates at 60fps when playing, frozen when paused.
+ * Canvas-based waveform visualization showing full track length.
+ * Click anywhere to seek to that position.
+ * Shows playhead position and played/unplayed regions.
  *
  * Requirements met:
  * - Req 4.1: Animated waveform visualization
@@ -10,8 +11,7 @@
  * - Req 4.4: Update speed with tempo adjustment
  */
 
-import { useEffect, useRef } from 'react';
-import { drawWaveform, calculatePlayheadPosition } from '../../utils/waveformUtils';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import styles from './Waveform.module.css';
 
 interface WaveformProps {
@@ -23,6 +23,8 @@ interface WaveformProps {
   width?: number;
   height?: number;
   className?: string;
+  /** Callback when user clicks to seek (receives time in seconds) */
+  onSeek?: (time: number) => void;
 }
 
 export function Waveform({
@@ -34,45 +36,122 @@ export function Waveform({
   width = 400,
   height = 100,
   className,
+  onSeek,
 }: WaveformProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number>();
+  const [isHovering, setIsHovering] = useState(false);
+  const [hoverPosition, setHoverPosition] = useState<number | null>(null);
 
-  // Draw waveform and playhead
+  // Format time as MM:SS
+  const formatTime = (seconds: number): string => {
+    if (!seconds || !isFinite(seconds)) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Calculate playhead position (0-1)
+  const playheadPosition = duration > 0 ? Math.min(1, Math.max(0, currentTime / duration)) : 0;
+
+  // Draw the waveform with played/unplayed coloring
+  const drawWaveform = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx || waveformData.length === 0) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const w = width * dpr;
+    const h = height * dpr;
+    const barWidth = w / waveformData.length;
+    const centerY = h / 2;
+    const playheadX = playheadPosition * w;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, w, h);
+
+    // Draw waveform bars with played/unplayed colors
+    waveformData.forEach((amplitude, index) => {
+      const barHeight = amplitude * centerY * 0.9;
+      const x = index * barWidth;
+      const barX = x + barWidth * 0.1;
+      const actualBarWidth = barWidth * 0.8;
+
+      // Determine if this bar is before or after playhead
+      const barCenter = x + barWidth / 2;
+      const isPlayed = barCenter < playheadX;
+
+      ctx.fillStyle = color;
+      ctx.globalAlpha = isPlayed ? 0.4 : 1;
+
+      // Draw mirrored bars (top and bottom)
+      ctx.fillRect(barX, centerY - barHeight, actualBarWidth, barHeight);
+      ctx.fillRect(barX, centerY, actualBarWidth, barHeight);
+    });
+
+    ctx.globalAlpha = 1;
+
+    // Draw hover indicator
+    if (isHovering && hoverPosition !== null) {
+      const hoverX = hoverPosition * w;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.lineWidth = 1 * dpr;
+      ctx.setLineDash([4 * dpr, 4 * dpr]);
+      ctx.beginPath();
+      ctx.moveTo(hoverX, 0);
+      ctx.lineTo(hoverX, h);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Draw playhead
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 2 * dpr;
+    ctx.beginPath();
+    ctx.moveTo(playheadX, 0);
+    ctx.lineTo(playheadX, h);
+    ctx.stroke();
+
+    // Playhead glow
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 10 * dpr;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2 * dpr;
+    ctx.beginPath();
+    ctx.moveTo(playheadX, 0);
+    ctx.lineTo(playheadX, h);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }, [waveformData, color, width, height, playheadPosition, isHovering, hoverPosition]);
+
+  // Set up canvas resolution
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Set canvas resolution (for retina displays)
     const dpr = window.devicePixelRatio || 1;
     canvas.width = width * dpr;
     canvas.height = height * dpr;
     canvas.style.width = `${width}px`;
     canvas.style.height = `${height}px`;
+  }, [width, height]);
 
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.scale(dpr, dpr);
-    }
-
-    // Animation loop
+  // Animation loop
+  useEffect(() => {
     const animate = () => {
-      if (!canvas) return;
-
-      const playheadPosition = calculatePlayheadPosition(currentTime, duration);
-      drawWaveform(canvas, waveformData, color, isPlaying ? playheadPosition : null);
-
+      drawWaveform();
       if (isPlaying) {
         animationFrameRef.current = requestAnimationFrame(animate);
       }
     };
 
-    // Start animation if playing, otherwise draw once
     if (isPlaying) {
       animationFrameRef.current = requestAnimationFrame(animate);
     } else {
-      const playheadPosition = calculatePlayheadPosition(currentTime, duration);
-      drawWaveform(canvas, waveformData, color, playheadPosition);
+      drawWaveform();
     }
 
     return () => {
@@ -80,15 +159,72 @@ export function Waveform({
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [waveformData, color, isPlaying, currentTime, duration, width, height]);
+  }, [isPlaying, drawWaveform]);
+
+  // Handle click to seek
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!onSeek || !containerRef.current || duration <= 0) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const position = Math.max(0, Math.min(1, x / rect.width));
+    const seekTime = position * duration;
+    onSeek(seekTime);
+  };
+
+  // Handle mouse move for hover preview
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!containerRef.current) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const position = Math.max(0, Math.min(1, x / rect.width));
+    setHoverPosition(position);
+  };
+
+  const handleMouseEnter = () => setIsHovering(true);
+  const handleMouseLeave = () => {
+    setIsHovering(false);
+    setHoverPosition(null);
+  };
 
   return (
-    <div className={`${styles.container} ${className || ''}`}>
+    <div
+      ref={containerRef}
+      className={`${styles.container} ${onSeek ? styles.clickable : ''} ${className || ''}`}
+      onClick={handleClick}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      role={onSeek ? 'slider' : undefined}
+      aria-label={onSeek ? 'Track position' : undefined}
+      aria-valuenow={onSeek ? Math.round(playheadPosition * 100) : undefined}
+      aria-valuemin={onSeek ? 0 : undefined}
+      aria-valuemax={onSeek ? 100 : undefined}
+      tabIndex={onSeek ? 0 : undefined}
+    >
       <canvas
         ref={canvasRef}
         className={styles.canvas}
         style={{ width: `${width}px`, height: `${height}px` }}
       />
+
+      {/* Time display overlay */}
+      <div className={styles.timeOverlay}>
+        <span className={styles.currentTime}>{formatTime(currentTime)}</span>
+        <span className={styles.duration}>{formatTime(duration)}</span>
+      </div>
+
+      {/* Hover time tooltip */}
+      {isHovering && hoverPosition !== null && duration > 0 && (
+        <div
+          className={styles.hoverTime}
+          style={{ left: `${hoverPosition * 100}%` }}
+        >
+          {formatTime(hoverPosition * duration)}
+        </div>
+      )}
+
       {waveformData.length === 0 && (
         <div className={styles.placeholder}>No waveform data</div>
       )}
