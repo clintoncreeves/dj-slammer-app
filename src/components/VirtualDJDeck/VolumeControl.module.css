@@ -48,6 +48,9 @@
   touch-action: none;
   outline: none;
   margin: 0 auto;
+  /* Add padding so thumb doesn't overlap label or value display */
+  padding: 10px 0;
+  box-sizing: border-box;
 }
 
 .faderContainer:focus-visible {
@@ -85,7 +88,7 @@
 .thumb {
   position: absolute;
   left: 50%;
-  transform: translate(-50%, 50%);
+  transform: translateX(-50%);
   width: 36px;
   height: 16px;
   background: linear-gradient(
@@ -129,7 +132,7 @@
     0 1px 6px rgba(0, 0, 0, 0.7),
     0 0 20px var(--slider-color, #00F0FF),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  transform: translate(-50%, 50%) scale(1.02);
+  transform: translateX(-50%) scale(1.02);
 }
 
 .markers {
@@ -190,6 +193,6 @@
   }
 
   .faderContainer.dragging .thumb {
-    transform: translate(-50%, 50%);
+    transform: translateX(-50%);
   }
 }

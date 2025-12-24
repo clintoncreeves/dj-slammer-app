@@ -172,10 +172,12 @@ export function VolumeControl({
         </div>
 
         {/* Fader thumb - rectangular like real DJ faders */}
+        {/* Calculate position so thumb stays within track bounds */}
+        {/* At 0%: thumb at bottom (bottom: 0), at 100%: thumb near top but not overlapping */}
         <div
           className={styles.thumb}
           style={{
-            bottom: `${volumePercent}%`,
+            bottom: `calc(${volumePercent}% * 0.85)`,
           }}
         />
 

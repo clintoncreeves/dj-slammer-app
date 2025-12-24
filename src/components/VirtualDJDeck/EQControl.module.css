@@ -65,6 +65,8 @@
   position: relative;
   width: 36px;
   height: 80px;
+  padding: 8px 0;
+  box-sizing: border-box;
   cursor: pointer;
   user-select: none;
   touch-action: none;
@@ -148,7 +150,7 @@
 .thumb {
   position: absolute;
   left: 50%;
-  transform: translate(-50%, 50%);
+  transform: translateX(-50%);
   width: 28px;
   height: 12px;
   background: linear-gradient(
@@ -193,7 +195,7 @@
     0 1px 4px rgba(0, 0, 0, 0.7),
     0 0 16px currentColor,
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  transform: translate(-50%, 50%) scale(1.05);
+  transform: translateX(-50%) scale(1.05);
 }
 
 .markers {
@@ -267,6 +269,6 @@
   }
 
   .faderContainer.dragging .thumb {
-    transform: translate(-50%, 50%);
+    transform: translateX(-50%);
   }
 }

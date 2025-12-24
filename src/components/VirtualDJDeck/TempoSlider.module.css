@@ -21,7 +21,8 @@
   position: relative;
   width: 50px;
   height: 100px;
-  padding: 4px;
+  padding: 12px 4px;
+  box-sizing: border-box;
   cursor: pointer;
   user-select: none;
   touch-action: none;
@@ -54,7 +55,7 @@
 .thumb {
   position: absolute;
   left: 50%;
-  transform: translate(-50%, 50%);
+  transform: translateX(-50%);
   width: 28px;
   height: 28px;
   background: var(--slider-color, #00F0FF);
@@ -67,8 +68,8 @@
 
 .slider:hover .thumb,
 .slider.dragging .thumb {
-  transform: translate(-50%, 50%) scale(1.1);
-  box-shadow: 0 0 30px var(--slider-color, #00F0FF);
+  transform: translateX(-50%) scale(1.1);
+  box-shadow: 0 0 20px var(--slider-color, #00F0FF);
 }
 
 .marker {
@@ -153,7 +154,7 @@
 
   .slider:hover .thumb,
   .slider.dragging .thumb {
-    transform: translate(-50%, 50%);
+    transform: translateX(-50%);
   }
 
   .container.highlighted {

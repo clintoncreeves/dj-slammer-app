@@ -202,10 +202,11 @@ export function EQControl({
           </div>
 
           {/* Fader thumb - rectangular like real DJ faders */}
+          {/* Scale position to keep thumb within bounds */}
           <div
             className={styles.thumb}
             style={{
-              bottom: `${percent}%`,
+              bottom: `calc(${percent}% * 0.85)`,
               borderColor: color,
             }}
           />

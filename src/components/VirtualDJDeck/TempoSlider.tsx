@@ -183,11 +183,11 @@ export function TempoSlider({
           />
         </div>
 
-        {/* Thumb */}
+        {/* Thumb - scale position to keep within bounds */}
         <div
           className={styles.thumb}
           style={{
-            bottom: `${percentage}%`,
+            bottom: `calc(${percentage}% * 0.85)`,
           }}
         />
       </div>
