@@ -20,7 +20,6 @@ interface WaveformProps {
   isPlaying: boolean;
   currentTime: number;
   duration: number;
-  width?: number;
   height?: number;
   className?: string;
   /** Callback when user clicks to seek (receives time in seconds) */
@@ -33,7 +32,6 @@ export function Waveform({
   isPlaying,
   currentTime,
   duration,
-  width = 400,
   height = 100,
   className,
   onSeek,
@@ -43,6 +41,7 @@ export function Waveform({
   const animationFrameRef = useRef<number>();
   const [isHovering, setIsHovering] = useState(false);
   const [hoverPosition, setHoverPosition] = useState<number | null>(null);
+  const [canvasWidth, setCanvasWidth] = useState(400);
 
   // Format time as MM:SS
   const formatTime = (seconds: number): string => {
@@ -64,7 +63,7 @@ export function Waveform({
     if (!ctx || waveformData.length === 0) return;
 
     const dpr = window.devicePixelRatio || 1;
-    const w = width * dpr;
+    const w = canvasWidth * dpr;
     const h = height * dpr;
     const barWidth = w / waveformData.length;
     const centerY = h / 2;
@@ -125,19 +124,37 @@ export function Waveform({
     ctx.lineTo(playheadX, h);
     ctx.stroke();
     ctx.shadowBlur = 0;
-  }, [waveformData, color, width, height, playheadPosition, isHovering, hoverPosition]);
+  }, [waveformData, color, canvasWidth, height, playheadPosition, isHovering, hoverPosition]);
 
-  // Set up canvas resolution
+  // Set up canvas resolution and track container size
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
 
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
-  }, [width, height]);
+    const updateCanvasSize = () => {
+      const rect = container.getBoundingClientRect();
+      const width = rect.width;
+      setCanvasWidth(width);
+
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+    };
+
+    // Initial size
+    updateCanvasSize();
+
+    // Watch for container size changes
+    const resizeObserver = new ResizeObserver(updateCanvasSize);
+    resizeObserver.observe(container);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [height]);
 
   // Animation loop
   useEffect(() => {
@@ -192,6 +209,7 @@ export function Waveform({
     <div
       ref={containerRef}
       className={`${styles.container} ${onSeek ? styles.clickable : ''} ${className || ''}`}
+      style={{ height: `${height}px` }}
       onClick={handleClick}
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
@@ -206,7 +224,6 @@ export function Waveform({
       <canvas
         ref={canvasRef}
         className={styles.canvas}
-        style={{ width: `${width}px`, height: `${height}px` }}
       />
 
       {/* Time display overlay */}

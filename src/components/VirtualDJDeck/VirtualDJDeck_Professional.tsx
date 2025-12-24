@@ -305,7 +305,6 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
               isPlaying={deck.deckAState.isPlaying}
               currentTime={deck.deckAState.currentTime}
               duration={deck.deckAState.duration}
-              width={400}
               height={100}
               className={styles.waveform}
               onSeek={(time) => deck.seekDeck('A', time)}
@@ -425,7 +424,6 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
               isPlaying={deck.deckBState.isPlaying}
               currentTime={deck.deckBState.currentTime}
               duration={deck.deckBState.duration}
-              width={400}
               height={100}
               className={styles.waveform}
               onSeek={(time) => deck.seekDeck('B', time)}
