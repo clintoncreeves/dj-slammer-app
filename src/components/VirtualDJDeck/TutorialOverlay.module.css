@@ -291,7 +291,127 @@
   line-height: 1.6;
 }
 
-/* Completion Screen */
+/* Completion Banner - Fixed at top, dismissible */
+.completionBanner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1001;
+  background: linear-gradient(90deg, rgba(0, 240, 255, 0.15) 0%, rgba(255, 0, 110, 0.15) 100%);
+  border-bottom: 2px solid #00FF88;
+  padding: 12px 24px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 255, 136, 0.3);
+  animation: bannerSlideIn 0.4s ease-out;
+}
+
+@keyframes bannerSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bannerContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.bannerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bannerBadge {
+  font-size: 1.5rem;
+  animation: badgePulse 1s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.bannerTitle {
+  font-family: 'Space Mono', monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #00FF88;
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.bannerButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.bannerButton {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid;
+  min-height: 36px;
+}
+
+.bannerButtonPrimary {
+  background: rgba(0, 240, 255, 0.2);
+  border-color: #00F0FF;
+  color: #00F0FF;
+}
+
+.bannerButtonPrimary:hover {
+  background: rgba(0, 240, 255, 0.3);
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.5);
+}
+
+.bannerButtonSecondary {
+  background: rgba(255, 215, 0, 0.1);
+  border-color: #FFD700;
+  color: #FFD700;
+}
+
+.bannerButtonSecondary:hover {
+  background: rgba(255, 215, 0, 0.2);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+}
+
+.bannerClose {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.bannerClose:hover {
+  color: #FF006E;
+  transform: scale(1.1);
+}
+
+/* Old completion card styles - kept for reference but not used */
 .completionCard {
   text-align: center;
   max-width: 700px;
@@ -396,6 +516,28 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  .completionBanner {
+    padding: 10px 16px;
+  }
+
+  .bannerContent {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .bannerTitle {
+    font-size: 0.875rem;
+  }
+
+  .bannerButtons {
+    gap: 6px;
+  }
+
+  .bannerButton {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+  }
+
   .card {
     padding: 1.5rem;
   }

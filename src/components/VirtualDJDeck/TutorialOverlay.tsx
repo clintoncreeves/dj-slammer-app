@@ -54,57 +54,46 @@ export function TutorialOverlay({
   showHintButton,
   onReplayLesson,
   onFreePlayMode,
-  onMoreLessons,
 }: TutorialOverlayProps) {
-  // If lesson is completed, show completion screen
+  // If lesson is completed, show completion banner at top (not a popup)
   if (progress.lessonCompleted) {
     return (
-      <div className={`${styles.overlay} ${styles.fadeIn}`}>
-        <div className={`${styles.card} ${styles.completionCard}`}>
-          <div className={styles.completionAnimation}>
+      <div className={styles.completionBanner}>
+        <div className={styles.bannerContent}>
+          <div className={styles.bannerLeft}>
             {lesson.badge && (
-              <div className={styles.badge}>
-                <span className={styles.badgeIcon}>{lesson.badge.icon}</span>
-                <span className={styles.badgeTitle}>{lesson.badge.title}</span>
-              </div>
+              <span className={styles.bannerBadge}>{lesson.badge.icon}</span>
             )}
+            <span className={styles.bannerTitle}>
+              🔥 SKILL UNLOCKED: {lesson.title}
+            </span>
           </div>
 
-          <h2 className={styles.completionTitle}>
-            🔥 SKILL UNLOCKED! 🔥
-          </h2>
-
-          <h3 className={styles.lessonName}>{lesson.title}</h3>
-
-          <div className={styles.completionMessage}>
-            {lesson.completionMessage.split('\n').map((line, i) => (
-              <p key={i}>{line}</p>
-            ))}
-          </div>
-
-          <div className={styles.completionButtons}>
+          <div className={styles.bannerButtons}>
             <button
-              className={`${styles.button} ${styles.secondaryButton}`}
+              className={`${styles.bannerButton} ${styles.bannerButtonSecondary}`}
               onClick={onReplayLesson || onExit}
-              title="Replay this lesson from the beginning"
+              title="Replay this lesson"
             >
-              🔄 REPLAY LESSON
+              🔄 Replay
             </button>
             <button
-              className={`${styles.button} ${styles.primaryButton}`}
+              className={`${styles.bannerButton} ${styles.bannerButtonPrimary}`}
               onClick={onFreePlayMode || onExit}
-              title="Practice freely without tutorial guidance"
+              title="Start free play mode"
             >
-              🎧 FREE PLAY MODE
-            </button>
-            <button
-              className={`${styles.button} ${styles.tertiaryButton}`}
-              onClick={onMoreLessons || (() => alert('More lessons coming soon!'))}
-              title="Browse more lessons (coming soon)"
-            >
-              📚 MORE LESSONS
+              🎧 Free Play
             </button>
           </div>
+
+          <button
+            className={styles.bannerClose}
+            onClick={onFreePlayMode || onExit}
+            title="Close and start free play"
+            aria-label="Close banner"
+          >
+            ✕
+          </button>
         </div>
       </div>
     );
