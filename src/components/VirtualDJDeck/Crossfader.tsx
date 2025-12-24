@@ -57,12 +57,11 @@ export function Crossfader({
   // Convert position from [-1, 1] to percentage [0, 100]
   const percentage = ((position + 1) / 2) * 100;
 
-  // Calculate volume levels for each deck based on crossfader position using equal-power crossfade
-  // This matches the actual audio behavior of Tone.CrossFade
-  // -1 = full A (A=100%, B=0%), 0 = center (A~70.7%, B~70.7%), 1 = full B (A=0%, B=100%)
-  const normFade = (position + 1) / 2; // Normalize to [0, 1]
-  const deckAVolume = Math.cos(normFade * Math.PI / 2) * 100;
-  const deckBVolume = Math.sin(normFade * Math.PI / 2) * 100;
+  // Display volume levels using linear interpolation for intuitive UI
+  // -1 = full A (A=100%, B=0%), 0 = center (A=50%, B=50%), 1 = full B (A=0%, B=100%)
+  // Note: Audio uses equal-power crossfade internally, but linear is more intuitive for display
+  const deckAVolume = (1 - (position + 1) / 2) * 100; // 100% at -1, 50% at 0, 0% at 1
+  const deckBVolume = ((position + 1) / 2) * 100;     // 0% at -1, 50% at 0, 100% at 1
 
   const updatePosition = (clientX: number) => {
     if (!sliderRef.current) return;
