@@ -123,16 +123,27 @@ export class AudioEngine {
       loop: false,
     });
 
+    // Create 3-band EQ for frequency control
+    const eq = new Tone.EQ3({
+      low: 0,
+      mid: 0,
+      high: 0,
+      lowFrequency: 400,   // Bass frequencies below 400Hz
+      highFrequency: 2500, // Treble frequencies above 2500Hz
+    });
+
     // Create gain node for volume control
     const gain = new Tone.Gain(1);
 
-    // Connect player to gain
-    player.connect(gain);
+    // Connect audio chain: Player -> EQ -> Gain
+    player.connect(eq);
+    eq.connect(gain);
 
     this.players.set(deck, player);
+    this.eqs.set(deck, eq);
     this.gains.set(deck, gain);
 
-    console.log(`[AudioEngine] Created player for Deck ${deck}`);
+    console.log(`[AudioEngine] Created player with EQ for Deck ${deck}`);
   }
 
   /**
