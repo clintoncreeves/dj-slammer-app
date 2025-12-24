@@ -21,9 +21,15 @@
 
   /* Status Colors */
   --color-success: #39FF14;           /* Neon green - success states */
+  --color-success-alt: #00FF88;       /* Alternate neon green - sync button */
   --color-warning: #FFD60A;           /* Yellow - warnings */
   --color-error: #FF4444;             /* Red - errors */
   --color-info: #00F0FF;              /* Cyan - info messages */
+
+  /* Accent Colors */
+  --color-purple: #B537F2;            /* Purple - gradients, special effects */
+  --color-orange: #FFA500;            /* Orange - half-time sync indicator */
+  --color-red-orange: #FF4500;        /* Red-orange - double-time sync */
 
   /* Background Colors */
   --bg-primary: #0a0a0a;              /* Pure black background */
@@ -159,6 +165,8 @@
   --z-popover: 600;
   --z-tooltip: 700;
   --z-notification: 800;
+  --z-tutorial: 900;                  /* Tutorial overlays and panels */
+  --z-skip-link: 1000;                /* Skip to content link (highest) */
 
   /* ==========================================
      BREAKPOINTS (for reference in JS)

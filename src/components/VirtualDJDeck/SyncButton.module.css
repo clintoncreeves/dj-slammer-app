@@ -120,13 +120,41 @@
   }
 }
 
+/* Focus visible state for keyboard navigation */
+.button:focus-visible {
+  outline: 2px solid var(--button-color, #00ff88);
+  outline-offset: 2px;
+  box-shadow:
+    0 0 20px var(--button-color, #00ff88),
+    0 0 40px rgba(0, 255, 136, 0.4);
+}
+
 /* High contrast mode */
 @media (prefers-contrast: high) {
   .button {
     border-width: 3px;
   }
-  
+
   .button:hover:not(:disabled) {
     background: rgba(0, 255, 136, 0.3);
+  }
+}
+
+/* Reduced motion - disable animations */
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+
+  .button:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .button:active:not(:disabled) {
+    transform: none;
+  }
+
+  .button.synced {
+    animation: none;
   }
 }

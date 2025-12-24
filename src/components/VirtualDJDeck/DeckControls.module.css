@@ -76,6 +76,13 @@
   border-style: dashed;
 }
 
+/* Focus visible state for keyboard navigation */
+.button:focus-visible {
+  outline: 2px solid var(--button-color, #00F0FF);
+  outline-offset: 2px;
+  box-shadow: 0 0 25px rgba(var(--button-color-rgb, 0, 240, 255), 0.8);
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .container {
@@ -95,5 +102,24 @@
   .button svg {
     width: 20px;
     height: 20px;
+  }
+}
+
+/* Reduced motion - disable animations */
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+
+  .button:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .button:active:not(:disabled) {
+    transform: none;
+  }
+
+  .playButton.active {
+    animation: none;
   }
 }

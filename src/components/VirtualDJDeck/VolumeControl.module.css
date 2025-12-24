@@ -182,3 +182,26 @@
     font-size: 1rem;
   }
 }
+
+/* Reduced motion - disable animations */
+@media (prefers-reduced-motion: reduce) {
+  .container {
+    transition: none;
+  }
+
+  .container.highlighted {
+    animation: none;
+  }
+
+  .fill {
+    transition: none;
+  }
+
+  .thumb {
+    transition: none;
+  }
+
+  .faderContainer.dragging .thumb {
+    transform: translate(-50%, 50%);
+  }
+}

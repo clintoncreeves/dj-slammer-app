@@ -10,7 +10,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--z-tutorial, 900);
   padding: 20px;
   backdrop-filter: blur(4px);
 }
@@ -297,9 +297,9 @@
   top: 0;
   left: 0;
   right: 0;
-  z-index: 1001;
+  z-index: calc(var(--z-tutorial, 900) + 1);
   background: linear-gradient(90deg, rgba(0, 240, 255, 0.15) 0%, rgba(255, 0, 110, 0.15) 100%);
-  border-bottom: 2px solid #00FF88;
+  border-bottom: 2px solid var(--color-success-alt, #00FF88);
   padding: 12px 24px;
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 20px rgba(0, 255, 136, 0.3);
@@ -581,5 +581,49 @@
 
   .completionButtons .button {
     width: 100%;
+  }
+}
+
+/* Focus visible states for keyboard navigation */
+.button:focus-visible,
+.bannerButton:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.exitButton:focus-visible,
+.bannerClose:focus-visible {
+  outline: 2px solid #FF006E;
+  outline-offset: 2px;
+}
+
+/* Reduced motion - disable all animations */
+@media (prefers-reduced-motion: reduce) {
+  .fadeIn,
+  .card,
+  .instructionIcon,
+  .celebration,
+  .celebrationIcon,
+  .badge,
+  .completionTitle,
+  .hint,
+  .completionBanner,
+  .bannerBadge {
+    animation: none;
+  }
+
+  .button,
+  .bannerButton,
+  .exitButton,
+  .bannerClose,
+  .progressFill {
+    transition: none;
+  }
+
+  .button:hover,
+  .bannerButton:hover,
+  .exitButton:hover,
+  .bannerClose:hover {
+    transform: none;
   }
 }
