@@ -145,15 +145,35 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
       return () => clearInterval(interval);
     }, [deck]);
 
-    // Wrap deck operations to include tutorial validation
+    // Helper to create expected state after an action (since React state updates are async)
+    const createExpectedState = (overrides: {
+      deckA?: Partial<VirtualDJDeckState['deckA']>;
+      deckB?: Partial<VirtualDJDeckState['deckB']>;
+      crossfaderPosition?: number;
+    }): VirtualDJDeckState => {
+      const current = getState();
+      return {
+        deckA: { ...current.deckA, ...overrides.deckA },
+        deckB: { ...current.deckB, ...overrides.deckB },
+        crossfaderPosition: overrides.crossfaderPosition ?? current.crossfaderPosition,
+      };
+    };
+
+    // Wrap deck operations to include tutorial validation with expected state
     const playDeckWithTutorial = (deckId: DeckId) => {
       deck.playDeck(deckId);
-      tutorial.validateStep(getState());
+      const expectedState = createExpectedState({
+        [deckId === 'A' ? 'deckA' : 'deckB']: { isPlaying: true, isPaused: false },
+      });
+      tutorial.validateStep(expectedState);
     };
 
     const pauseDeckWithTutorial = (deckId: DeckId) => {
       deck.pauseDeck(deckId);
-      tutorial.validateStep(getState());
+      const expectedState = createExpectedState({
+        [deckId === 'A' ? 'deckA' : 'deckB']: { isPlaying: false, isPaused: true },
+      });
+      tutorial.validateStep(expectedState);
     };
 
     const cueDeckWithTutorial = (deckId: DeckId) => {
@@ -163,17 +183,24 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
 
     const setBPMWithTutorial = (deckId: DeckId, bpm: number) => {
       deck.setBPM(deckId, bpm);
-      tutorial.validateStep(getState());
+      const expectedState = createExpectedState({
+        [deckId === 'A' ? 'deckA' : 'deckB']: { bpm },
+      });
+      tutorial.validateStep(expectedState);
     };
 
     const setVolumeWithTutorial = (deckId: DeckId, volume: number) => {
       deck.setVolume(deckId, volume);
-      tutorial.validateStep(getState());
+      const expectedState = createExpectedState({
+        [deckId === 'A' ? 'deckA' : 'deckB']: { volume },
+      });
+      tutorial.validateStep(expectedState);
     };
 
     const setCrossfaderWithTutorial = (position: number) => {
       deck.setCrossfader(position);
-      tutorial.validateStep(getState());
+      const expectedState = createExpectedState({ crossfaderPosition: position });
+      tutorial.validateStep(expectedState);
     };
 
     // Render error state

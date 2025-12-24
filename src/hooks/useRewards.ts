@@ -5,6 +5,7 @@
  * Configured with kid-friendly defaults for a fun, exciting experience.
  */
 
+import { useRef, useCallback } from 'react';
 import { useReward } from 'react-rewards';
 
 export type RewardType = 'confetti' | 'balloons' | 'emoji';
@@ -92,7 +93,7 @@ export const useRewards = (
   } = options;
 
   // Small celebration (step completion)
-  const { reward: rewardSmall } = useReward(id, type, {
+  const { reward: rewardSmallRaw } = useReward(id, type, {
     ...SMALL_CELEBRATION_CONFIG,
     elementSize,
     colors,
@@ -101,7 +102,7 @@ export const useRewards = (
   });
 
   // Big celebration (lesson completion)
-  const { reward: rewardBig } = useReward(id, type, {
+  const { reward: rewardBigRaw } = useReward(id, type, {
     ...BIG_CELEBRATION_CONFIG,
     elementSize: elementSize + 5,
     colors,
@@ -110,7 +111,7 @@ export const useRewards = (
   });
 
   // Custom celebration
-  const { reward: rewardCustom } = useReward(id, type, {
+  const { reward: rewardCustomRaw } = useReward(id, type, {
     elementCount,
     elementSize,
     lifetime,
@@ -121,6 +122,34 @@ export const useRewards = (
     spread: 90,
     startVelocity: 35,
   });
+
+  // Throttle rewards to prevent rapid-fire triggering (min 500ms between calls)
+  const lastRewardTimeRef = useRef<Record<string, number>>({});
+  const THROTTLE_MS = 500;
+
+  const throttledReward = useCallback(
+    (key: string, rewardFn: () => void) => {
+      const now = Date.now();
+      const lastTime = lastRewardTimeRef.current[key] || 0;
+      if (now - lastTime >= THROTTLE_MS) {
+        lastRewardTimeRef.current[key] = now;
+        rewardFn();
+      }
+    },
+    []
+  );
+
+  const rewardSmall = useCallback(() => {
+    throttledReward('small', rewardSmallRaw);
+  }, [throttledReward, rewardSmallRaw]);
+
+  const rewardBig = useCallback(() => {
+    throttledReward('big', rewardBigRaw);
+  }, [throttledReward, rewardBigRaw]);
+
+  const rewardCustom = useCallback(() => {
+    throttledReward('custom', rewardCustomRaw);
+  }, [throttledReward, rewardCustomRaw]);
 
   return {
     rewardSmall,

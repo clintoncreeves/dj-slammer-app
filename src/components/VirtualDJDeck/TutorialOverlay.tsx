@@ -5,7 +5,7 @@
  * Based on Tanner's vision: "Like Simon Says - lights up buttons and you tap them when it tells you"
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { TutorialStep, TutorialProgress, TutorialLesson } from './tutorialTypes';
 import { useRewards, DJ_EMOJIS } from '../../hooks/useRewards';
 import styles from './TutorialOverlay.module.css';
@@ -63,18 +63,22 @@ export function TutorialOverlay({
     emoji: DJ_EMOJIS,
   });
 
-  // Trigger confetti when step is completed
+  // Track which celebrations have fired to prevent duplicates
+  const celebratedStepRef = useRef<number>(-1);
+  const celebratedLessonRef = useRef<boolean>(false);
+
+  // Trigger confetti when step is completed (once per step)
   useEffect(() => {
-    if (showCelebration && progress.stepCompleted) {
-      // Small burst for step completion
+    if (showCelebration && progress.stepCompleted && celebratedStepRef.current !== progress.currentStepIndex) {
+      celebratedStepRef.current = progress.currentStepIndex;
       rewardSmall();
     }
-  }, [showCelebration, progress.stepCompleted, rewardSmall]);
+  }, [showCelebration, progress.stepCompleted, progress.currentStepIndex, rewardSmall]);
 
-  // Trigger big confetti when lesson is completed
+  // Trigger big confetti when lesson is completed (once only)
   useEffect(() => {
-    if (progress.lessonCompleted) {
-      // Big explosion for lesson completion
+    if (progress.lessonCompleted && !celebratedLessonRef.current) {
+      celebratedLessonRef.current = true;
       rewardBig();
     }
   }, [progress.lessonCompleted, rewardBig]);
