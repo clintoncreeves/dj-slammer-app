@@ -63,8 +63,8 @@
 
 .faderContainer {
   position: relative;
-  width: 40px;
-  height: 120px;
+  width: 36px;
+  height: 80px;
   cursor: pointer;
   user-select: none;
   touch-action: none;
@@ -149,8 +149,8 @@
   position: absolute;
   left: 50%;
   transform: translate(-50%, 50%);
-  width: 36px;
-  height: 16px;
+  width: 28px;
+  height: 12px;
   background: linear-gradient(
     180deg,
     rgba(255, 255, 255, 0.95) 0%,
@@ -197,63 +197,54 @@
 }
 
 .markers {
-  position: absolute;
-  right: -4px;
-  top: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  pointer-events: none;
+  display: none; /* Hide markers to prevent text overlap */
 }
 
 .marker {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.5rem;
-  color: rgba(255, 255, 255, 0.4);
-  text-align: right;
-}
-
-.marker:nth-child(1) {
-  transform: translateY(0);
-}
-
-.marker:nth-child(2) {
-  transform: translateY(-50%);
-}
-
-.marker:nth-child(3) {
-  transform: translateY(-100%);
+  display: none;
 }
 
 .valueDisplay {
   font-family: 'Space Mono', monospace;
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   font-weight: 700;
   text-shadow: 0 0 8px currentColor;
-  min-width: 50px;
+  min-width: 40px;
   text-align: center;
-  margin-top: 0.25rem;
+  margin-top: 0.125rem;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
+  .container {
+    padding: 0.5rem;
+  }
+
   .faderContainer {
-    height: 140px;
-    width: 45px;
+    height: 70px;
+    width: 32px;
   }
 
   .thumb {
-    width: 40px;
-    height: 18px;
+    width: 24px;
+    height: 10px;
   }
 
   .valueDisplay {
-    font-size: 0.85rem;
+    font-size: 0.55rem;
+    min-width: 35px;
   }
 
   .bandsRow {
-    gap: 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .label {
+    font-size: 0.55rem;
+  }
+
+  .title {
+    font-size: 0.65rem;
   }
 }
 
