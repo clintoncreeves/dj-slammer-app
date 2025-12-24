@@ -23,13 +23,13 @@
   align-items: center;
   gap: 8px;
   width: 100%;
-  padding: 12px 16px;
+  padding: 10px 16px;
   background: linear-gradient(90deg, rgba(0, 240, 255, 0.1) 0%, rgba(181, 55, 242, 0.1) 100%);
   border: none;
   cursor: pointer;
   color: #fff;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 13px;
   text-align: left;
   transition: background 0.2s ease;
 }
