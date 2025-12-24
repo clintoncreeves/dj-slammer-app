@@ -32,12 +32,6 @@ export const TutorialLesson: React.FC = () => {
       cuePoint: 0,
       waveformColor: '#FF006E', // Magenta for Deck B
     },
-    onStateChange: (state) => {
-      console.log('[TutorialLesson] State changed:', state);
-    },
-    onError: (error) => {
-      console.error('[TutorialLesson] Error:', error);
-    },
   };
 
   // Tutorial configuration (only when in tutorial mode)
@@ -46,35 +40,16 @@ export const TutorialLesson: React.FC = () => {
     autoAdvance: true,
     hintDelaySeconds: 15,
     enableCelebrations: true,
-    callbacks: {
-      onStepComplete: (step, index) => {
-        console.log(`[TutorialLesson] Step ${index + 1} completed:`, step.id);
-      },
-      onLessonComplete: (lesson, duration) => {
-        console.log(`[TutorialLesson] Lesson "${lesson.title}" completed in ${(duration / 1000).toFixed(1)}s`);
-      },
-      onTutorialStart: (lesson) => {
-        console.log(`[TutorialLesson] Started lesson:`, lesson.title);
-      },
-      onTutorialExit: (progress) => {
-        console.log('[TutorialLesson] Tutorial exited:', progress);
-        // When tutorial is exited without completion, stay in tutorial mode
-        // User can switch to free play via completion screen
-      },
-    },
   } : undefined;
 
   const handleModeChange = (newMode: AppMode) => {
-    console.log(`[TutorialLesson] Mode changed to: ${newMode}`);
     setMode(newMode);
   };
 
   const handleReplayLesson = () => {
-    console.log('[TutorialLesson] Replaying lesson');
     // Reset to tutorial mode and reload
     setMode('tutorial');
-    // Force component remount by changing key or resetting tutorial state
-    window.location.reload(); // Simple approach for MVP
+    window.location.reload();
   };
 
   return (

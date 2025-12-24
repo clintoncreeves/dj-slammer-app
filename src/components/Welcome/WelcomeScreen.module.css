@@ -1,0 +1,333 @@
+/**
+ * WelcomeScreen Styles
+ *
+ * Apple/Spotify-inspired welcome screen with neon cyberpunk accents.
+ * Clean, minimal, professional.
+ */
+
+.container {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0a0a0a 0%, #0f0f1e 50%, #0a0a0a 100%);
+  overflow: hidden;
+  padding: 2rem;
+}
+
+/* Animated background glow */
+.backgroundGlow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 600px;
+  height: 600px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    rgba(0, 240, 255, 0.08) 0%,
+    rgba(255, 0, 110, 0.05) 40%,
+    transparent 70%
+  );
+  animation: pulse 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+/* Main content area */
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 400px;
+  text-align: center;
+}
+
+/* Logo section */
+.logoContainer {
+  margin-bottom: 3rem;
+}
+
+.logoIcon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 1.5rem;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.logoSvg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.3));
+}
+
+.title {
+  font-family: 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.5rem;
+  background: linear-gradient(135deg, #00F0FF 0%, #FF006E 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.tagline {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 1.125rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+/* Features list */
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.9375rem;
+}
+
+.featureIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 10px;
+  color: #00F0FF;
+}
+
+.featureIcon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.featureText {
+  text-align: left;
+}
+
+/* Start button */
+.startButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 280px;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #00F0FF 0%, #00D4E0 100%);
+  border: none;
+  border-radius: 14px;
+  color: #0a0a0a;
+  font-family: 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow:
+    0 4px 20px rgba(0, 240, 255, 0.3),
+    0 0 40px rgba(0, 240, 255, 0.15);
+}
+
+.startButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 30px rgba(0, 240, 255, 0.4),
+    0 0 60px rgba(0, 240, 255, 0.2);
+}
+
+.startButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.startButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.startButton:focus-visible {
+  outline: 3px solid rgba(0, 240, 255, 0.5);
+  outline-offset: 3px;
+}
+
+.buttonText {
+  display: inline-block;
+}
+
+.buttonArrow {
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+
+.startButton:hover .buttonArrow {
+  transform: translateX(4px);
+}
+
+/* Loading spinner */
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(10, 10, 10, 0.2);
+  border-top-color: #0a0a0a;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Hint text */
+.hint {
+  margin-top: 1rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Footer */
+.footer {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.05em;
+}
+
+.footer p {
+  margin: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .container {
+    padding: 1.5rem;
+  }
+
+  .logoIcon {
+    width: 100px;
+    height: 100px;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .tagline {
+    font-size: 1rem;
+  }
+
+  .features {
+    gap: 0.875rem;
+  }
+
+  .feature {
+    font-size: 0.875rem;
+  }
+
+  .featureIcon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .featureIcon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .startButton {
+    padding: 0.875rem 1.75rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .title {
+    font-size: 1.75rem;
+  }
+
+  .logoIcon {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .backgroundGlow {
+    animation: none;
+    opacity: 0.6;
+  }
+
+  .logoIcon {
+    animation: none;
+  }
+
+  .startButton {
+    transition: none;
+  }
+
+  .buttonArrow {
+    transition: none;
+  }
+
+  .spinner {
+    animation: none;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .startButton {
+    border: 2px solid #fff;
+  }
+
+  .featureIcon {
+    border-width: 2px;
+  }
+}

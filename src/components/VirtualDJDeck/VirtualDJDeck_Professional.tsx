@@ -26,6 +26,7 @@ import { TutorialOverlay } from './TutorialOverlay';
 import { TutorialInstructionPanel } from './TutorialInstructionPanel';
 import { DeckProvider, useDeck } from './DeckContext';
 import { BPMSyncResult } from '../../utils/bpmSync';
+import { WelcomeScreen } from '../Welcome';
 import styles from './VirtualDJDeck_Professional.module.css';
 
 export interface VirtualDJDeckHandle {
@@ -78,54 +79,33 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
     // Get highlight target once for rendering
     const highlightTarget = tutorial.getHighlightTarget();
 
-    // Debug: Log highlight target
-    useEffect(() => {
-      console.log('[DEBUG] Current highlight target:', highlightTarget);
-      console.log('[DEBUG] Tutorial active:', tutorial.progress.isActive);
-      console.log('[DEBUG] Current step:', tutorial.currentStep?.instruction);
-    }, [tutorial.currentStep, tutorial.progress.isActive, highlightTarget]);
 
     // Handle lesson completion actions
     const handleReplayLesson = () => {
-      console.log('[VirtualDJDeck] Replaying lesson');
       onReplayLesson?.();
     };
 
     const handleFreePlayMode = () => {
-      console.log('[VirtualDJDeck] Switching to free play mode');
       onModeChange?.('freeplay');
     };
 
     const handleMoreLessons = () => {
-      console.log('[VirtualDJDeck] More lessons requested');
-      alert('More lessons coming soon! 🎧');
+      // Future: Navigate to lesson selection screen
     };
 
-    // Handle "tap to enable audio" button
+    // Initialize audio engine and load tracks
     const handleEnableAudio = async () => {
       try {
-        // Initialize AudioEngine through context
         await deck.initializeAudioEngine();
 
-        console.log('[VirtualDJDeck] AudioEngine initialized after user gesture');
-
         // Load tracks (continue even if some fail)
-        const loadResults = await Promise.allSettled([
+        await Promise.allSettled([
           deck.loadTrack('A', config.deckA.trackUrl, config.deckA.initialBPM, config.deckA.cuePoint),
           deck.loadTrack('B', config.deckB.trackUrl, config.deckB.initialBPM, config.deckB.cuePoint),
         ]);
 
-        // Check if any tracks failed to load
-        const failedLoads = loadResults.filter((r) => r.status === 'rejected');
-        if (failedLoads.length > 0) {
-          console.warn(
-            `[VirtualDJDeck] ${failedLoads.length} track(s) failed to load, but continuing...`
-          );
-        }
-
         setNeedsUserGesture(false);
       } catch (err) {
-        console.error('[VirtualDJDeck] Failed to enable audio:', err);
         setError(err as Error);
         config.onError?.(err as Error);
       }
@@ -209,20 +189,9 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
       );
     }
 
-    // Render "tap to enable audio" overlay
+    // Render professional welcome screen
     if (needsUserGesture) {
-      return (
-        <div className={`${styles.container} ${className || ''}`}>
-          <div className={styles.overlay}>
-            <button className={styles.enableAudioButton} onClick={handleEnableAudio}>
-              🎵 Tap to Enable Audio
-            </button>
-            <p className={styles.overlayHint}>
-              Your browser requires a user interaction to start audio
-            </p>
-          </div>
-        </div>
-      );
+      return <WelcomeScreen onStart={handleEnableAudio} isLoading={false} />;
     }
 
     // Render loading state
@@ -251,9 +220,6 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
           />
         )}
 
-        <div className={styles.header}>
-          <h2 className={styles.title}>Virtual DJ Deck</h2>
-        </div>
 
         <div className={styles.decksContainer}>
           {/* Deck A */}
