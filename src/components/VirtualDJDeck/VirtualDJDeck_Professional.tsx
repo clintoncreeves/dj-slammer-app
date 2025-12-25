@@ -514,6 +514,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 onPause={() => pauseDeckWithTutorial('A')}
                 onCue={() => cueDeckWithTutorial('A')}
                 onSetCue={() => setCuePointWithTutorial('A')}
+                hideCueButtons={mode === 'tutorial'}
                 highlightPlay={
                   mode === 'tutorial' &&
                   highlightTarget?.type === 'button' &&
@@ -640,6 +641,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 onPause={() => pauseDeckWithTutorial('B')}
                 onCue={() => cueDeckWithTutorial('B')}
                 onSetCue={() => setCuePointWithTutorial('B')}
+                hideCueButtons={mode === 'tutorial'}
                 highlightPlay={
                   mode === 'tutorial' &&
                   highlightTarget?.type === 'button' &&

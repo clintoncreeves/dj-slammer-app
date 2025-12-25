@@ -27,6 +27,8 @@ interface DeckControlsProps {
   highlightPause?: boolean;
   highlightCue?: boolean;
   highlightSetCue?: boolean;
+  /** Hide CUE and SET CUE buttons (for simplified tutorial mode) */
+  hideCueButtons?: boolean;
   className?: string;
 }
 
@@ -43,6 +45,7 @@ export function DeckControls({
   highlightPause,
   highlightCue,
   highlightSetCue,
+  hideCueButtons = false,
   className,
 }: DeckControlsProps) {
   return (
@@ -95,60 +98,64 @@ export function DeckControls({
         <span className={styles.label}>Pause</span>
       </button>
 
-      {/* Cue Button */}
-      <button
-        className={`${styles.button} ${styles.cueButton} ${
-          highlightCue ? highlightStyles.highlighted : ''
-        }`}
-        onClick={onCue}
-        disabled={!isLoaded}
-        style={{
-          '--button-color': color,
-        } as React.CSSProperties}
-        aria-label={`Cue Deck ${deck}`}
-      >
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
+      {/* Cue Button - hidden in tutorial mode */}
+      {!hideCueButtons && (
+        <button
+          className={`${styles.button} ${styles.cueButton} ${
+            highlightCue ? highlightStyles.highlighted : ''
+          }`}
+          onClick={onCue}
+          disabled={!isLoaded}
+          style={{
+            '--button-color': color,
+          } as React.CSSProperties}
+          aria-label={`Cue Deck ${deck}`}
         >
-          <path
-            d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"
-            fill="currentColor"
-          />
-        </svg>
-        <span className={styles.label}>Cue</span>
-      </button>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"
+              fill="currentColor"
+            />
+          </svg>
+          <span className={styles.label}>Cue</span>
+        </button>
+      )}
 
-      {/* Set Cue Button */}
-      <button
-        className={`${styles.button} ${styles.setCueButton} ${
-          highlightSetCue ? highlightStyles.highlighted : ''
-        }`}
-        onClick={onSetCue}
-        disabled={!isLoaded}
-        style={{
-          '--button-color': color,
-        } as React.CSSProperties}
-        aria-label={`Set Cue Point for Deck ${deck}`}
-      >
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
+      {/* Set Cue Button - hidden in tutorial mode */}
+      {!hideCueButtons && (
+        <button
+          className={`${styles.button} ${styles.setCueButton} ${
+            highlightSetCue ? highlightStyles.highlighted : ''
+          }`}
+          onClick={onSetCue}
+          disabled={!isLoaded}
+          style={{
+            '--button-color': color,
+          } as React.CSSProperties}
+          aria-label={`Set Cue Point for Deck ${deck}`}
         >
-          <path
-            d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"
-            fill="currentColor"
-          />
-          <circle cx="12" cy="12" r="3" fill="var(--button-color)" />
-        </svg>
-        <span className={styles.label}>Set</span>
-      </button>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"
+              fill="currentColor"
+            />
+            <circle cx="12" cy="12" r="3" fill="var(--button-color)" />
+          </svg>
+          <span className={styles.label}>Set</span>
+        </button>
+      )}
     </div>
   );
 }
