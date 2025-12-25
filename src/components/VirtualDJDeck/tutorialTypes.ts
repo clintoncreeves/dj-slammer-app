@@ -59,6 +59,10 @@ export interface TutorialLesson {
   tracks: {
     deckA: string; // URL
     deckB: string; // URL
+    /** Cue point for Deck A in seconds (default: 0) */
+    deckACuePoint?: number;
+    /** Cue point for Deck B in seconds (default: 0) */
+    deckBCuePoint?: number;
   };
 
   /** Final celebration message */

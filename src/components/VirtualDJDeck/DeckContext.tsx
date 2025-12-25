@@ -178,13 +178,19 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
       const waveformData = buffer ? generateWaveformData(buffer, 200) : [];
       const duration = audioEngineRef.current.getDuration(deck);
 
+      // Seek to cue point if specified (for tutorials with pre-set positions)
+      if (cuePoint > 0) {
+        audioEngineRef.current.seek(deck, cuePoint);
+        console.log(`[DeckContext] Deck ${deck} seeked to cue point ${cuePoint}s`);
+      }
+
       const updateState = deck === 'A' ? setDeckAState : setDeckBState;
       updateState((prev) => ({
         ...prev,
         isLoaded: true,
         isPlaying: false,  // Reset playback state
         isPaused: false,   // Reset pause state
-        currentTime: 0,    // Reset to beginning of track
+        currentTime: cuePoint,  // Start at cue point position
         duration,
         waveformData,
         trackName: name,

@@ -22,9 +22,14 @@ export const yourFirstMixLesson: TutorialLesson = {
   difficulty: 'beginner',
 
   // Using two tracks at 123 BPM for easy mixing
+  // Cue points set at musical phrase boundaries for smooth transitions
   tracks: {
     deckA: '/audio/dance-until-dark-329026.mp3',
     deckB: '/audio/ootd-upbeat-summer-house-242100.mp3',
+    // Start Deck A from the beginning
+    deckACuePoint: 0,
+    // Cue Deck B at 31 seconds (second phrase/section) for energy-matched transition
+    deckBCuePoint: 31,
   },
 
   steps: [

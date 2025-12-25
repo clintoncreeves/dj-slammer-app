@@ -60,17 +60,21 @@ interface VirtualDJDeckProps {
   allLessons?: TutorialLesson[];
   currentLessonId?: string;
   onSelectLesson?: (lesson: TutorialLesson) => void;
+  // Skip welcome screen (for lesson transitions when audio is already enabled)
+  skipWelcomeScreen?: boolean;
+  onAudioEnabled?: () => void;
 }
 
 /**
  * Internal component that consumes DeckContext
  */
 const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps>(
-  ({ config, tutorialConfig, className, mode = 'tutorial', onModeChange, onReplayLesson, onNextLesson, nextLessonTitle }, ref) => {
+  ({ config, tutorialConfig, className, mode = 'tutorial', onModeChange, onReplayLesson, onNextLesson, nextLessonTitle, skipWelcomeScreen, onAudioEnabled }, ref) => {
     // Use the centralized deck context
     const deck = useDeck();
-    
-    const [needsUserGesture, setNeedsUserGesture] = useState(true);
+
+    // Skip welcome screen if audio was already enabled (lesson transition)
+    const [needsUserGesture, setNeedsUserGesture] = useState(!skipWelcomeScreen);
     const [error, setError] = useState<Error | null>(null);
 
     // Cleanup on unmount
@@ -177,11 +181,20 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
         ]);
 
         setNeedsUserGesture(false);
+        // Notify parent that audio is enabled (for lesson transitions)
+        onAudioEnabled?.();
       } catch (err) {
         setError(err as Error);
         config.onError?.(err as Error);
       }
     };
+
+    // Auto-initialize if skipping welcome screen (lesson transition)
+    useEffect(() => {
+      if (skipWelcomeScreen && !deck.isInitialized) {
+        handleEnableAudio();
+      }
+    }, [skipWelcomeScreen]);
 
     // Expose public API via ref
     useImperativeHandle(ref, () => ({
