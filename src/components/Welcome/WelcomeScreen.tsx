@@ -19,6 +19,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStart, isLoading
       {/* Background gradient animation */}
       <div className={styles.backgroundGlow} />
 
+      {/* Spacer for top to balance space-between layout */}
+      <div aria-hidden="true" />
+
       {/* Main content */}
       <div className={styles.content}>
         {/* Logo/Brand */}

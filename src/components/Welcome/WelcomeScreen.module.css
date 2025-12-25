@@ -11,10 +11,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   background: linear-gradient(135deg, #0a0a0a 0%, #0f0f1e 50%, #0a0a0a 100%);
   overflow: hidden;
   padding: 2rem;
+  padding-top: 4rem;
+  padding-bottom: 1.5rem;
 }
 
 /* Animated background glow */
@@ -268,14 +270,11 @@
 
 /* Footer */
 .footer {
-  position: absolute;
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.3);
   letter-spacing: 0.05em;
+  flex-shrink: 0;
 }
 
 .footer p {
