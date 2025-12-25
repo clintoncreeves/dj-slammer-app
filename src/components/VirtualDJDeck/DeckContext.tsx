@@ -124,60 +124,62 @@ function calculateSuggestedCuePoints(duration: number, bpm: number): number[] {
 }
 
 /**
- * Find the best cue point for a new track based on where the other deck is playing
+ * Find the best cue point for a new track - prioritizing early positions
  *
- * Context-aware DJ assistant: When loading a track onto one deck while another
- * is playing, suggest a starting cue point that would make for a natural transition.
- * This finds a phrase boundary in the new track that has similar "energy position"
- * (relative position within the track structure).
+ * For short songs, we want to start near the beginning to maximize playback time.
+ * This finds the earliest suitable phrase boundary in the first third of the track.
+ *
+ * Strategy:
+ * 1. Only consider cue points in the first 33% of the track
+ * 2. Prefer the first cue point after a brief intro (5+ seconds)
+ * 3. If no good early cue points, fall back to the very beginning
  *
  * @param newTrackCuePoints - Array of phrase boundary cue points for the new track
  * @param newTrackDuration - Duration of the new track in seconds
- * @param playingTrackCurrentTime - Current playback position of the playing track
- * @param playingTrackDuration - Total duration of the playing track
+ * @param _playingTrackCurrentTime - (unused) Current playback position of the playing track
+ * @param _playingTrackDuration - (unused) Total duration of the playing track
  * @returns Best cue point to start the new track, or 0 if none found
  */
 function findBestCuePointForTransition(
   newTrackCuePoints: number[],
   newTrackDuration: number,
-  playingTrackCurrentTime: number,
-  playingTrackDuration: number
+  _playingTrackCurrentTime: number,
+  _playingTrackDuration: number
 ): number {
-  if (!newTrackCuePoints.length || !newTrackDuration || !playingTrackDuration) {
+  if (!newTrackCuePoints.length || !newTrackDuration) {
     return 0;
   }
 
-  // Calculate where we are in the playing track as a percentage (0-1)
-  const playingTrackProgress = playingTrackCurrentTime / playingTrackDuration;
+  // Only consider cue points in the first 33% of the track
+  // This ensures we have plenty of time to play the song
+  const maxCuePosition = newTrackDuration * 0.33;
 
-  // For a good transition, we typically want to start the new track at a point
-  // that has similar energy. In most dance tracks:
-  // - 0-25%: Intro/buildup
-  // - 25-50%: First main section
-  // - 50-75%: Peak/drop section
-  // - 75-100%: Outro
+  // Filter to early cue points only
+  const earlyCuePoints = newTrackCuePoints.filter(cue => cue <= maxCuePosition);
 
-  // Find a cue point in the new track that's in a similar "zone"
-  // but not too close to the end (leave room for mixing out)
-  const targetProgress = Math.min(playingTrackProgress, 0.6); // Don't start past 60%
-  const targetTime = targetProgress * newTrackDuration;
-
-  // Find the closest cue point to our target
-  let bestCuePoint = 0;
-  let smallestDiff = Infinity;
-
-  for (const cuePoint of newTrackCuePoints) {
-    // Skip cue points too close to the end
-    if (cuePoint > newTrackDuration * 0.7) continue;
-
-    const diff = Math.abs(cuePoint - targetTime);
-    if (diff < smallestDiff) {
-      smallestDiff = diff;
-      bestCuePoint = cuePoint;
-    }
+  if (earlyCuePoints.length === 0) {
+    // No cue points in the first third, start from the beginning
+    console.log('[DeckContext] No early cue points found, starting at 0');
+    return 0;
   }
 
-  return bestCuePoint;
+  // Prefer a cue point after a brief intro (at least 5 seconds in)
+  // This skips silence or count-ins at the very start
+  const INTRO_THRESHOLD = 5; // seconds
+
+  const afterIntro = earlyCuePoints.filter(cue => cue >= INTRO_THRESHOLD);
+
+  if (afterIntro.length > 0) {
+    // Return the earliest cue point after the intro
+    const bestCue = afterIntro[0];
+    console.log(`[DeckContext] Early cue selected: ${bestCue.toFixed(1)}s (after intro)`);
+    return bestCue;
+  }
+
+  // If all early cue points are within intro, return the earliest one
+  const bestCue = earlyCuePoints[0];
+  console.log(`[DeckContext] Early cue selected: ${bestCue.toFixed(1)}s (first available)`);
+  return bestCue;
 }
 
 export function DeckProvider({ children, onStateChange, onError }: DeckProviderProps) {
