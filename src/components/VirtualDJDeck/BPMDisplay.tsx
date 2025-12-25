@@ -23,9 +23,11 @@ export function BPMDisplay({
   color,
   className,
 }: BPMDisplayProps) {
-  const difference = currentBPM - originalBPM;
-  const percentage = ((currentBPM / originalBPM - 1) * 100).toFixed(1);
-  const isAdjusted = Math.abs(difference) > 0.5;
+  const roundedCurrent = Math.round(currentBPM);
+  const roundedOriginal = Math.round(originalBPM);
+  const difference = roundedCurrent - roundedOriginal;
+  const percentage = Math.round((currentBPM / originalBPM - 1) * 100);
+  const isAdjusted = Math.abs(difference) >= 1;
 
   return (
     <div className={`${styles.container} ${className || ''}`}>
@@ -35,13 +37,13 @@ export function BPMDisplay({
           '--bpm-color': color,
         } as React.CSSProperties}
       >
-        <span className={styles.value}>{currentBPM.toFixed(1)}</span>
+        <span className={styles.value}>{roundedCurrent}</span>
         <span className={styles.unit}>BPM</span>
       </div>
 
       <div className={styles.details}>
         <div className={styles.original}>
-          Original: <span>{originalBPM.toFixed(0)} BPM</span>
+          Original: <span>{roundedOriginal} BPM</span>
         </div>
 
         {isAdjusted && (
@@ -51,7 +53,7 @@ export function BPMDisplay({
             }`}
           >
             {difference > 0 ? '+' : ''}
-            {difference.toFixed(1)} ({percentage > '0' ? '+' : ''}
+            {difference} ({percentage > 0 ? '+' : ''}
             {percentage}%)
           </div>
         )}

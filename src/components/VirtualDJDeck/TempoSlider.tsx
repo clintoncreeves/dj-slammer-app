@@ -69,7 +69,8 @@ export function TempoSlider({
     // Invert because slider is vertical (top = max, bottom = min)
     const ratio = clamp(1 - y / height, 0, 1);
 
-    const newBPM = minBPM + ratio * (maxBPM - minBPM);
+    // Round to whole BPM values
+    const newBPM = Math.round(minBPM + ratio * (maxBPM - minBPM));
     onChange(newBPM);
   };
 
@@ -113,27 +114,26 @@ export function TempoSlider({
 
   // Keyboard support
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    const step = (maxBPM - minBPM) / 20; // 5% steps
     switch (e.key) {
       case 'ArrowUp':
-        onChange(Math.min(currentBPM + step, maxBPM));
+        onChange(Math.min(Math.round(currentBPM) + 1, Math.round(maxBPM)));
         e.preventDefault();
         break;
       case 'ArrowDown':
-        onChange(Math.max(currentBPM - step, minBPM));
+        onChange(Math.max(Math.round(currentBPM) - 1, Math.round(minBPM)));
         e.preventDefault();
         break;
       case 'Home':
-        onChange(maxBPM);
+        onChange(Math.round(maxBPM));
         e.preventDefault();
         break;
       case 'End':
-        onChange(minBPM);
+        onChange(Math.round(minBPM));
         e.preventDefault();
         break;
       case 'Enter':
       case ' ':
-        onChange(originalBPM);
+        onChange(Math.round(originalBPM));
         e.preventDefault();
         break;
     }
@@ -152,11 +152,11 @@ export function TempoSlider({
         onKeyDown={handleKeyDown}
         tabIndex={0}
         role="slider"
-        aria-label={`Tempo control: ${currentBPM.toFixed(1)} BPM`}
-        aria-valuemin={minBPM}
-        aria-valuemax={maxBPM}
-        aria-valuenow={currentBPM}
-        aria-valuetext={`${currentBPM.toFixed(1)} BPM (${((currentBPM - originalBPM) / originalBPM * 100).toFixed(1)}%)`}
+        aria-label={`Tempo control: ${Math.round(currentBPM)} BPM`}
+        aria-valuemin={Math.round(minBPM)}
+        aria-valuemax={Math.round(maxBPM)}
+        aria-valuenow={Math.round(currentBPM)}
+        aria-valuetext={`${Math.round(currentBPM)} BPM (${Math.round((currentBPM - originalBPM) / originalBPM * 100)}%)`}
         style={{
           '--slider-color': color,
         } as React.CSSProperties}
