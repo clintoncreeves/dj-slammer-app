@@ -216,26 +216,33 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
       getState: deck.getState,
     }));
 
+    // Keep refs to avoid recreating interval on every context update
+    const deckRef = useRef(deck);
+    useEffect(() => {
+      deckRef.current = deck;
+    }, [deck]);
+
     // Update playback time periodically
     useEffect(() => {
       if (!deck.isInitialized || !deck.audioEngine) return;
 
       const interval = setInterval(() => {
-        if (!deck.audioEngine) return;
+        const currentDeck = deckRef.current;
+        if (!currentDeck.audioEngine) return;
 
-        if (deck.deckAState.isPlaying) {
-          const currentTime = deck.audioEngine.getCurrentTime('A');
-          deck.updateCurrentTime('A', currentTime);
+        if (currentDeck.deckAState.isPlaying) {
+          const currentTime = currentDeck.audioEngine.getCurrentTime('A');
+          currentDeck.updateCurrentTime('A', currentTime);
         }
 
-        if (deck.deckBState.isPlaying) {
-          const currentTime = deck.audioEngine.getCurrentTime('B');
-          deck.updateCurrentTime('B', currentTime);
+        if (currentDeck.deckBState.isPlaying) {
+          const currentTime = currentDeck.audioEngine.getCurrentTime('B');
+          currentDeck.updateCurrentTime('B', currentTime);
         }
       }, 16); // 60fps updates
 
       return () => clearInterval(interval);
-    }, [deck]);
+    }, [deck.isInitialized, deck.audioEngine]);
 
     // Helper to create expected state after an action (since React state updates are async)
     const createExpectedState = (overrides: {

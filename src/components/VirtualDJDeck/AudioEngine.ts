@@ -51,7 +51,9 @@ export class AudioEngine {
 
   // Realtime BPM detection
   private bpmAnalyzers: Map<DeckId, BpmAnalyzer>;
-  private bpmNodes: Map<DeckId, { source: MediaStreamAudioSourceNode; processor: AudioWorkletNode }>;
+  private bpmNodes: Map<DeckId, { source: MediaStreamAudioSourceNode; streamDest: MediaStreamAudioDestinationNode }>;
+  // Store event listener functions for cleanup (using native EventTarget API)
+  private bpmEventListeners: Map<DeckId, { bpm: EventListener; bpmStable: EventListener }>;
   private onBpmUpdate?: (event: BpmUpdateEvent) => void;
   private detectedBpm: Map<DeckId, number>;
 
@@ -62,6 +64,7 @@ export class AudioEngine {
     this.loadingPromises = new Map();
     this.bpmAnalyzers = new Map();
     this.bpmNodes = new Map();
+    this.bpmEventListeners = new Map();
     this.detectedBpm = new Map();
     this.onBpmUpdate = config.onBpmUpdate;
 
@@ -611,9 +614,10 @@ export class AudioEngine {
         stabilizationTime: 5000, // 5 seconds to stabilize BPM
       });
 
-      // Listen for BPM events using the event emitter pattern
-      // Data structure: { bpm: Array<{ tempo: number; count: number }> }
-      realtimeAnalyzer.on('bpm', (data) => {
+      // Create event listeners using native EventTarget API for cleanup support
+      // The BpmAnalyzer extends EventTarget and dispatches CustomEvents with data in 'detail'
+      const bpmListener = ((event: CustomEvent<{ bpm: readonly { tempo: number; count: number }[] }>) => {
+        const data = event.detail;
         if (data.bpm && data.bpm.length > 0) {
           const topCandidate = data.bpm[0];
           const bpm = Math.round(topCandidate.tempo);
@@ -631,9 +635,10 @@ export class AudioEngine {
 
           console.log(`[AudioEngine] Deck ${deck} realtime BPM: ${bpm} (confidence: ${confidence})`);
         }
-      });
+      }) as EventListener;
 
-      realtimeAnalyzer.on('bpmStable', (data) => {
+      const bpmStableListener = ((event: CustomEvent<{ bpm: readonly { tempo: number; count: number }[] }>) => {
+        const data = event.detail;
         if (data.bpm && data.bpm.length > 0) {
           const bpm = Math.round(data.bpm[0].tempo);
           this.detectedBpm.set(deck, bpm);
@@ -648,8 +653,14 @@ export class AudioEngine {
 
           console.log(`[AudioEngine] Deck ${deck} stable BPM: ${bpm}`);
         }
-      });
+      }) as EventListener;
 
+      // Add event listeners using native EventTarget API
+      realtimeAnalyzer.addEventListener('bpm', bpmListener);
+      realtimeAnalyzer.addEventListener('bpmStable', bpmStableListener);
+
+      // Store listeners for cleanup
+      this.bpmEventListeners.set(deck, { bpm: bpmListener, bpmStable: bpmStableListener });
       this.bpmAnalyzers.set(deck, realtimeAnalyzer);
       console.log(`[AudioEngine] Realtime BPM analyzer initialized for Deck ${deck}`);
     } catch (error) {
@@ -672,6 +683,9 @@ export class AudioEngine {
       return;
     }
 
+    // Clean up any existing BPM nodes for this deck first
+    this.stopBpmAnalysis(deck);
+
     try {
       const audioContext = Tone.getContext().rawContext as AudioContext;
 
@@ -691,9 +705,32 @@ export class AudioEngine {
       // Connect to the BPM analyzer's audio node
       source.connect(analyzer.node);
 
+      // Store nodes for cleanup
+      this.bpmNodes.set(deck, { source, streamDest });
+
       console.log(`[AudioEngine] BPM analysis started for Deck ${deck}`);
     } catch (error) {
       console.warn(`[AudioEngine] Failed to start BPM analysis for Deck ${deck}:`, error);
+    }
+  }
+
+  /**
+   * Stop BPM analysis for a deck and clean up resources
+   *
+   * @param deck - Deck identifier ('A' or 'B')
+   */
+  stopBpmAnalysis(deck: DeckId): void {
+    const nodes = this.bpmNodes.get(deck);
+    if (nodes) {
+      try {
+        nodes.source.disconnect();
+        // Stop all tracks in the MediaStream to release resources
+        nodes.streamDest.stream.getTracks().forEach(track => track.stop());
+        console.log(`[AudioEngine] BPM analysis stopped for Deck ${deck}`);
+      } catch (e) {
+        // Ignore disconnect errors
+      }
+      this.bpmNodes.delete(deck);
     }
   }
 
@@ -751,9 +788,24 @@ export class AudioEngine {
     this.masterGain.disconnect();
     this.masterGain.dispose();
 
-    // Disconnect BPM analyzers
+    // Clean up BPM analysis resources
+    // First, stop BPM analysis for all decks (cleans up MediaStream resources)
+    this.bpmNodes.forEach((_, deck) => {
+      this.stopBpmAnalysis(deck);
+    });
+
+    // Remove event listeners and disconnect BPM analyzers
     this.bpmAnalyzers.forEach((analyzer, deck) => {
       try {
+        // Remove event listeners using stored references
+        const listeners = this.bpmEventListeners.get(deck);
+        if (listeners) {
+          analyzer.removeEventListener('bpm', listeners.bpm);
+          analyzer.removeEventListener('bpmStable', listeners.bpmStable);
+          console.log(`[AudioEngine] Removed BPM event listeners for Deck ${deck}`);
+        }
+        // Stop the analyzer to clean up internal state
+        analyzer.stop();
         analyzer.node.disconnect();
         console.log(`[AudioEngine] Disposed BPM analyzer for Deck ${deck}`);
       } catch (e) {
@@ -768,6 +820,7 @@ export class AudioEngine {
     this.loadingPromises.clear();
     this.bpmAnalyzers.clear();
     this.bpmNodes.clear();
+    this.bpmEventListeners.clear();
     this.detectedBpm.clear();
 
     this.isInitialized = false;

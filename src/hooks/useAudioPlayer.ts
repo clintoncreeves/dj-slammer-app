@@ -50,44 +50,60 @@ export const useAudioPlayer = ({
   useEffect(() => {
     if (!hasStarted) return;
 
+    // Store error handlers for cleanup
+    let errorHandlerA: ((e: Event) => void) | null = null;
+    let errorHandlerB: ((e: Event) => void) | null = null;
+    let audioA: HTMLAudioElement | null = null;
+    let audioB: HTMLAudioElement | null = null;
+
     // Create audio element A
     if (trackAUrl && !audioARef.current) {
-      const audio = new Audio(trackAUrl);
-      audio.loop = true;
-      audio.volume = 0.8;
-      audio.preload = 'auto';
+      audioA = new Audio(trackAUrl);
+      audioA.loop = true;
+      audioA.volume = 0.8;
+      audioA.preload = 'auto';
 
-      audio.addEventListener('error', (e) => {
+      errorHandlerA = (e) => {
         console.error('Audio A error:', e);
         onError?.(new Error(`Failed to load track A: ${trackAUrl}`));
-      });
+      };
+      audioA.addEventListener('error', errorHandlerA);
 
-      audioARef.current = audio;
+      audioARef.current = audioA;
     }
 
     // Create audio element B
     if (trackBUrl && !audioBRef.current) {
-      const audio = new Audio(trackBUrl);
-      audio.loop = true;
-      audio.volume = 0.8;
-      audio.preload = 'auto';
+      audioB = new Audio(trackBUrl);
+      audioB.loop = true;
+      audioB.volume = 0.8;
+      audioB.preload = 'auto';
 
-      audio.addEventListener('error', (e) => {
+      errorHandlerB = (e) => {
         console.error('Audio B error:', e);
         onError?.(new Error(`Failed to load track B: ${trackBUrl}`));
-      });
+      };
+      audioB.addEventListener('error', errorHandlerB);
 
-      audioBRef.current = audio;
+      audioBRef.current = audioB;
     }
 
     // Cleanup
     return () => {
       if (audioARef.current) {
         audioARef.current.pause();
+        // Remove error listener before nulling ref
+        if (errorHandlerA) {
+          audioARef.current.removeEventListener('error', errorHandlerA);
+        }
         audioARef.current = null;
       }
       if (audioBRef.current) {
         audioBRef.current.pause();
+        // Remove error listener before nulling ref
+        if (errorHandlerB) {
+          audioBRef.current.removeEventListener('error', errorHandlerB);
+        }
         audioBRef.current = null;
       }
     };

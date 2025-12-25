@@ -146,14 +146,26 @@ export function TrackLibrary({
   useEffect(() => {
     if (metadataLoaded) return;
 
+    // Create abort controller for cleanup
+    const abortController = new AbortController();
+
     async function loadMetadata() {
       try {
-        const response = await fetch('/audio/tracks-metadata.json');
+        const response = await fetch('/audio/tracks-metadata.json', {
+          signal: abortController.signal,
+        });
+
+        // Check if aborted before processing response
+        if (abortController.signal.aborted) return;
+
         if (!response.ok) {
           console.warn('[TrackLibrary] Could not load tracks metadata');
           return;
         }
         const data = await response.json() as { tracks: TrackMetadata[] };
+
+        // Check if aborted before updating state
+        if (abortController.signal.aborted) return;
 
         // Create a lookup map by filename
         const metadataByFilename = new Map<string, TrackMetadata>();
@@ -183,11 +195,20 @@ export function TrackLibrary({
         setMetadataLoaded(true);
         console.log('[TrackLibrary] Loaded metadata for', data.tracks.length, 'tracks');
       } catch (err) {
+        // Ignore abort errors - they're expected during cleanup
+        if (err instanceof Error && err.name === 'AbortError') {
+          return;
+        }
         console.warn('[TrackLibrary] Error loading track metadata:', err);
       }
     }
 
     loadMetadata();
+
+    // Cleanup: abort the fetch if component unmounts
+    return () => {
+      abortController.abort();
+    };
   }, [metadataLoaded]);
 
   // Cleanup blob URLs on unmount
