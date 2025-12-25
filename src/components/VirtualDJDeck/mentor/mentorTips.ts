@@ -192,6 +192,72 @@ export const MENTOR_TIPS: MentorTip[] = [
   },
 
   // ==========================================
+  // TRACK MATCHING & HARMONIC MIXING TIPS
+  // ==========================================
+
+  {
+    id: 'check-library-matches',
+    content: "Pro tip: Open the Track Library! It shows compatible tracks based on BPM and key. Look for the 🎯 matches!",
+    category: 'beginner',
+    context: {
+      trigger: 'state',
+      conditions: [
+        { type: 'deck_playing', deck: 'A' },
+        { type: 'deck_stopped', deck: 'B' },
+      ],
+    },
+    priority: 7,
+    showOnce: true,
+    cooldown: 120000,
+  },
+
+  {
+    id: 'harmonic-mixing-intro',
+    content: "Harmonic mixing tip: Tracks in the same or adjacent keys blend smoothly. Check the Camelot codes (like 8A, 9B) in the library!",
+    category: 'intermediate',
+    context: {
+      trigger: 'state',
+      conditions: [
+        { type: 'both_playing' },
+        { type: 'bpm_matched' },
+      ],
+    },
+    priority: 6,
+    showOnce: true,
+    cooldown: 180000,
+  },
+
+  {
+    id: 'energy-boost-tip',
+    content: "Want more energy? Pick a track one step UP on the Camelot wheel (e.g., 8A → 9A). It naturally builds excitement!",
+    category: 'advanced',
+    context: {
+      trigger: 'state',
+      conditions: [
+        { type: 'deck_playing', deck: 'any' },
+      ],
+    },
+    priority: 5,
+    showOnce: true,
+    cooldown: 300000,
+  },
+
+  {
+    id: 'relative-key-tip',
+    content: "Mood shift: Switch between A and B on the same Camelot number (8A ↔ 8B). That's relative major/minor - changes the vibe!",
+    category: 'advanced',
+    context: {
+      trigger: 'state',
+      conditions: [
+        { type: 'both_playing' },
+      ],
+    },
+    priority: 4,
+    showOnce: true,
+    cooldown: 360000,
+  },
+
+  // ==========================================
   // INTERMEDIATE TIPS - BPM & Tempo
   // ==========================================
 

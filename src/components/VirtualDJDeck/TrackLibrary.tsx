@@ -1,16 +1,23 @@
 /**
  * TrackLibrary Component
  *
- * A shared track library that allows users to:
+ * A shared track library inspired by Rekordbox DJ that allows users to:
  * - Upload their own audio files
- * - See a list of available tracks (uploaded + preloaded)
+ * - See a list of available tracks with BPM, key, and compatibility info
+ * - Search and filter tracks
+ * - See compatible tracks based on what's currently playing
  * - Load tracks onto Deck A or Deck B
  */
 
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { DeckId } from './types';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { DeckId, TrackMetadata } from './types';
 import { useDeck } from './DeckContext';
 import { detectBPM } from '../../utils/bpmDetection';
+import {
+  getCompatibleTracks,
+  formatCompatibilityScore,
+  TrackCompatibility,
+} from './utils/trackCompatibility';
 import styles from './TrackLibrary.module.css';
 
 interface Track {
@@ -23,10 +30,20 @@ interface Track {
   duration?: number;
   /** Suggested cue points at musical phrase boundaries */
   suggestedCuePoints?: number[];
+  /** Musical key (e.g., "A", "C#", "F") */
+  key?: string;
+  /** Key mode (major or minor) */
+  keyMode?: 'major' | 'minor';
+  /** Camelot wheel code (e.g., "1A", "12B") */
+  camelotCode?: string;
+  /** Color for key visualization */
+  keyColor?: string;
+  /** Array of compatible Camelot codes */
+  compatibleKeys?: string[];
 }
 
 /** Track metadata from tracks-metadata.json */
-interface TrackMetadata {
+interface TrackMetadataJSON {
   id: string;
   title: string;
   artist: string;
@@ -56,6 +73,31 @@ function parseTrackName(name: string): { artist: string; title: string } {
     }
   }
   return { artist: 'Unknown Artist', title: name };
+}
+
+/**
+ * Convert Track to TrackMetadata for compatibility engine
+ */
+function trackToMetadata(track: Track): TrackMetadata | null {
+  if (!track.camelotCode || !track.key) return null;
+
+  return {
+    id: track.id,
+    title: track.name,
+    artist: track.artist || 'Unknown',
+    bpm: track.bpm,
+    duration: track.duration || 0,
+    filename: track.url.split('/').pop() || '',
+    url: track.url,
+    cuePoints: track.suggestedCuePoints || [],
+    waveformColor: '#00F0FF',
+    key: track.key,
+    keyMode: track.keyMode || 'major',
+    camelotCode: track.camelotCode,
+    keyColor: track.keyColor || '#FFFFFF',
+    tempoCategory: track.bpm < 100 ? 'slow' : track.bpm < 130 ? 'medium' : 'fast',
+    compatibleKeys: track.compatibleKeys || [],
+  };
 }
 
 interface TrackLibraryProps {
@@ -142,11 +184,67 @@ export function TrackLibrary({
   const [isExpanded, setIsExpanded] = useState(false);
   const [metadataLoaded, setMetadataLoaded] = useState(false);
 
-  // Load track metadata from JSON to enrich tracks with cue points
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showCompatibleOnly, setShowCompatibleOnly] = useState(false);
+  const [sortBy, setSortBy] = useState<'name' | 'bpm' | 'key' | 'compatibility'>('name');
+
+  // Get master deck track (whichever is playing with crossfader position)
+  const getMasterTrack = useCallback((): Track | null => {
+    const { deckAState, deckBState, crossfaderPosition } = deck;
+
+    let masterDeckState = null;
+
+    if (deckAState.isPlaying && deckBState.isPlaying) {
+      masterDeckState = crossfaderPosition <= 0 ? deckAState : deckBState;
+    } else if (deckAState.isPlaying) {
+      masterDeckState = deckAState;
+    } else if (deckBState.isPlaying) {
+      masterDeckState = deckBState;
+    }
+
+    if (!masterDeckState) return null;
+
+    const masterTrackName = masterDeckState.trackName;
+    return tracks.find(t =>
+      t.name === masterTrackName ||
+      t.name.includes(masterTrackName) ||
+      masterTrackName.includes(t.name)
+    ) || null;
+  }, [deck, tracks]);
+
+  // Calculate compatible tracks based on master
+  const compatibleTracks = useMemo((): TrackCompatibility[] => {
+    const masterTrack = getMasterTrack();
+    if (!masterTrack) return [];
+
+    const masterMetadata = trackToMetadata(masterTrack);
+    if (!masterMetadata) return [];
+
+    const allMetadata = tracks
+      .map(trackToMetadata)
+      .filter((m): m is TrackMetadata => m !== null);
+
+    return getCompatibleTracks(masterMetadata, allMetadata, {
+      minScore: 40,
+      limit: 20,
+      excludeReference: true,
+    });
+  }, [tracks, getMasterTrack]);
+
+  // Create a map of track IDs to their compatibility info
+  const compatibilityMap = useMemo(() => {
+    const map = new Map<string, TrackCompatibility>();
+    compatibleTracks.forEach(compat => {
+      map.set(compat.track.id, compat);
+    });
+    return map;
+  }, [compatibleTracks]);
+
+  // Load track metadata from JSON to enrich tracks with cue points and key info
   useEffect(() => {
     if (metadataLoaded) return;
 
-    // Create abort controller for cleanup
     const abortController = new AbortController();
 
     async function loadMetadata() {
@@ -155,38 +253,39 @@ export function TrackLibrary({
           signal: abortController.signal,
         });
 
-        // Check if aborted before processing response
         if (abortController.signal.aborted) return;
 
         if (!response.ok) {
           console.warn('[TrackLibrary] Could not load tracks metadata');
           return;
         }
-        const data = await response.json() as { tracks: TrackMetadata[] };
+        const data = await response.json() as { tracks: TrackMetadataJSON[] };
 
-        // Check if aborted before updating state
         if (abortController.signal.aborted) return;
 
-        // Create a lookup map by filename
-        const metadataByFilename = new Map<string, TrackMetadata>();
+        const metadataByFilename = new Map<string, TrackMetadataJSON>();
         data.tracks.forEach(meta => {
           metadataByFilename.set(meta.filename, meta);
         });
 
-        // Enrich tracks with metadata (cue points, accurate BPM)
+        // Enrich tracks with metadata (cue points, BPM, key info)
         setTracks(prev => prev.map(track => {
-          // Extract filename from URL
           const filename = track.url.split('/').pop() || '';
           const meta = metadataByFilename.get(filename);
 
           if (meta) {
             return {
               ...track,
-              bpm: meta.bpm, // Use accurate BPM from metadata
+              bpm: meta.bpm,
               duration: meta.duration,
               suggestedCuePoints: meta.cuePoints,
               artist: meta.artist,
               name: meta.title,
+              key: meta.key,
+              keyMode: meta.keyMode as 'major' | 'minor',
+              camelotCode: meta.camelotCode,
+              keyColor: meta.keyColor,
+              compatibleKeys: meta.compatibleKeys,
             };
           }
           return track;
@@ -195,7 +294,6 @@ export function TrackLibrary({
         setMetadataLoaded(true);
         console.log('[TrackLibrary] Loaded metadata for', data.tracks.length, 'tracks');
       } catch (err) {
-        // Ignore abort errors - they're expected during cleanup
         if (err instanceof Error && err.name === 'AbortError') {
           return;
         }
@@ -205,7 +303,6 @@ export function TrackLibrary({
 
     loadMetadata();
 
-    // Cleanup: abort the fetch if component unmounts
     return () => {
       abortController.abort();
     };
@@ -214,7 +311,6 @@ export function TrackLibrary({
   // Cleanup blob URLs on unmount
   useEffect(() => {
     return () => {
-      // Revoke all blob URLs for user-uploaded tracks when component unmounts
       tracks.forEach(track => {
         if (track.isUserUploaded && track.url.startsWith('blob:')) {
           URL.revokeObjectURL(track.url);
@@ -222,6 +318,50 @@ export function TrackLibrary({
       });
     };
   }, [tracks]);
+
+  // Filter and sort tracks
+  const filteredTracks = useMemo(() => {
+    let result = [...tracks];
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(track =>
+        track.name.toLowerCase().includes(query) ||
+        (track.artist && track.artist.toLowerCase().includes(query)) ||
+        (track.camelotCode && track.camelotCode.toLowerCase().includes(query))
+      );
+    }
+
+    // Compatible only filter
+    if (showCompatibleOnly && getMasterTrack()) {
+      const compatibleIds = new Set(compatibleTracks.map(c => c.track.id));
+      result = result.filter(track => compatibleIds.has(track.id));
+    }
+
+    // Sort
+    switch (sortBy) {
+      case 'bpm':
+        result.sort((a, b) => a.bpm - b.bpm);
+        break;
+      case 'key':
+        result.sort((a, b) => (a.camelotCode || 'ZZZ').localeCompare(b.camelotCode || 'ZZZ'));
+        break;
+      case 'compatibility':
+        result.sort((a, b) => {
+          const compatA = compatibilityMap.get(a.id)?.overallScore || 0;
+          const compatB = compatibilityMap.get(b.id)?.overallScore || 0;
+          return compatB - compatA;
+        });
+        break;
+      case 'name':
+      default:
+        result.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+    }
+
+    return result;
+  }, [tracks, searchQuery, showCompatibleOnly, sortBy, getMasterTrack, compatibleTracks, compatibilityMap]);
 
   // Handle file upload
   const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -232,7 +372,6 @@ export function TrackLibrary({
 
     for (const file of Array.from(files)) {
       try {
-        // Validate file type
         if (!file.type.startsWith('audio/')) {
           setUploadProgress(`Skipping ${file.name} - not an audio file`);
           continue;
@@ -240,12 +379,10 @@ export function TrackLibrary({
 
         setUploadProgress(`Processing ${file.name}...`);
 
-        // Create object URL for the file
         const url = URL.createObjectURL(file);
 
-        // Detect BPM
         setUploadProgress(`Detecting BPM for ${file.name}...`);
-        let bpm = 120; // Default BPM
+        let bpm = 120;
         try {
           const detectedBPM = await detectBPM(url);
           if (detectedBPM && detectedBPM > 60 && detectedBPM < 200) {
@@ -255,10 +392,9 @@ export function TrackLibrary({
           console.warn('Could not detect BPM, using default:', bpmError);
         }
 
-        // Create track entry
         const track: Track = {
           id: `upload-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          name: file.name.replace(/\.[^/.]+$/, ''), // Remove extension
+          name: file.name.replace(/\.[^/.]+$/, ''),
           url,
           bpm,
           isUserUploaded: true,
@@ -275,7 +411,6 @@ export function TrackLibrary({
     setIsUploading(false);
     setUploadProgress('');
 
-    // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -284,7 +419,6 @@ export function TrackLibrary({
   // Load track onto a deck
   const loadTrackToDeck = useCallback(async (track: Track, deckId: DeckId) => {
     try {
-      // Parse track name to get artist and title
       const { artist, title } = track.artist
         ? { artist: track.artist, title: track.name }
         : parseTrackName(track.name);
@@ -295,8 +429,6 @@ export function TrackLibrary({
         artist: artist,
         bpm: track.bpm,
         cuePoint: 0,
-        // Pass suggested cue points from metadata (if available)
-        // DeckContext will calculate them dynamically if not provided
         suggestedCuePoints: track.suggestedCuePoints,
       });
       onTrackLoaded?.(deckId, track);
@@ -306,22 +438,18 @@ export function TrackLibrary({
     }
   }, [deck, onTrackLoaded]);
 
-  // Handle track click - show deck selection
   const handleTrackClick = (trackId: string) => {
     setSelectedTrack(selectedTrack === trackId ? null : trackId);
   };
 
-  // Trigger file input
   const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
 
-  // Remove track and cleanup blob URL
   const removeTrack = useCallback((trackId: string) => {
     setTracks(prev => {
       const trackToRemove = prev.find(t => t.id === trackId);
 
-      // Revoke blob URL if it's a user-uploaded track
       if (trackToRemove?.isUserUploaded && trackToRemove.url.startsWith('blob:')) {
         URL.revokeObjectURL(trackToRemove.url);
       }
@@ -329,11 +457,13 @@ export function TrackLibrary({
       return prev.filter(t => t.id !== trackId);
     });
 
-    // Clear selection if the removed track was selected
     if (selectedTrack === trackId) {
       setSelectedTrack(null);
     }
   }, [selectedTrack]);
+
+  const masterTrack = getMasterTrack();
+  const hasCompatibilityData = compatibleTracks.length > 0;
 
   return (
     <div className={`${styles.container} ${isExpanded ? styles.expanded : ''} ${className || ''}`}>
@@ -351,6 +481,77 @@ export function TrackLibrary({
 
       {isExpanded && (
         <div className={styles.content}>
+          {/* Search and filter section */}
+          <div className={styles.searchSection}>
+            <input
+              type="text"
+              placeholder="Search tracks, artists, or keys..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={styles.searchInput}
+              aria-label="Search tracks"
+            />
+
+            <div className={styles.filterRow}>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                className={styles.sortSelect}
+                aria-label="Sort by"
+              >
+                <option value="name">Name</option>
+                <option value="bpm">BPM</option>
+                <option value="key">Key</option>
+                {hasCompatibilityData && <option value="compatibility">Best Match</option>}
+              </select>
+
+              {masterTrack && (
+                <label className={styles.filterCheckbox}>
+                  <input
+                    type="checkbox"
+                    checked={showCompatibleOnly}
+                    onChange={(e) => setShowCompatibleOnly(e.target.checked)}
+                  />
+                  <span>Compatible only</span>
+                </label>
+              )}
+            </div>
+          </div>
+
+          {/* Compatible tracks recommendation */}
+          {masterTrack && compatibleTracks.length > 0 && (
+            <div className={styles.compatibleSection}>
+              <div className={styles.compatibleHeader}>
+                <span className={styles.compatibleIcon}>🎯</span>
+                <span>Matches for "{masterTrack.name.slice(0, 20)}..."</span>
+              </div>
+              <div className={styles.compatibleList}>
+                {compatibleTracks.slice(0, 3).map(compat => (
+                  <button
+                    key={compat.track.id}
+                    className={styles.compatibleItem}
+                    onClick={() => {
+                      const track = tracks.find(t => t.id === compat.track.id);
+                      if (track) {
+                        const targetDeck = deck.deckAState.isPlaying ? 'B' : 'A';
+                        loadTrackToDeck(track, targetDeck);
+                      }
+                    }}
+                  >
+                    <span className={styles.compatScore}>
+                      {formatCompatibilityScore(compat.overallScore)}
+                    </span>
+                    <span className={styles.compatName}>{compat.track.title}</span>
+                    <span className={styles.compatInfo}>
+                      {compat.track.bpm} • {compat.track.camelotCode}
+                    </span>
+                    <span className={styles.compatPercent}>{compat.overallScore}%</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Upload section */}
           <div className={styles.uploadSection}>
             <input
@@ -376,63 +577,83 @@ export function TrackLibrary({
 
           {/* Track list */}
           <div className={styles.trackList}>
-            {tracks.map(track => (
-              <div
-                key={track.id}
-                className={`${styles.trackItem} ${selectedTrack === track.id ? styles.selected : ''}`}
-              >
-                <button
-                  className={styles.trackInfo}
-                  onClick={() => handleTrackClick(track.id)}
+            {filteredTracks.map(track => {
+              const compatibility = compatibilityMap.get(track.id);
+
+              return (
+                <div
+                  key={track.id}
+                  className={`${styles.trackItem} ${selectedTrack === track.id ? styles.selected : ''}`}
                 >
-                  <span className={styles.trackIcon}>
-                    {track.isUserUploaded ? '📤' : '🎶'}
-                  </span>
-                  <span className={styles.trackName}>{track.name}</span>
-                  <span className={styles.trackBPM}>{track.bpm} BPM</span>
-                </button>
-
-                {/* Remove button for user-uploaded tracks */}
-                {track.isUserUploaded && (
                   <button
-                    className={styles.removeButton}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeTrack(track.id);
-                    }}
-                    title="Remove track"
-                    aria-label={`Remove ${track.name}`}
+                    className={styles.trackInfo}
+                    onClick={() => handleTrackClick(track.id)}
                   >
-                    ×
+                    <span className={styles.trackIcon}>
+                      {track.isUserUploaded ? '📤' : '🎶'}
+                    </span>
+                    <span className={styles.trackName}>{track.name}</span>
+                    <span className={styles.trackBPM}>{track.bpm}</span>
+                    {track.camelotCode && (
+                      <span
+                        className={styles.trackKey}
+                        style={{ backgroundColor: track.keyColor || '#666' }}
+                        title={`${track.key} ${track.keyMode}`}
+                      >
+                        {track.camelotCode}
+                      </span>
+                    )}
+                    {compatibility && (
+                      <span className={styles.trackCompat} title={compatibility.mixTip}>
+                        {formatCompatibilityScore(compatibility.overallScore)}
+                      </span>
+                    )}
                   </button>
-                )}
 
-                {/* Deck selection buttons */}
-                {selectedTrack === track.id && (
-                  <div className={styles.deckButtons}>
+                  {/* Remove button for user-uploaded tracks */}
+                  {track.isUserUploaded && (
                     <button
-                      className={`${styles.deckButton} ${styles.deckA}`}
-                      onClick={() => loadTrackToDeck(track, 'A')}
-                      title="Load to Deck A"
+                      className={styles.removeButton}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeTrack(track.id);
+                      }}
+                      title="Remove track"
+                      aria-label={`Remove ${track.name}`}
                     >
-                      Load A
+                      ×
                     </button>
-                    <button
-                      className={`${styles.deckButton} ${styles.deckB}`}
-                      onClick={() => loadTrackToDeck(track, 'B')}
-                      title="Load to Deck B"
-                    >
-                      Load B
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
+                  )}
+
+                  {/* Deck selection buttons */}
+                  {selectedTrack === track.id && (
+                    <div className={styles.deckButtons}>
+                      <button
+                        className={`${styles.deckButton} ${styles.deckA}`}
+                        onClick={() => loadTrackToDeck(track, 'A')}
+                        title="Load to Deck A"
+                      >
+                        Load A
+                      </button>
+                      <button
+                        className={`${styles.deckButton} ${styles.deckB}`}
+                        onClick={() => loadTrackToDeck(track, 'B')}
+                        title="Load to Deck B"
+                      >
+                        Load B
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {/* Help text */}
           <p className={styles.helpText}>
-            Click a track to load it onto a deck. Upload your own MP3s to mix!
+            {masterTrack
+              ? `🎯 Play a track to see compatible matches!`
+              : 'Click a track to load it. Play one to see matching tracks!'}
           </p>
         </div>
       )}

@@ -268,6 +268,163 @@
   outline-offset: 2px;
 }
 
+/* Search and filter section */
+.searchSection {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.searchInput {
+  width: 100%;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #00F0FF;
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+}
+
+.searchInput::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.filterRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sortSelect {
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.sortSelect:focus {
+  outline: none;
+  border-color: #00F0FF;
+}
+
+.filterCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+}
+
+.filterCheckbox input[type="checkbox"] {
+  accent-color: #00F0FF;
+}
+
+/* Compatible tracks section */
+.compatibleSection {
+  margin-bottom: 12px;
+  padding: 10px;
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.1) 0%, rgba(181, 55, 242, 0.1) 100%);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 8px;
+}
+
+.compatibleHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #00F0FF;
+  margin-bottom: 8px;
+}
+
+.compatibleIcon {
+  font-size: 14px;
+}
+
+.compatibleList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.compatibleItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  text-align: left;
+  color: #fff;
+}
+
+.compatibleItem:hover {
+  background: rgba(0, 240, 255, 0.15);
+  border-color: rgba(0, 240, 255, 0.4);
+}
+
+.compatScore {
+  font-size: 12px;
+}
+
+.compatName {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compatInfo {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.compatPercent {
+  font-size: 11px;
+  font-weight: 600;
+  color: #00FF88;
+  padding: 2px 6px;
+  background: rgba(0, 255, 136, 0.15);
+  border-radius: 4px;
+}
+
+/* Track key badge */
+.trackKey {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 5px;
+  border-radius: 3px;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Track compatibility indicator */
+.trackCompat {
+  font-size: 11px;
+  margin-left: 4px;
+}
+
 /* Help text */
 .helpText {
   margin: 12px 0 0;
