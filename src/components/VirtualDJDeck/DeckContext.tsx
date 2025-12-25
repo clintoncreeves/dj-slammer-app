@@ -174,6 +174,9 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
       updateState((prev) => ({
         ...prev,
         isLoaded: true,
+        isPlaying: false,  // Reset playback state
+        isPaused: false,   // Reset pause state
+        currentTime: 0,    // Reset to beginning of track
         duration,
         waveformData,
         trackName: name,

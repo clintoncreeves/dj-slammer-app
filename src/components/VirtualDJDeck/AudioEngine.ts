@@ -183,6 +183,12 @@ export class AudioEngine {
 
     console.log(`[AudioEngine] Loading track for Deck ${deck}: ${url}`);
 
+    // Stop any existing playback before loading new track
+    if (player.state === 'started') {
+      player.stop();
+      console.log(`[AudioEngine] Stopped existing playback for Deck ${deck}`);
+    }
+
     const loadingPromise = (async () => {
       try {
         await this.withTimeout(
@@ -190,7 +196,10 @@ export class AudioEngine {
           this.loadTimeout,
           `Track loading for Deck ${deck}`
         );
-        console.log(`[AudioEngine] Track loaded for Deck ${deck}`);
+
+        // Seek to beginning of track after loading
+        player.seek(0);
+        console.log(`[AudioEngine] Track loaded for Deck ${deck}, seeked to beginning`);
       } catch (error) {
         console.error(`[AudioEngine] Failed to load track for Deck ${deck}:`, error);
 
