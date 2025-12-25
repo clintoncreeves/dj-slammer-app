@@ -266,7 +266,7 @@ export const MENTOR_TIPS: MentorTip[] = [
 
   {
     id: 'eq-bass-swap-tip',
-    content: "Pro move: When transitioning, cut the bass on the outgoing track while boosting it on the incoming one. Smooth!",
+    content: "Pro move: Cut the bass on the INCOMING track before blending! Two basslines at once = muddy mix. Cut first, then swap at the drop!",
     category: 'intermediate',
     context: {
       trigger: 'state',
@@ -283,7 +283,7 @@ export const MENTOR_TIPS: MentorTip[] = [
 
   {
     id: 'transition-visual-guide',
-    content: "Watch the LOW EQ! When mixing, I'll show you CUT (↓) on the outgoing deck and BOOST (↑) on the incoming one. Follow the glowing arrows!",
+    content: "Watch the LOW EQ! CUT the bass (↓) on the INCOMING track to avoid two basslines clashing. Follow the glowing arrow!",
     category: 'intermediate',
     context: {
       trigger: 'state',
@@ -299,7 +299,7 @@ export const MENTOR_TIPS: MentorTip[] = [
 
   {
     id: 'bass-swap-success',
-    content: "Perfect bass swap! No more clashing basslines - that's how the pros do it!",
+    content: "Clean bass work! No clashing basslines - that's how the pros keep it smooth!",
     category: 'intermediate',
     context: {
       trigger: 'action',

@@ -147,14 +147,18 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
     });
 
     // Determine EQ guidance for each deck based on transition state
+    // CORRECT DJ TECHNIQUE: Cut bass on INCOMING track to avoid two basslines!
+    // The incoming track should have bass cut BEFORE you fade it in.
+    // Only boost the incoming bass once the outgoing track's bass is cut.
     const getEQGuidance = (deckId: DeckId): TransitionGuidance => {
       if (!transition.isTransitioning) return null;
 
-      if (transition.outgoingDeck === deckId) {
+      // Incoming deck should CUT bass (to avoid two basslines during blend)
+      if (transition.incomingDeck === deckId) {
         return 'cut-bass';
-      } else if (transition.incomingDeck === deckId) {
-        return 'boost-bass';
       }
+      // Outgoing deck keeps bass (it's the current dominant track)
+      // No guidance needed for outgoing - just let it play
       return null;
     };
 

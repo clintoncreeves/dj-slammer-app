@@ -4,13 +4,17 @@
  * Teaches manual BPM matching - a core DJ skill!
  * Uses two tracks at different BPMs (129 vs 123) that the user must sync.
  *
+ * IMPORTANT: BPM matching must happen BEFORE crossfading!
+ * This is the correct DJ workflow.
+ *
  * Flow:
- * 1. Start Deck A (129 BPM track)
- * 2. Start Deck B (123 BPM track) - they'll hear it's off-beat
- * 3. Look at the BPM displays to see the mismatch
- * 4. Adjust Deck B's tempo slider to match Deck A
- * 5. Use the Sync button for perfect alignment
- * 6. Crossfade to complete the transition
+ * 1. Start Deck A (129 BPM track) - audience hears this
+ * 2. Start Deck B (123 BPM track) - crossfader stays on A, this is "in headphones"
+ * 3. Adjust Deck B's tempo slider to speed it up toward 129 BPM
+ * 4. Fine-tune until BPMs match exactly
+ * 5. THEN move crossfader to center to blend (beats stay aligned!)
+ * 6. Complete transition to Deck B
+ * 7. Stop Deck A
  */
 
 import { TutorialLesson } from '../tutorialTypes';
@@ -30,6 +34,7 @@ export const beatmatching101Lesson: TutorialLesson = {
   },
 
   steps: [
+    // Step 1: Start the main track
     {
       id: 'play-deck-a',
       instruction: 'Press PLAY on Deck A to start your first track (129 BPM)!',
@@ -45,9 +50,10 @@ export const beatmatching101Lesson: TutorialLesson = {
       celebrationMessage: 'NICE! Deck A is rolling at 129 BPM!',
     },
 
+    // Step 2: Cue up Deck B (play it in headphones - crossfader stays on A)
     {
       id: 'play-deck-b',
-      instruction: 'Press PLAY on Deck B - listen for the tempo difference!',
+      instruction: 'Press PLAY on Deck B to preview it (crossfader stays on A so audience only hears Deck A)',
       highlightTarget: {
         type: 'button',
         deck: 'B',
@@ -60,27 +66,14 @@ export const beatmatching101Lesson: TutorialLesson = {
           currentState.deckA.isPlaying
         );
       },
-      hint: 'Hit PLAY on Deck B and listen - Deck B is at 123 BPM, slower than Deck A!',
-      celebrationMessage: 'Hear that? The beats are clashing because the BPMs are different!',
+      hint: 'Hit PLAY on Deck B - it\'s at 123 BPM, which is slower than Deck A\'s 129 BPM!',
+      celebrationMessage: 'Deck B is now playing! Notice the BPM shows 123 - we need to speed it up!',
     },
 
-    {
-      id: 'move-crossfader-center',
-      instruction: 'Move the crossfader to CENTER to hear both tracks together',
-      highlightTarget: {
-        type: 'crossfader',
-      },
-      validate: (currentState) => {
-        // Crossfader near center
-        return Math.abs(currentState.crossfaderPosition) < 0.3;
-      },
-      hint: 'Slide the crossfader to the middle - you\'ll clearly hear the tempo mismatch now!',
-      celebrationMessage: 'Now you can hear both tracks - notice how the beats drift apart!',
-    },
-
+    // Step 3: Match the tempo FIRST (before any crossfading)
     {
       id: 'adjust-tempo-b',
-      instruction: 'Adjust Deck B\'s TEMPO slider UP to speed it up closer to 129 BPM!',
+      instruction: 'Adjust Deck B\'s TEMPO slider UP to speed it up toward 129 BPM!',
       highlightTarget: {
         type: 'slider',
         deck: 'B',
@@ -92,12 +85,13 @@ export const beatmatching101Lesson: TutorialLesson = {
         return currentState.deckB.currentBPM > 126;
       },
       hint: 'Move Deck B\'s tempo slider UP (towards the +) to increase the BPM from 123 toward 129',
-      celebrationMessage: 'GETTING CLOSER! The beats are starting to align!',
+      celebrationMessage: 'GETTING CLOSER! Keep going until the BPMs match!',
     },
 
+    // Step 4: Fine-tune to exact match
     {
       id: 'fine-tune-sync',
-      instruction: 'Fine-tune the tempo until Deck B matches Deck A (both at ~129 BPM)',
+      instruction: 'Fine-tune until Deck B matches Deck A exactly (both at ~129 BPM)',
       highlightTarget: {
         type: 'slider',
         deck: 'B',
@@ -108,23 +102,40 @@ export const beatmatching101Lesson: TutorialLesson = {
         const bpmDiff = Math.abs(currentState.deckA.currentBPM - currentState.deckB.currentBPM);
         return bpmDiff < 1.5;
       },
-      hint: 'Keep adjusting until both BPM displays show nearly the same number - aim for less than 1 BPM difference',
-      celebrationMessage: 'LOCKED IN! The BPMs are matched - hear how they sync up?',
+      hint: 'Keep adjusting until both BPM displays show the same number - aim for 129 BPM on both!',
+      celebrationMessage: 'LOCKED IN! BPMs are matched - NOW we can start the transition!',
     },
 
+    // Step 5: NOW move crossfader to center to blend (after BPMs match)
+    {
+      id: 'move-crossfader-center',
+      instruction: 'Now blend the tracks - move the crossfader to CENTER',
+      highlightTarget: {
+        type: 'crossfader',
+      },
+      validate: (currentState) => {
+        // Crossfader near center
+        return Math.abs(currentState.crossfaderPosition) < 0.3;
+      },
+      hint: 'Slide the crossfader to the middle - since the BPMs match, the beats should stay aligned!',
+      celebrationMessage: 'Both tracks playing together IN SYNC! This is the magic of beatmatching!',
+    },
+
+    // Step 6: Complete the transition
     {
       id: 'transition-to-b',
-      instruction: 'Complete the transition - slide the crossfader to Deck B!',
+      instruction: 'Complete the transition - slide the crossfader all the way to Deck B!',
       highlightTarget: {
         type: 'crossfader',
       },
       validate: (currentState) => {
         return currentState.crossfaderPosition > 0.7;
       },
-      hint: 'Now that the BPMs match, slide the crossfader all the way to Deck B for a smooth transition',
+      hint: 'Slide the crossfader to the right to fully transition to Deck B',
       celebrationMessage: 'SMOOTH TRANSITION! That\'s professional beatmatching!',
     },
 
+    // Step 7: Clean finish
     {
       id: 'stop-deck-a',
       instruction: 'Press PAUSE on Deck A to complete the mix!',
@@ -137,7 +148,7 @@ export const beatmatching101Lesson: TutorialLesson = {
         return !currentState.deckA.isPlaying && previousState.deckA.isPlaying;
       },
       hint: 'Hit PAUSE on Deck A - you\'ve completed your first beatmatched transition!',
-      celebrationMessage: 'CLEAN! You just did real DJ beatmatching!',
+      celebrationMessage: 'CLEAN MIX! You just did real DJ beatmatching!',
     },
   ],
 
