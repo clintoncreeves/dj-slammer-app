@@ -12,6 +12,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { DeckId, TrackMetadata } from './types';
 import { useDeck } from './DeckContext';
+import { useLibrary } from './library/LibraryContext';
 import { detectBPM } from '../../utils/bpmDetection';
 import {
   getCompatibleTracks,
@@ -176,6 +177,7 @@ export function TrackLibrary({
   className,
 }: TrackLibraryProps) {
   const deck = useDeck();
+  const library = useLibrary();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [tracks, setTracks] = useState<Track[]>(preloadedTracks);
   const [isUploading, setIsUploading] = useState(false);
@@ -188,6 +190,11 @@ export function TrackLibrary({
   const [searchQuery, setSearchQuery] = useState('');
   const [showCompatibleOnly, setShowCompatibleOnly] = useState(false);
   const [sortBy, setSortBy] = useState<'name' | 'bpm' | 'key' | 'compatibility'>('name');
+
+  // Get current playlist filter from library context
+  const activePlaylist = library.activePlaylistId
+    ? library.playlists.find(p => p.id === library.activePlaylistId)
+    : null;
 
   // Get master deck track (whichever is playing with crossfader position)
   const getMasterTrack = useCallback((): Track | null => {
@@ -323,6 +330,12 @@ export function TrackLibrary({
   const filteredTracks = useMemo(() => {
     let result = [...tracks];
 
+    // Playlist filter (from sidebar selection)
+    if (activePlaylist) {
+      const playlistTrackIds = new Set(activePlaylist.trackIds);
+      result = result.filter(track => playlistTrackIds.has(track.id));
+    }
+
     // Search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -361,7 +374,7 @@ export function TrackLibrary({
     }
 
     return result;
-  }, [tracks, searchQuery, showCompatibleOnly, sortBy, getMasterTrack, compatibleTracks, compatibilityMap]);
+  }, [tracks, activePlaylist, searchQuery, showCompatibleOnly, sortBy, getMasterTrack, compatibleTracks, compatibilityMap]);
 
   // Handle file upload
   const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -465,6 +478,17 @@ export function TrackLibrary({
   const masterTrack = getMasterTrack();
   const hasCompatibilityData = compatibleTracks.length > 0;
 
+  // Display title: show playlist name if selected, otherwise "All Tracks" or "Track Library"
+  const displayTitle = activePlaylist
+    ? activePlaylist.name
+    : library.activeView === 'collection'
+      ? 'All Tracks'
+      : 'Track Library';
+
+  const displayCount = activePlaylist
+    ? `${filteredTracks.length} of ${activePlaylist.trackIds.length}`
+    : `${filteredTracks.length} tracks`;
+
   return (
     <div className={`${styles.container} ${isExpanded ? styles.expanded : ''} ${className || ''}`}>
       {/* Header with toggle */}
@@ -473,9 +497,9 @@ export function TrackLibrary({
         onClick={() => setIsExpanded(!isExpanded)}
         aria-expanded={isExpanded}
       >
-        <span className={styles.headerIcon}>🎵</span>
-        <span className={styles.headerTitle}>Track Library</span>
-        <span className={styles.trackCount}>{tracks.length} tracks</span>
+        <span className={styles.headerIcon}>{activePlaylist ? '📋' : '🎵'}</span>
+        <span className={styles.headerTitle}>{displayTitle}</span>
+        <span className={styles.trackCount}>{displayCount}</span>
         <span className={styles.expandIcon}>{isExpanded ? '▼' : '▶'}</span>
       </button>
 
@@ -625,7 +649,7 @@ export function TrackLibrary({
                     </button>
                   )}
 
-                  {/* Deck selection buttons */}
+                  {/* Deck selection and playlist buttons */}
                   {selectedTrack === track.id && (
                     <div className={styles.deckButtons}>
                       <button
@@ -642,6 +666,26 @@ export function TrackLibrary({
                       >
                         Load B
                       </button>
+                      {/* Add to playlist dropdown */}
+                      {library.playlists.length > 0 && (
+                        <select
+                          className={styles.addToPlaylistSelect}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              library.addToPlaylist([track.id], e.target.value);
+                              e.target.value = '';
+                            }
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          defaultValue=""
+                          title="Add to playlist"
+                        >
+                          <option value="" disabled>+ Playlist</option>
+                          {library.playlists.map(p => (
+                            <option key={p.id} value={p.id}>{p.name}</option>
+                          ))}
+                        </select>
+                      )}
                     </div>
                   )}
                 </div>

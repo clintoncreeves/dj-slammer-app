@@ -35,6 +35,8 @@ import { MentorHelpPanel } from './MentorHelpPanel';
 import { HighlightTarget } from './mentor/mentorTypes';
 import { useTransitionState } from './useTransitionState';
 import { TransitionGuidance } from './EQControl';
+import { LibraryProvider } from './library/LibraryContext';
+import { PlaylistSidebar } from './library/PlaylistSidebar';
 import styles from './VirtualDJDeck_Professional.module.css';
 
 export interface VirtualDJDeckHandle {
@@ -78,6 +80,9 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
     // Skip welcome screen if audio was already enabled (lesson transition)
     const [needsUserGesture, setNeedsUserGesture] = useState(!skipWelcomeScreen);
     const [error, setError] = useState<Error | null>(null);
+
+    // Playlist sidebar state (for freeplay mode)
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
     // Keep a ref to the audioEngine for cleanup (avoids stale closure issues)
     const audioEngineRef = useRef(deck.audioEngine);
@@ -420,7 +425,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
 
     // Render main professional UI
     return (
-      <div className={`${styles.container} ${!showTutorialBanner && !showMentorBanner ? styles.noTutorial : ''} ${showMentorBanner ? styles.withMentorPanel : ''} ${className || ''}`}>
+      <div className={`${styles.container} ${!showTutorialBanner && !showMentorBanner ? styles.noTutorial : ''} ${showMentorBanner ? styles.withMentorPanel : ''} ${mode === 'freeplay' && !sidebarCollapsed ? styles.withSidebar : ''} ${className || ''}`}>
         {/* Tutorial Instruction Panel - Fixed at top, Guitar Hero style */}
         {showTutorialBanner && tutorial.currentStep && (
           <TutorialInstructionPanel
@@ -432,6 +437,14 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
           />
         )}
 
+        {/* Playlist Sidebar - Only shown in freeplay mode */}
+        {mode === 'freeplay' && (
+          <PlaylistSidebar
+            className={styles.playlistSidebar}
+            isCollapsed={sidebarCollapsed}
+            onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          />
+        )}
 
         <div className={styles.decksContainer}>
           {/* Deck A */}
@@ -807,14 +820,16 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
 VirtualDJDeckInternal.displayName = 'VirtualDJDeckInternal';
 
 /**
- * Main component that wraps internal component with DeckProvider
+ * Main component that wraps internal component with DeckProvider and LibraryProvider
  */
 const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps>(
   (props, ref) => {
     return (
-      <DeckProvider onStateChange={props.config.onStateChange} onError={props.config.onError}>
-        <VirtualDJDeckInternal ref={ref} {...props} />
-      </DeckProvider>
+      <LibraryProvider>
+        <DeckProvider onStateChange={props.config.onStateChange} onError={props.config.onError}>
+          <VirtualDJDeckInternal ref={ref} {...props} />
+        </DeckProvider>
+      </LibraryProvider>
     );
   }
 );

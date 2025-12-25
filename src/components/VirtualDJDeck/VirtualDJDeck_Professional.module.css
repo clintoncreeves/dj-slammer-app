@@ -26,6 +26,25 @@
   padding-top: 70px; /* Space for fixed mentor panel */
 }
 
+/* Layout with sidebar expanded (freeplay mode) */
+.container.withSidebar {
+  display: flex;
+  flex-direction: row;
+  max-width: none;
+}
+
+.container.withSidebar .playlistSidebar {
+  flex-shrink: 0;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+}
+
+/* Playlist Sidebar */
+.playlistSidebar {
+  z-index: 10;
+}
+
 .decksContainer {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -268,6 +268,34 @@
   outline-offset: 2px;
 }
 
+/* Add to playlist dropdown */
+.addToPlaylistSelect {
+  padding: 6px 8px;
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  border-radius: 6px;
+  color: #00FF88;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addToPlaylistSelect:hover {
+  background: rgba(0, 255, 136, 0.2);
+  border-color: rgba(0, 255, 136, 0.5);
+}
+
+.addToPlaylistSelect:focus {
+  outline: none;
+  border-color: #00FF88;
+}
+
+.addToPlaylistSelect option {
+  background: #1A1A1A;
+  color: #fff;
+}
+
 /* Search and filter section */
 .searchSection {
   margin-bottom: 12px;
