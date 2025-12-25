@@ -1,5 +1,6 @@
 import { TutorialLesson } from './components/VirtualDJDeck/TutorialLesson';
 import { AudioErrorBoundary } from './components/ErrorBoundary';
+import { LibraryAnalyzer } from './components/VirtualDJDeck/library/LibraryAnalyzer';
 
 /**
  * DJ Slammer - Main Application
@@ -8,6 +9,14 @@ import { AudioErrorBoundary } from './components/ErrorBoundary';
  * Single, cohesive experience - no mode switching.
  */
 function App() {
+  // Check for analyzer mode via query param: ?analyze=true
+  const isAnalyzerMode = new URLSearchParams(window.location.search).get('analyze') === 'true';
+
+  // Show analyzer tool for library metadata generation
+  if (isAnalyzerMode) {
+    return <LibraryAnalyzer />;
+  }
+
   return (
     <div style={{ position: 'relative' }}>
       {/* Skip to content link for keyboard users */}

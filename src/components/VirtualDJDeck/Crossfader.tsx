@@ -20,6 +20,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { clamp } from '../../utils/audioUtils';
+import { CrossfaderCurveType, CROSSFADER_CURVES, calculateCrossfaderVolumes } from './types';
 import styles from './Crossfader.module.css';
 import highlightStyles from './TutorialHighlight.module.css';
 
@@ -36,6 +37,9 @@ interface CrossfaderProps {
   deckBLoaded?: boolean;
   deckAPlaying?: boolean;
   deckBPlaying?: boolean;
+  // Curve selection props
+  curveType?: CrossfaderCurveType;
+  onCurveChange?: (curve: CrossfaderCurveType) => void;
 }
 
 export function Crossfader({
@@ -50,18 +54,41 @@ export function Crossfader({
   deckBLoaded = false,
   deckAPlaying = false,
   deckBPlaying = false,
+  curveType = 'constantPower',
+  onCurveChange,
 }: CrossfaderProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const [showCurveSelector, setShowCurveSelector] = useState(false);
   const sliderRef = useRef<HTMLDivElement>(null);
+  const curveSelectorRef = useRef<HTMLDivElement>(null);
 
   // Convert position from [-1, 1] to percentage [0, 100]
   const percentage = ((position + 1) / 2) * 100;
 
-  // Display volume levels using linear interpolation for intuitive UI
-  // -1 = full A (A=100%, B=0%), 0 = center (A=50%, B=50%), 1 = full B (A=0%, B=100%)
-  // Note: Audio uses equal-power crossfade internally, but linear is more intuitive for display
-  const deckAVolume = (1 - (position + 1) / 2) * 100; // 100% at -1, 50% at 0, 0% at 1
-  const deckBVolume = ((position + 1) / 2) * 100;     // 0% at -1, 50% at 0, 100% at 1
+  // Convert position from [-1, 1] to [0, 1] for curve calculation
+  const normalizedPosition = (position + 1) / 2;
+
+  // Calculate actual volume levels based on selected curve
+  const { volA, volB } = calculateCrossfaderVolumes(normalizedPosition, curveType);
+  const deckAVolume = volA * 100;
+  const deckBVolume = volB * 100;
+
+  // Close curve selector when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (curveSelectorRef.current && !curveSelectorRef.current.contains(e.target as Node)) {
+        setShowCurveSelector(false);
+      }
+    };
+
+    if (showCurveSelector) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showCurveSelector]);
 
   const updatePosition = (clientX: number) => {
     if (!sliderRef.current) return;
@@ -252,9 +279,83 @@ export function Crossfader({
         </div>
       </div>
 
+      {/* Curve Selector */}
+      {onCurveChange && (
+        <div className={styles.curveSection} ref={curveSelectorRef}>
+          <button
+            className={styles.curveButton}
+            onClick={() => setShowCurveSelector(!showCurveSelector)}
+            aria-expanded={showCurveSelector}
+            aria-haspopup="listbox"
+          >
+            <span className={styles.curveLabel}>Curve:</span>
+            <span className={styles.curveName}>{CROSSFADER_CURVES[curveType].name}</span>
+            <svg
+              className={`${styles.curveChevron} ${showCurveSelector ? styles.open : ''}`}
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+              fill="currentColor"
+            >
+              <path d="M2 4L6 8L10 4" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+
+          {showCurveSelector && (
+            <div className={styles.curveDropdown} role="listbox">
+              {(Object.keys(CROSSFADER_CURVES) as CrossfaderCurveType[]).map((curve) => (
+                <button
+                  key={curve}
+                  className={`${styles.curveOption} ${curve === curveType ? styles.selected : ''}`}
+                  onClick={() => {
+                    onCurveChange(curve);
+                    setShowCurveSelector(false);
+                  }}
+                  role="option"
+                  aria-selected={curve === curveType}
+                >
+                  <div className={styles.curveOptionContent}>
+                    <span className={styles.curveOptionName}>{CROSSFADER_CURVES[curve].name}</span>
+                    <span className={styles.curveOptionDesc}>{CROSSFADER_CURVES[curve].description}</span>
+                  </div>
+                  {/* Mini curve visualization */}
+                  <svg className={styles.curvePreview} viewBox="0 0 40 20" preserveAspectRatio="none">
+                    <path
+                      d={getCurvePathData(curve)}
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      fill="none"
+                    />
+                  </svg>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className={styles.hint}>
         Double-click to center • Arrow keys to adjust • Shows active audio routing
       </div>
     </div>
   );
+}
+
+/**
+ * Generate SVG path data for curve visualization
+ */
+function getCurvePathData(curveType: CrossfaderCurveType): string {
+  const points: string[] = [];
+  const steps = 20;
+
+  for (let i = 0; i <= steps; i++) {
+    const x = (i / steps) * 40;
+    const pos = i / steps;
+    const { volB } = calculateCrossfaderVolumes(pos, curveType);
+    // Invert Y because SVG y=0 is at top
+    const y = 20 - volB * 20;
+    points.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`);
+  }
+
+  return points.join(' ');
 }

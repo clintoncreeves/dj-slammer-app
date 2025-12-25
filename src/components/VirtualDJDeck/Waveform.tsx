@@ -4,6 +4,7 @@
  * Canvas-based waveform visualization showing full track length.
  * Click anywhere to seek to that position.
  * Shows playhead position and played/unplayed regions.
+ * Supports spectral coloring (Serato/Rekordbox style) for frequency visualization.
  *
  * Requirements met:
  * - Req 4.1: Animated waveform visualization
@@ -13,6 +14,7 @@
 
 import { useEffect, useRef, useCallback, useState } from 'react';
 import styles from './Waveform.module.css';
+import type { SpectralWaveformData } from '../../utils/waveformUtils';
 
 interface WaveformProps {
   waveformData: number[];
@@ -28,6 +30,12 @@ interface WaveformProps {
   suggestedCuePoints?: number[];
   /** Current cue point position (in seconds) */
   cuePoint?: number;
+  /** Spectral waveform data with pre-calculated colors */
+  spectralData?: SpectralWaveformData | null;
+  /** Whether to show spectral colors (true) or monochrome (false) */
+  showSpectralColors?: boolean;
+  /** Callback to toggle spectral colors */
+  onToggleSpectralColors?: () => void;
 }
 
 export function Waveform({
@@ -41,10 +49,14 @@ export function Waveform({
   onSeek,
   suggestedCuePoints = [],
   cuePoint = 0,
+  spectralData,
+  showSpectralColors = true,
+  onToggleSpectralColors,
 }: WaveformProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number>();
+  const drawWaveformRef = useRef<() => void>(() => {});
   const [isHovering, setIsHovering] = useState(false);
   const [hoverPosition, setHoverPosition] = useState<number | null>(null);
   const [canvasWidth, setCanvasWidth] = useState(400);
@@ -59,6 +71,9 @@ export function Waveform({
 
   // Calculate playhead position (0-1)
   const playheadPosition = duration > 0 ? Math.min(1, Math.max(0, currentTime / duration)) : 0;
+
+  // Determine if we should use spectral colors
+  const useSpectralColoring = showSpectralColors && spectralData && spectralData.colors.length > 0;
 
   // Draw the waveform with played/unplayed coloring
   const drawWaveform = useCallback(() => {
@@ -79,6 +94,7 @@ export function Waveform({
     ctx.clearRect(0, 0, w, h);
 
     // Draw waveform bars with played/unplayed colors
+    // Use spectral colors if available and enabled, otherwise use monochrome
     waveformData.forEach((amplitude, index) => {
       const barHeight = amplitude * centerY * 0.9;
       const x = index * barWidth;
@@ -89,7 +105,14 @@ export function Waveform({
       const barCenter = x + barWidth / 2;
       const isPlayed = barCenter < playheadX;
 
-      ctx.fillStyle = color;
+      // Use spectral color if available and enabled, otherwise fall back to monochrome
+      if (useSpectralColoring && spectralData && spectralData.colors[index]) {
+        ctx.fillStyle = spectralData.colors[index];
+      } else {
+        ctx.fillStyle = color;
+      }
+
+      // Dim played portion
       ctx.globalAlpha = isPlayed ? 0.4 : 1;
 
       // Draw mirrored bars (top and bottom)
@@ -191,7 +214,10 @@ export function Waveform({
     ctx.lineTo(playheadX + 6 * dpr, h - 10 * dpr);
     ctx.closePath();
     ctx.fill();
-  }, [waveformData, color, canvasWidth, height, playheadPosition, isHovering, hoverPosition, suggestedCuePoints, cuePoint, duration]);
+  }, [waveformData, color, canvasWidth, height, playheadPosition, isHovering, hoverPosition, suggestedCuePoints, cuePoint, duration, useSpectralColoring, spectralData]);
+
+  // Keep ref updated with latest draw function
+  drawWaveformRef.current = drawWaveform;
 
   // Set up canvas resolution and track container size
   useEffect(() => {
@@ -223,10 +249,10 @@ export function Waveform({
     };
   }, [height]);
 
-  // Animation loop
+  // Animation loop - uses ref to always get latest draw function
   useEffect(() => {
     const animate = () => {
-      drawWaveform();
+      drawWaveformRef.current();
       if (isPlaying) {
         animationFrameRef.current = requestAnimationFrame(animate);
       }
@@ -235,7 +261,7 @@ export function Waveform({
     if (isPlaying) {
       animationFrameRef.current = requestAnimationFrame(animate);
     } else {
-      drawWaveform();
+      drawWaveformRef.current();
     }
 
     return () => {
@@ -243,7 +269,7 @@ export function Waveform({
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [isPlaying, drawWaveform]);
+  }, [isPlaying]);
 
   // Handle click to seek
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -298,6 +324,21 @@ export function Waveform({
         <span className={styles.currentTime}>{formatTime(currentTime)}</span>
         <span className={styles.duration}>{formatTime(duration)}</span>
       </div>
+
+      {/* Spectral colors toggle button */}
+      {onToggleSpectralColors && spectralData && (
+        <button
+          className={styles.spectralToggle}
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent seek on click
+            onToggleSpectralColors();
+          }}
+          title={showSpectralColors ? 'Switch to monochrome waveform' : 'Switch to spectral colors'}
+          aria-label={showSpectralColors ? 'Switch to monochrome waveform' : 'Switch to spectral colors'}
+        >
+          {showSpectralColors ? 'RGB' : 'MONO'}
+        </button>
+      )}
 
       {/* Hover time tooltip */}
       {isHovering && hoverPosition !== null && duration > 0 && (

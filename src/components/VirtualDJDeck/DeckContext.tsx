@@ -14,9 +14,17 @@
 
 import { createContext, useContext, useState, useRef, useCallback, ReactNode } from 'react';
 import { AudioEngine } from './AudioEngine';
-import { DeckState, DeckId, VirtualDJDeckState } from './types';
-import { generateWaveformData } from '../../utils/waveformUtils';
+import { DeckState, DeckId, VirtualDJDeckState, CrossfaderCurveType, calculateCrossfaderVolumes } from './types';
+import { generateWaveformData, generateSpectralWaveformData, spectralToAmplitudeArray } from '../../utils/waveformUtils';
 import { calculateBPMSync, BPMSyncResult } from '../../utils/bpmSync';
+import { detectBPMAndKey } from './BPMKeyDetector';
+
+/** Hot cue data for a single slot */
+export interface HotCue {
+  position: number; // seconds
+  color: string; // hex color
+  label?: string; // optional name
+}
 
 /** Track info for loading into a deck */
 export interface TrackInfo {
@@ -27,6 +35,8 @@ export interface TrackInfo {
   cuePoint?: number;
   /** Suggested cue points at musical phrase boundaries */
   suggestedCuePoints?: number[];
+  /** Pre-saved hot cues for this track */
+  hotCues?: (HotCue | null)[];
 }
 
 interface DeckContextValue {
@@ -34,6 +44,7 @@ interface DeckContextValue {
   deckAState: DeckState;
   deckBState: DeckState;
   crossfaderPosition: number;
+  crossfaderCurve: CrossfaderCurveType;
 
   // Audio Engine
   audioEngine: AudioEngine | null;
@@ -51,13 +62,36 @@ interface DeckContextValue {
   syncDeck: (deck: DeckId) => BPMSyncResult | null;
   setVolume: (deck: DeckId, volume: number) => void;
   setCrossfader: (position: number) => void;
+  setCrossfaderCurve: (curve: CrossfaderCurveType) => void;
   updateCurrentTime: (deck: DeckId, time: number) => void;
   setDeckEQ: (deck: DeckId, band: 'low' | 'mid' | 'high', value: number) => void;
+  setDeckFilter: (deck: DeckId, position: number, resonance?: number) => void;
   setPlaybackRate: (deck: DeckId, rate: number) => void;
 
   // Manual DJ Assistant Functions (user-triggered via buttons)
   syncBeatPhase: (deck: DeckId) => void;
   autoCue: (deck: DeckId) => void;
+
+  // Hot Cue Functions
+  hotCuesA: (HotCue | null)[];
+  hotCuesB: (HotCue | null)[];
+  setHotCue: (deck: DeckId, slot: number) => void;
+  jumpToHotCue: (deck: DeckId, slot: number) => void;
+  deleteHotCue: (deck: DeckId, slot: number) => void;
+  updateHotCueColor: (deck: DeckId, slot: number, color: string) => void;
+
+  // Loop Functions
+  setLoopIn: (deck: DeckId) => void;
+  setLoopOut: (deck: DeckId) => void;
+  toggleLoop: (deck: DeckId) => void;
+  setAutoLoop: (deck: DeckId, beats: number) => void;
+  doubleLoop: (deck: DeckId) => void;
+  halveLoop: (deck: DeckId) => void;
+  moveLoop: (deck: DeckId, direction: 'forward' | 'back') => void;
+  exitLoop: (deck: DeckId) => void;
+
+  // Waveform Display
+  toggleSpectralColors: (deck: DeckId) => void;
 
   // State Queries
   getState: () => VirtualDJDeckState;
@@ -206,9 +240,21 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     cuePoint: 0,
     suggestedCuePoints: [],
     waveformData: [],
+    spectralWaveformData: null,
+    showSpectralColors: true, // Enable colored waveforms by default
     eqLow: 0,
     eqMid: 0,
     eqHigh: 0,
+    filterPosition: 0,
+    filterResonance: 1,
+    loopIn: null,
+    loopOut: null,
+    loopActive: false,
+    loopLength: 4,
+    detectedKey: '',
+    detectedKeyMode: 'major',
+    camelotCode: '',
+    effects: [],
   });
 
   const [deckBState, setDeckBState] = useState<DeckState>({
@@ -226,13 +272,44 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     cuePoint: 0,
     suggestedCuePoints: [],
     waveformData: [],
+    spectralWaveformData: null,
+    showSpectralColors: true, // Enable colored waveforms by default
     eqLow: 0,
     eqMid: 0,
     eqHigh: 0,
+    filterPosition: 0,
+    filterResonance: 1,
+    loopIn: null,
+    loopOut: null,
+    loopActive: false,
+    loopLength: 4,
+    detectedKey: '',
+    detectedKeyMode: 'major',
+    camelotCode: '',
+    effects: [],
   });
 
   // Start crossfader fully on Deck A so users learn to crossfade to Deck B
   const [crossfaderPosition, setCrossfaderPositionState] = useState(INITIAL_CROSSFADER_POSITION);
+
+  // Crossfader curve type - defaults to constantPower (equal power, prevents volume dip at center)
+  const [crossfaderCurve, setCrossfaderCurveState] = useState<CrossfaderCurveType>('constantPower');
+
+  // Hot cue state - 8 slots per deck, initially all null
+  const [hotCuesA, setHotCuesA] = useState<(HotCue | null)[]>(Array(8).fill(null));
+  const [hotCuesB, setHotCuesB] = useState<(HotCue | null)[]>(Array(8).fill(null));
+
+  // DJ-style hot cue color palette
+  const HOT_CUE_COLORS = [
+    '#FF0000', // Red
+    '#FF8C00', // Orange
+    '#FFD700', // Yellow
+    '#00FF00', // Green
+    '#00BFFF', // Cyan
+    '#0066FF', // Blue
+    '#9400D3', // Purple
+    '#FF1493', // Pink
+  ];
 
   // Get complete state
   const getState = useCallback((): VirtualDJDeckState => {
@@ -284,8 +361,50 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
       await audioEngineRef.current.loadTrack(deck, url);
 
       const buffer = audioEngineRef.current.getAudioBuffer(deck);
-      const waveformData = buffer ? generateWaveformData(buffer, 200) : [];
       const duration = audioEngineRef.current.getDuration(deck);
+
+      // Generate spectral waveform data with frequency analysis for colored display
+      // This pre-calculates colors during track load for efficient rendering
+      const spectralWaveformData = buffer ? generateSpectralWaveformData(buffer, 200) : null;
+
+      // Extract simple amplitude array for backward compatibility
+      const waveformData = spectralWaveformData
+        ? spectralToAmplitudeArray(spectralWaveformData)
+        : buffer ? generateWaveformData(buffer, 200) : [];
+
+      console.log(`[DeckContext] Deck ${deck} spectral waveform generated with ${spectralWaveformData?.segments.length || 0} segments`);
+
+      // Run BPM/Key detection on the loaded audio buffer
+      // This uses our multi-validation algorithm for high accuracy
+      let detectedBPM = bpm;
+      let detectedKey = '';
+      let detectedKeyMode: 'major' | 'minor' = 'major';
+      let detectedCamelotCode = '';
+
+      if (buffer) {
+        try {
+          console.log(`[DeckContext] Deck ${deck} running BPM/Key detection...`);
+          const detection = await detectBPMAndKey(buffer);
+
+          // Use detected BPM if confidence is high enough (> 70%)
+          if (detection.bpmConfidence > 70) {
+            detectedBPM = detection.bpm;
+            console.log(`[DeckContext] Deck ${deck} detected BPM: ${detection.bpm} (${detection.bpmConfidence}% confidence)`);
+          } else {
+            console.log(`[DeckContext] Deck ${deck} BPM detection low confidence (${detection.bpmConfidence}%), using provided BPM: ${bpm}`);
+          }
+
+          // Always use detected key if available
+          if (detection.key && detection.keyConfidence > 50) {
+            detectedKey = detection.key;
+            detectedKeyMode = detection.keyMode;
+            detectedCamelotCode = detection.camelotCode;
+            console.log(`[DeckContext] Deck ${deck} detected key: ${detection.key} ${detection.keyMode} (${detection.camelotCode}, ${detection.keyConfidence}% confidence)`);
+          }
+        } catch (detectionError) {
+          console.warn(`[DeckContext] Deck ${deck} BPM/Key detection failed:`, detectionError);
+        }
+      }
 
       // Calculate suggested cue points if not provided
       // Use phrase boundaries based on BPM (8-bar sections)
@@ -312,12 +431,17 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
         currentTime: initialCuePoint,  // Start at cue point position
         duration,
         waveformData,
+        spectralWaveformData,
         trackName: name,
         artistName: artist,
-        originalBPM: bpm,
-        currentBPM: bpm,
+        originalBPM: detectedBPM,  // Use detected BPM if available
+        currentBPM: detectedBPM,
         cuePoint: initialCuePoint,
         suggestedCuePoints: cuePoints,
+        // Include detected key information for harmonic mixing
+        detectedKey: detectedKey,
+        detectedKeyMode: detectedKeyMode,
+        camelotCode: detectedCamelotCode,
       }));
 
       // Initialize realtime BPM detection if not already initialized for this deck
@@ -551,7 +675,7 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     console.log(`[DeckContext] Deck ${deck} volume set to ${volume}`);
   }, [notifyStateChange]);
 
-  // Set crossfader position
+  // Set crossfader position with curve-based volume calculation
   const setCrossfader = useCallback((position: number) => {
     if (!audioEngineRef.current || !isInitialized) {
       console.warn('[DeckContext] Cannot set crossfader: AudioEngine not initialized');
@@ -559,16 +683,44 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     }
 
     try {
-      audioEngineRef.current.setCrossfade(position);
+      // Convert position from [-1, 1] to [0, 1] for curve calculation
+      const normalizedPosition = (position + 1) / 2;
+
+      // Calculate volumes based on selected curve
+      const { volA, volB } = calculateCrossfaderVolumes(normalizedPosition, crossfaderCurve);
+
+      // Apply curve-based volumes to the AudioEngine
+      audioEngineRef.current.setCrossfadeWithCurve(volA, volB);
       setCrossfaderPositionState(position);
 
       notifyStateChange();
-      console.log(`[DeckContext] Crossfader position set to ${position}`);
+      console.log(`[DeckContext] Crossfader position: ${position.toFixed(2)}, curve: ${crossfaderCurve}, volA: ${volA.toFixed(2)}, volB: ${volB.toFixed(2)}`);
     } catch (err) {
       console.error('[DeckContext] Failed to set crossfader:', err);
       onError?.(err as Error);
     }
-  }, [isInitialized, notifyStateChange, onError]);
+  }, [isInitialized, crossfaderCurve, notifyStateChange, onError]);
+
+  // Set crossfader curve type
+  const setCrossfaderCurve = useCallback((curve: CrossfaderCurveType) => {
+    setCrossfaderCurveState(curve);
+
+    // Re-apply crossfader position with new curve
+    if (audioEngineRef.current && isInitialized) {
+      // Convert position from [-1, 1] to [0, 1] for curve calculation
+      const normalizedPosition = (crossfaderPosition + 1) / 2;
+
+      // Calculate volumes based on new curve
+      const { volA, volB } = calculateCrossfaderVolumes(normalizedPosition, curve);
+
+      // Apply curve-based volumes to the AudioEngine
+      audioEngineRef.current.setCrossfadeWithCurve(volA, volB);
+
+      console.log(`[DeckContext] Crossfader curve changed to: ${curve}, volA: ${volA.toFixed(2)}, volB: ${volB.toFixed(2)}`);
+    }
+
+    notifyStateChange();
+  }, [isInitialized, crossfaderPosition, notifyStateChange]);
 
   // Update current time (called from playback timer)
   const updateCurrentTime = useCallback((deck: DeckId, time: number) => {
@@ -594,6 +746,26 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
       console.log(`[DeckContext] Deck ${deck} EQ ${band} set to ${value.toFixed(1)} dB`);
     } catch (err) {
       console.error(`[DeckContext] Failed to set EQ for Deck ${deck}:`, err);
+      onError?.(err as Error);
+    }
+  }, [notifyStateChange, onError]);
+
+  // Set filter for a deck (bi-directional: lowpass left of center, highpass right of center)
+  const setDeckFilter = useCallback((deck: DeckId, position: number, resonance: number = 1) => {
+    if (!audioEngineRef.current) {
+      console.warn('[DeckContext] Cannot set filter: AudioEngine not initialized');
+      return;
+    }
+
+    try {
+      audioEngineRef.current.setFilter(deck, position, resonance);
+
+      const updateState = deck === 'A' ? setDeckAState : setDeckBState;
+      updateState((prev) => ({ ...prev, filterPosition: position, filterResonance: resonance }));
+
+      notifyStateChange();
+    } catch (err) {
+      console.error(`[DeckContext] Failed to set filter for Deck ${deck}:`, err);
       onError?.(err as Error);
     }
   }, [notifyStateChange, onError]);
@@ -747,6 +919,522 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     }
   }, [isInitialized, deckAState, deckBState, notifyStateChange, onError]);
 
+  // Toggle spectral colors display for a deck
+  const toggleSpectralColors = useCallback((deck: DeckId) => {
+    const updateState = deck === 'A' ? setDeckAState : setDeckBState;
+    updateState((prev) => ({
+      ...prev,
+      showSpectralColors: !prev.showSpectralColors,
+    }));
+    console.log(`[DeckContext] Deck ${deck} spectral colors toggled`);
+  }, []);
+
+  // Set a hot cue at the current position
+  const setHotCue = useCallback((deck: DeckId, slot: number) => {
+    if (!isInitialized) {
+      console.warn('[DeckContext] Cannot set hot cue: not initialized');
+      return;
+    }
+
+    if (slot < 1 || slot > 8) {
+      console.warn('[DeckContext] Invalid hot cue slot:', slot);
+      return;
+    }
+
+    const slotIndex = slot - 1;
+    const deckState = deck === 'A' ? deckAState : deckBState;
+    const setHotCuesState = deck === 'A' ? setHotCuesA : setHotCuesB;
+
+    const newHotCue: HotCue = {
+      position: deckState.currentTime,
+      color: HOT_CUE_COLORS[slotIndex],
+    };
+
+    setHotCuesState((prev) => {
+      const updated = [...prev];
+      updated[slotIndex] = newHotCue;
+      return updated;
+    });
+
+    console.log(`[DeckContext] Deck ${deck} hot cue ${slot} set at ${deckState.currentTime.toFixed(2)}s`);
+  }, [isInitialized, deckAState, deckBState, HOT_CUE_COLORS]);
+
+  // Jump to a hot cue position and start playing
+  const jumpToHotCue = useCallback((deck: DeckId, slot: number) => {
+    if (!audioEngineRef.current || !isInitialized) {
+      console.warn('[DeckContext] Cannot jump to hot cue: not initialized');
+      return;
+    }
+
+    if (slot < 1 || slot > 8) {
+      console.warn('[DeckContext] Invalid hot cue slot:', slot);
+      return;
+    }
+
+    const slotIndex = slot - 1;
+    const hotCues = deck === 'A' ? hotCuesA : hotCuesB;
+    const hotCue = hotCues[slotIndex];
+
+    if (!hotCue) {
+      console.warn(`[DeckContext] No hot cue at slot ${slot}`);
+      return;
+    }
+
+    try {
+      audioEngineRef.current.seek(deck, hotCue.position);
+
+      const updateState = deck === 'A' ? setDeckAState : setDeckBState;
+      updateState((prev) => ({ ...prev, currentTime: hotCue.position }));
+
+      const deckState = deck === 'A' ? deckAState : deckBState;
+      if (!deckState.isPlaying) {
+        audioEngineRef.current.play(deck);
+        updateState((prev) => ({ ...prev, isPlaying: true, isPaused: false }));
+      }
+
+      notifyStateChange();
+      console.log(`[DeckContext] Deck ${deck} jumped to hot cue ${slot} at ${hotCue.position.toFixed(2)}s`);
+    } catch (err) {
+      console.error(`[DeckContext] Failed to jump to hot cue:`, err);
+      onError?.(err as Error);
+    }
+  }, [isInitialized, hotCuesA, hotCuesB, deckAState, deckBState, notifyStateChange, onError]);
+
+  // Delete a hot cue
+  const deleteHotCue = useCallback((deck: DeckId, slot: number) => {
+    if (slot < 1 || slot > 8) {
+      console.warn('[DeckContext] Invalid hot cue slot:', slot);
+      return;
+    }
+
+    const slotIndex = slot - 1;
+    const setHotCuesState = deck === 'A' ? setHotCuesA : setHotCuesB;
+
+    setHotCuesState((prev) => {
+      const updated = [...prev];
+      updated[slotIndex] = null;
+      return updated;
+    });
+
+    console.log(`[DeckContext] Deck ${deck} hot cue ${slot} deleted`);
+  }, []);
+
+  // Update the color of a hot cue
+  const updateHotCueColor = useCallback((deck: DeckId, slot: number, color: string) => {
+    if (slot < 1 || slot > 8) {
+      console.warn('[DeckContext] Invalid hot cue slot:', slot);
+      return;
+    }
+
+    const slotIndex = slot - 1;
+    const hotCues = deck === 'A' ? hotCuesA : hotCuesB;
+    const hotCue = hotCues[slotIndex];
+
+    if (!hotCue) {
+      console.warn(`[DeckContext] No hot cue at slot ${slot} to update`);
+      return;
+    }
+
+    const setHotCuesState = deck === 'A' ? setHotCuesA : setHotCuesB;
+    setHotCuesState((prev) => {
+      const updated = [...prev];
+      updated[slotIndex] = { ...hotCue, color };
+      return updated;
+    });
+
+    console.log(`[DeckContext] Deck ${deck} hot cue ${slot} color updated to ${color}`);
+  }, [hotCuesA, hotCuesB]);
+
+  // =========================================================================
+  // Loop Functions - Professional DJ loop controls
+  // =========================================================================
+
+  /**
+   * Helper function to calculate beat duration in seconds
+   * @param bpm - Beats per minute
+   * @returns Duration of one beat in seconds
+   */
+  const getBeatDuration = useCallback((bpm: number): number => {
+    if (bpm <= 0) return 0.5; // Default fallback
+    return 60 / bpm;
+  }, []);
+
+  /**
+   * Set the loop in (start) point at the current playback position
+   * This marks where the loop will begin
+   */
+  const setLoopIn = useCallback((deck: DeckId) => {
+    if (!audioEngineRef.current || !isInitialized) {
+      console.warn('[DeckContext] Cannot set loop in: AudioEngine not initialized');
+      return;
+    }
+
+    const deckState = deck === 'A' ? deckAState : deckBState;
+    if (!deckState.isLoaded) {
+      console.warn('[DeckContext] Cannot set loop in: no track loaded');
+      return;
+    }
+
+    const loopInPoint = deckState.currentTime;
+    const updateState = deck === 'A' ? setDeckAState : setDeckBState;
+
+    updateState((prev) => ({
+      ...prev,
+      loopIn: loopInPoint,
+      // Clear loop out if setting a new loop in point
+      loopOut: null,
+      loopActive: false,
+    }));
+
+    // Update AudioEngine loop state
+    audioEngineRef.current.setLoop(deck, loopInPoint, null);
+
+    console.log(`[DeckContext] Deck ${deck} loop in set at ${loopInPoint.toFixed(2)}s`);
+    notifyStateChange();
+  }, [isInitialized, deckAState, deckBState, notifyStateChange]);
+
+  /**
+   * Set the loop out (end) point at the current playback position
+   * This marks where the loop will end and jump back to loop in
+   * Automatically activates the loop if loop in is already set
+   */
+  const setLoopOut = useCallback((deck: DeckId) => {
+    if (!audioEngineRef.current || !isInitialized) {
+      console.warn('[DeckContext] Cannot set loop out: AudioEngine not initialized');
+      return;
+    }
+
+    const deckState = deck === 'A' ? deckAState : deckBState;
+    if (!deckState.isLoaded) {
+      console.warn('[DeckContext] Cannot set loop out: no track loaded');
+      return;
+    }
+
+    if (deckState.loopIn === null) {
+      console.warn('[DeckContext] Cannot set loop out: loop in not set');
+      return;
+    }
+
+    const loopOutPoint = deckState.currentTime;
+
+    // Ensure loop out is after loop in
+    if (loopOutPoint <= deckState.loopIn) {
+      console.warn('[DeckContext] Loop out must be after loop in');
+      return;
+    }
+
+    const loopLength = loopOutPoint - deckState.loopIn;
+    const beatDuration = getBeatDuration(deckState.currentBPM);
+    const loopLengthInBeats = loopLength / beatDuration;
+
+    const updateState = deck === 'A' ? setDeckAState : setDeckBState;
+
+    updateState((prev) => ({
+      ...prev,
+      loopOut: loopOutPoint,
+      loopActive: true,
+      loopLength: loopLengthInBeats,
+    }));
+
+    // Update AudioEngine and enable the loop
+    audioEngineRef.current.setLoop(deck, deckState.loopIn, loopOutPoint);
+    audioEngineRef.current.enableLoop(deck, true);
+
+    console.log(`[DeckContext] Deck ${deck} loop out set at ${loopOutPoint.toFixed(2)}s (${loopLengthInBeats.toFixed(2)} beats)`);
+    notifyStateChange();
+  }, [isInitialized, deckAState, deckBState, getBeatDuration, notifyStateChange]);
+
+  /**
+   * Toggle loop on/off
+   * If loop points are set, this enables or disables looping
+   */
+  const toggleLoop = useCallback((deck: DeckId) => {
+    if (!audioEngineRef.current || !isInitialized) {
+      console.warn('[DeckContext] Cannot toggle loop: AudioEngine not initialized');
+      return;
+    }
+
+    const deckState = deck === 'A' ? deckAState : deckBState;
+
+    // Can only toggle if both loop points are set
+    if (deckState.loopIn === null || deckState.loopOut === null) {
+      console.warn('[DeckContext] Cannot toggle loop: loop points not set');
+      return;
+    }
+
+    const newLoopActive = !deckState.loopActive;
+    const updateState = deck === 'A' ? setDeckAState : setDeckBState;
+
+    updateState((prev) => ({
+      ...prev,
+      loopActive: newLoopActive,
+    }));
+
+    audioEngineRef.current.enableLoop(deck, newLoopActive);
+
+    console.log(`[DeckContext] Deck ${deck} loop ${newLoopActive ? 'enabled' : 'disabled'}`);
+    notifyStateChange();
+  }, [isInitialized, deckAState, deckBState, notifyStateChange]);
+
+  /**
+   * Set an auto-loop of a specific beat length
+   * Creates a loop starting at the current position with the specified duration in beats
+   *
+   * @param deck - Deck identifier ('A' or 'B')
+   * @param beats - Loop length in beats (1/8, 1/4, 1/2, 1, 2, 4, 8, 16)
+   */
+  const setAutoLoop = useCallback((deck: DeckId, beats: number) => {
+    if (!audioEngineRef.current || !isInitialized) {
+      console.warn('[DeckContext] Cannot set auto loop: AudioEngine not initialized');
+      return;
+    }
+
+    const deckState = deck === 'A' ? deckAState : deckBState;
+    if (!deckState.isLoaded) {
+      console.warn('[DeckContext] Cannot set auto loop: no track loaded');
+      return;
+    }
+
+    if (deckState.currentBPM <= 0) {
+      console.warn('[DeckContext] Cannot set auto loop: BPM not available');
+      return;
+    }
+
+    const beatDuration = getBeatDuration(deckState.currentBPM);
+    const loopDuration = beats * beatDuration;
+    const loopInPoint = deckState.currentTime;
+    const loopOutPoint = loopInPoint + loopDuration;
+
+    // Ensure loop doesn't exceed track duration
+    if (loopOutPoint > deckState.duration) {
+      console.warn('[DeckContext] Auto loop would exceed track duration');
+      return;
+    }
+
+    const updateState = deck === 'A' ? setDeckAState : setDeckBState;
+
+    updateState((prev) => ({
+      ...prev,
+      loopIn: loopInPoint,
+      loopOut: loopOutPoint,
+      loopActive: true,
+      loopLength: beats,
+    }));
+
+    // Update AudioEngine and enable the loop
+    audioEngineRef.current.setLoop(deck, loopInPoint, loopOutPoint);
+    audioEngineRef.current.enableLoop(deck, true);
+
+    console.log(`[DeckContext] Deck ${deck} auto loop: ${beats} beats (${loopDuration.toFixed(2)}s) at ${loopInPoint.toFixed(2)}s`);
+    notifyStateChange();
+  }, [isInitialized, deckAState, deckBState, getBeatDuration, notifyStateChange]);
+
+  /**
+   * Double the current loop length
+   * Extends the loop out point to double the duration
+   */
+  const doubleLoop = useCallback((deck: DeckId) => {
+    if (!audioEngineRef.current || !isInitialized) {
+      console.warn('[DeckContext] Cannot double loop: AudioEngine not initialized');
+      return;
+    }
+
+    const deckState = deck === 'A' ? deckAState : deckBState;
+
+    if (deckState.loopIn === null || deckState.loopOut === null) {
+      console.warn('[DeckContext] Cannot double loop: loop not set');
+      return;
+    }
+
+    const currentLoopLength = deckState.loopOut - deckState.loopIn;
+    const newLoopOut = deckState.loopOut + currentLoopLength;
+
+    // Ensure new loop doesn't exceed track duration
+    if (newLoopOut > deckState.duration) {
+      console.warn('[DeckContext] Cannot double loop: would exceed track duration');
+      return;
+    }
+
+    const newLoopLengthBeats = deckState.loopLength * 2;
+
+    const updateState = deck === 'A' ? setDeckAState : setDeckBState;
+
+    updateState((prev) => ({
+      ...prev,
+      loopOut: newLoopOut,
+      loopLength: newLoopLengthBeats,
+    }));
+
+    // Update AudioEngine loop points
+    audioEngineRef.current.setLoop(deck, deckState.loopIn, newLoopOut);
+
+    // If loop is active, make sure monitor is running with new bounds
+    if (deckState.loopActive) {
+      audioEngineRef.current.enableLoop(deck, true);
+    }
+
+    console.log(`[DeckContext] Deck ${deck} loop doubled: ${deckState.loopLength} -> ${newLoopLengthBeats} beats`);
+    notifyStateChange();
+  }, [isInitialized, deckAState, deckBState, notifyStateChange]);
+
+  /**
+   * Halve the current loop length
+   * Shortens the loop out point to half the duration
+   */
+  const halveLoop = useCallback((deck: DeckId) => {
+    if (!audioEngineRef.current || !isInitialized) {
+      console.warn('[DeckContext] Cannot halve loop: AudioEngine not initialized');
+      return;
+    }
+
+    const deckState = deck === 'A' ? deckAState : deckBState;
+
+    if (deckState.loopIn === null || deckState.loopOut === null) {
+      console.warn('[DeckContext] Cannot halve loop: loop not set');
+      return;
+    }
+
+    const currentLoopLength = deckState.loopOut - deckState.loopIn;
+    const newLoopLength = currentLoopLength / 2;
+
+    // Minimum loop length is 1/32 beat (roughly 15ms at 120 BPM)
+    const minLoopLength = 0.015;
+    if (newLoopLength < minLoopLength) {
+      console.warn('[DeckContext] Cannot halve loop: already at minimum length');
+      return;
+    }
+
+    const newLoopOut = deckState.loopIn + newLoopLength;
+    const newLoopLengthBeats = deckState.loopLength / 2;
+
+    const updateState = deck === 'A' ? setDeckAState : setDeckBState;
+
+    updateState((prev) => ({
+      ...prev,
+      loopOut: newLoopOut,
+      loopLength: newLoopLengthBeats,
+    }));
+
+    // Update AudioEngine loop points
+    audioEngineRef.current.setLoop(deck, deckState.loopIn, newLoopOut);
+
+    // If loop is active, make sure monitor is running with new bounds
+    if (deckState.loopActive) {
+      audioEngineRef.current.enableLoop(deck, true);
+    }
+
+    // If playback is beyond new loop out, jump back to loop in
+    if (deckState.currentTime > newLoopOut && deckState.loopActive && deckState.loopIn !== null) {
+      audioEngineRef.current.seek(deck, deckState.loopIn);
+      const loopInPosition = deckState.loopIn; // Capture non-null value
+      updateState((prev) => ({
+        ...prev,
+        currentTime: loopInPosition,
+      }));
+    }
+
+    console.log(`[DeckContext] Deck ${deck} loop halved: ${deckState.loopLength} -> ${newLoopLengthBeats} beats`);
+    notifyStateChange();
+  }, [isInitialized, deckAState, deckBState, notifyStateChange]);
+
+  /**
+   * Move the loop forward or backward by its current length
+   * Shifts both loop in and loop out points together
+   *
+   * @param deck - Deck identifier ('A' or 'B')
+   * @param direction - 'forward' or 'back'
+   */
+  const moveLoop = useCallback((deck: DeckId, direction: 'forward' | 'back') => {
+    if (!audioEngineRef.current || !isInitialized) {
+      console.warn('[DeckContext] Cannot move loop: AudioEngine not initialized');
+      return;
+    }
+
+    const deckState = deck === 'A' ? deckAState : deckBState;
+
+    if (deckState.loopIn === null || deckState.loopOut === null) {
+      console.warn('[DeckContext] Cannot move loop: loop not set');
+      return;
+    }
+
+    const loopLength = deckState.loopOut - deckState.loopIn;
+    const moveAmount = direction === 'forward' ? loopLength : -loopLength;
+
+    const newLoopIn = deckState.loopIn + moveAmount;
+    const newLoopOut = deckState.loopOut + moveAmount;
+
+    // Ensure new loop stays within track bounds
+    if (newLoopIn < 0) {
+      console.warn('[DeckContext] Cannot move loop: would go before track start');
+      return;
+    }
+    if (newLoopOut > deckState.duration) {
+      console.warn('[DeckContext] Cannot move loop: would exceed track duration');
+      return;
+    }
+
+    const updateState = deck === 'A' ? setDeckAState : setDeckBState;
+
+    updateState((prev) => ({
+      ...prev,
+      loopIn: newLoopIn,
+      loopOut: newLoopOut,
+    }));
+
+    // Update AudioEngine loop points
+    audioEngineRef.current.setLoop(deck, newLoopIn, newLoopOut);
+
+    // If loop is active, ensure monitor is running with new bounds
+    if (deckState.loopActive) {
+      audioEngineRef.current.enableLoop(deck, true);
+    }
+
+    // If playback position is in the old loop, jump to equivalent position in new loop
+    if (deckState.loopActive && deckState.currentTime >= deckState.loopIn && deckState.currentTime <= deckState.loopOut) {
+      const offsetInLoop = deckState.currentTime - deckState.loopIn;
+      const newPosition = newLoopIn + offsetInLoop;
+      audioEngineRef.current.seek(deck, newPosition);
+      updateState((prev) => ({
+        ...prev,
+        currentTime: newPosition,
+      }));
+    }
+
+    console.log(`[DeckContext] Deck ${deck} loop moved ${direction}: ${newLoopIn.toFixed(2)}s - ${newLoopOut.toFixed(2)}s`);
+    notifyStateChange();
+  }, [isInitialized, deckAState, deckBState, notifyStateChange]);
+
+  /**
+   * Exit the loop and continue normal playback
+   * Disables looping but keeps the loop points for later reactivation
+   */
+  const exitLoop = useCallback((deck: DeckId) => {
+    if (!audioEngineRef.current || !isInitialized) {
+      console.warn('[DeckContext] Cannot exit loop: AudioEngine not initialized');
+      return;
+    }
+
+    const deckState = deck === 'A' ? deckAState : deckBState;
+
+    if (!deckState.loopActive) {
+      console.log('[DeckContext] Loop already inactive');
+      return;
+    }
+
+    const updateState = deck === 'A' ? setDeckAState : setDeckBState;
+
+    updateState((prev) => ({
+      ...prev,
+      loopActive: false,
+    }));
+
+    // Disable loop in AudioEngine (keeps loop points for reactivation)
+    audioEngineRef.current.enableLoop(deck, false);
+
+    console.log(`[DeckContext] Deck ${deck} exited loop - continuing normal playback`);
+    notifyStateChange();
+  }, [isInitialized, deckAState, deckBState, notifyStateChange]);
+
   // Update playback time periodically
   // This is handled by a useEffect in the component that uses the context
 
@@ -754,6 +1442,7 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     deckAState,
     deckBState,
     crossfaderPosition,
+    crossfaderCurve,
     audioEngine: audioEngineRef.current,
     isInitialized,
     loadTrack,
@@ -767,11 +1456,28 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     syncDeck,
     setVolume,
     setCrossfader,
+    setCrossfaderCurve,
     updateCurrentTime,
     setDeckEQ,
+    setDeckFilter,
     setPlaybackRate,
     syncBeatPhase,
     autoCue,
+    toggleSpectralColors,
+    hotCuesA,
+    hotCuesB,
+    setHotCue,
+    jumpToHotCue,
+    deleteHotCue,
+    updateHotCueColor,
+    setLoopIn,
+    setLoopOut,
+    toggleLoop,
+    setAutoLoop,
+    doubleLoop,
+    halveLoop,
+    moveLoop,
+    exitLoop,
     getState,
     getDeckState,
     initializeAudioEngine,

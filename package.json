@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@wavesurfer/react": "^1.0.12",
+    "essentia.js": "^0.1.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-rewards": "^2.1.0",

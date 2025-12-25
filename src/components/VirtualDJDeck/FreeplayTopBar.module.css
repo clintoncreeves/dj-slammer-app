@@ -94,6 +94,70 @@
   gap: 12px;
 }
 
+/* MIDI button */
+.midiButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(52, 152, 219, 0.15);
+  border: 1px solid rgba(52, 152, 219, 0.4);
+  border-radius: 8px;
+  color: #7fb3d5;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.midiButton:hover {
+  background: rgba(52, 152, 219, 0.25);
+  border-color: rgba(52, 152, 219, 0.6);
+  color: #ffffff;
+  box-shadow: 0 0 15px rgba(52, 152, 219, 0.3);
+}
+
+.midiButton:focus-visible {
+  outline: 2px solid #3498db;
+  outline-offset: 2px;
+}
+
+.midiButton.midiConnected {
+  background: rgba(46, 204, 113, 0.2);
+  border-color: rgba(46, 204, 113, 0.5);
+  color: #7dcea0;
+}
+
+.midiButton.midiConnected:hover {
+  background: rgba(46, 204, 113, 0.3);
+  border-color: rgba(46, 204, 113, 0.7);
+  color: #ffffff;
+  box-shadow: 0 0 15px rgba(46, 204, 113, 0.3);
+}
+
+.midiIcon {
+  font-size: 16px;
+}
+
+.midiLabel {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.midiStatus {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 8px;
+  height: 8px;
+  background: #2ecc71;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #2ecc71;
+}
+
 /* Mentor button */
 .mentorButton {
   display: flex;
@@ -148,16 +212,22 @@
 
   .sidebarLabel,
   .modeLabel,
+  .midiLabel,
   .mentorLabel {
     display: none;
   }
 
   .sidebarToggle,
+  .midiButton,
   .mentorButton {
     padding: 8px 12px;
   }
 
   .modeIndicator {
     padding: 6px 10px;
+  }
+
+  .rightSection {
+    gap: 8px;
   }
 }

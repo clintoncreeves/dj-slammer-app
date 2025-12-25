@@ -56,6 +56,36 @@
   color: rgba(255, 255, 255, 0.5);
 }
 
+/* Spectral colors toggle button */
+.spectralToggle {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  padding: 2px 6px;
+  font-size: 9px;
+  font-weight: 600;
+  font-family: 'Space Mono', monospace;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.15s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.spectralToggle:hover {
+  background: rgba(0, 0, 0, 0.8);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.spectralToggle:active {
+  transform: scale(0.95);
+}
+
 /* Hover time tooltip */
 .hoverTime {
   position: absolute;

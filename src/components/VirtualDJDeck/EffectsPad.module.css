@@ -1,0 +1,350 @@
+/**
+ * EffectsPad Styles - DJ Effects Control Panel
+ *
+ * Design principles:
+ * - Professional DJ aesthetic with dark theme
+ * - Clear visual feedback for active effects
+ * - Intuitive interaction patterns (drag for wet/dry, click for toggle)
+ * - Compact layout suitable for integration with other controls
+ */
+
+/* Main container */
+.effectsPad {
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+  border: 1px solid #2d3a5a;
+  border-radius: 8px;
+  padding: 8px;
+  min-width: 200px;
+}
+
+/* Header section */
+.effectsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #2d3a5a;
+}
+
+.effectsTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #00d4ff;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.deckLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Effects grid layout */
+.effectsGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+
+/* Individual effect button */
+.effectButton {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 4px;
+  min-height: 60px;
+  background: linear-gradient(180deg, #2a2a4a 0%, #1a1a3a 100%);
+  border: 1px solid #3a3a6a;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  overflow: hidden;
+  user-select: none;
+}
+
+.effectButton:hover {
+  border-color: var(--effect-color, #00d4ff);
+  background: linear-gradient(180deg, #3a3a5a 0%, #2a2a4a 100%);
+}
+
+.effectButton:active {
+  transform: scale(0.95);
+}
+
+/* Active effect state */
+.effectButton.effectActive {
+  border-color: var(--effect-color, #00d4ff);
+  box-shadow: 0 0 10px var(--effect-color, #00d4ff),
+    inset 0 0 15px rgba(var(--effect-color-rgb, 0, 212, 255), 0.2);
+}
+
+.effectButton.effectActive .effectIcon {
+  color: var(--effect-color, #00d4ff);
+  text-shadow: 0 0 8px var(--effect-color, #00d4ff);
+}
+
+.effectButton.effectActive .effectName {
+  color: #fff;
+}
+
+/* Effect icon */
+.effectIcon {
+  font-size: 14px;
+  font-weight: 700;
+  color: #666;
+  margin-bottom: 2px;
+  font-family: monospace;
+  transition: all 0.15s ease;
+}
+
+/* Effect name label */
+.effectName {
+  font-size: 9px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.15s ease;
+}
+
+/* Wet level indicator bar */
+.wetIndicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #1a1a2a;
+  overflow: hidden;
+}
+
+.wetFill {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: var(--wet-level, 0%);
+  height: 100%;
+  background: linear-gradient(90deg, var(--effect-color, #00d4ff) 0%, var(--effect-color, #00d4ff) 100%);
+  transition: width 0.1s ease;
+}
+
+/* Wet percentage value */
+.wetValue {
+  font-size: 8px;
+  font-weight: 500;
+  color: #666;
+  margin-top: 2px;
+  opacity: 0.8;
+}
+
+.effectButton.effectActive .wetValue {
+  color: var(--effect-color, #00d4ff);
+}
+
+/* Beat division selector */
+.beatDivisionSelector {
+  margin-bottom: 12px;
+}
+
+.beatDivisionLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.beatDivisionButtons {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+
+.beatDivisionButton {
+  padding: 4px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #888;
+  background: #2a2a4a;
+  border: 1px solid #3a3a6a;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.beatDivisionButton:hover {
+  border-color: var(--effect-color, #ff6b00);
+  color: #fff;
+}
+
+.beatDivisionButton.beatDivisionActive {
+  background: var(--effect-color, #ff6b00);
+  border-color: var(--effect-color, #ff6b00);
+  color: #fff;
+}
+
+.delayTimeDisplay {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--effect-color, #ff6b00);
+  margin-top: 4px;
+  text-align: right;
+}
+
+/* Parameter slider */
+.paramSlider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.paramLabel {
+  flex: 0 0 60px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+}
+
+.paramRange {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #2a2a4a;
+  border-radius: 2px;
+  outline: none;
+}
+
+.paramRange::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: var(--effect-color, #00d4ff);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 4px var(--effect-color, #00d4ff);
+}
+
+.paramRange::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background: var(--effect-color, #00d4ff);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 4px var(--effect-color, #00d4ff);
+  border: none;
+}
+
+.paramValue {
+  flex: 0 0 50px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--effect-color, #00d4ff);
+  text-align: right;
+}
+
+/* Effect detail panel (expanded view) */
+.effectDetailPanel {
+  margin-top: 8px;
+  padding: 10px;
+  background: linear-gradient(180deg, #2a2a4a 0%, #1a1a3a 100%);
+  border: 1px solid var(--effect-color, #00d4ff);
+  border-radius: 6px;
+  animation: slideIn 0.15s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.detailHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.detailTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--effect-color, #00d4ff);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.detailClose {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #888;
+  background: transparent;
+  border: 1px solid #3a3a6a;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.detailClose:hover {
+  color: #fff;
+  border-color: #ff4444;
+  background: rgba(255, 68, 68, 0.2);
+}
+
+.detailParams {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .effectsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .effectButton {
+    min-height: 50px;
+  }
+
+  .effectIcon {
+    font-size: 12px;
+  }
+
+  .effectName {
+    font-size: 8px;
+  }
+}
+
+/* Dark mode enhancements */
+@media (prefers-color-scheme: dark) {
+  .effectsPad {
+    background: linear-gradient(180deg, #0d0d1a 0%, #0a0a15 100%);
+  }
+
+  .effectButton {
+    background: linear-gradient(180deg, #1a1a2e 0%, #0d0d1a 100%);
+  }
+}

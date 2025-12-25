@@ -38,6 +38,8 @@ import { useTransitionState } from './useTransitionState';
 import { TransitionGuidance } from './EQControl';
 import { LibraryProvider } from './library/LibraryContext';
 import { PlaylistSidebar } from './library/PlaylistSidebar';
+import { MIDIProvider, useMIDI } from './MIDIContext';
+import { MIDISettings } from './MIDISettings';
 import styles from './VirtualDJDeck_Professional.module.css';
 
 export interface VirtualDJDeckHandle {
@@ -78,12 +80,18 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
     // Use the centralized deck context
     const deck = useDeck();
 
+    // Use MIDI context for controller status
+    const midi = useMIDI();
+
     // Skip welcome screen if audio was already enabled (lesson transition)
     const [needsUserGesture, setNeedsUserGesture] = useState(!skipWelcomeScreen);
     const [error, setError] = useState<Error | null>(null);
 
     // Playlist sidebar state (for freeplay mode)
     const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+
+    // MIDI settings panel state
+    const [showMIDISettings, setShowMIDISettings] = useState(false);
 
     // Keep a ref to the audioEngine for cleanup (avoids stale closure issues)
     const audioEngineRef = useRef(deck.audioEngine);
@@ -445,6 +453,8 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
             onRequestHelp={mentor.requestHelp}
             sidebarCollapsed={sidebarCollapsed}
             onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
+            onOpenMIDISettings={() => setShowMIDISettings(true)}
+            midiConnected={midi.isEnabled}
           />
         )}
 
@@ -497,6 +507,9 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 onSeek={(time) => seekDeckWithMentor('A', time)}
                 suggestedCuePoints={deck.deckAState.suggestedCuePoints}
                 cuePoint={deck.deckAState.cuePoint}
+                spectralData={deck.deckAState.spectralWaveformData}
+                showSpectralColors={deck.deckAState.showSpectralColors}
+                onToggleSpectralColors={() => deck.toggleSpectralColors('A')}
               />
               {mode === 'freeplay' && (
                 <button
@@ -647,6 +660,9 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 onSeek={(time) => seekDeckWithMentor('B', time)}
                 suggestedCuePoints={deck.deckBState.suggestedCuePoints}
                 cuePoint={deck.deckBState.cuePoint}
+                spectralData={deck.deckBState.spectralWaveformData}
+                showSpectralColors={deck.deckBState.showSpectralColors}
+                onToggleSpectralColors={() => deck.toggleSpectralColors('B')}
               />
               {mode === 'freeplay' && (
                 <button
@@ -797,6 +813,25 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
           />
         )}
 
+        {/* MIDI Settings Panel - Modal overlay for MIDI configuration */}
+        {showMIDISettings && (
+          <div className={styles.midiSettingsOverlay}>
+            <div className={styles.midiSettingsPanel}>
+              <div className={styles.midiSettingsHeader}>
+                <h2>MIDI Controller Settings</h2>
+                <button
+                  className={styles.midiSettingsClose}
+                  onClick={() => setShowMIDISettings(false)}
+                  aria-label="Close MIDI settings"
+                >
+                  ✕
+                </button>
+              </div>
+              <MIDISettings />
+            </div>
+          </div>
+        )}
+
         {/* Tutorial Overlay - ONLY show for final lesson completion */}
         {mode === 'tutorial' && tutorial.progress.isActive && tutorial.progress.lessonCompleted && tutorialConfig && (
           <TutorialOverlay
@@ -823,14 +858,16 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
 VirtualDJDeckInternal.displayName = 'VirtualDJDeckInternal';
 
 /**
- * Main component that wraps internal component with DeckProvider and LibraryProvider
+ * Main component that wraps internal component with DeckProvider, LibraryProvider, and MIDIProvider
  */
 const VirtualDJDeckProfessional = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps>(
   (props, ref) => {
     return (
       <LibraryProvider>
         <DeckProvider onStateChange={props.config.onStateChange} onError={props.config.onError}>
-          <VirtualDJDeckInternal ref={ref} {...props} />
+          <MIDIProvider>
+            <VirtualDJDeckInternal ref={ref} {...props} />
+          </MIDIProvider>
         </DeckProvider>
       </LibraryProvider>
     );

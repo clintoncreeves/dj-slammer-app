@@ -4,6 +4,7 @@
  * Top navigation bar for freeplay mode that contains:
  * - Mode indicator (showing "Free Play")
  * - DJ Mentor help button (always visible)
+ * - MIDI settings button
  * - Playlist sidebar toggle
  */
 
@@ -18,6 +19,10 @@ interface FreeplayTopBarProps {
   sidebarCollapsed: boolean;
   /** Toggle sidebar visibility */
   onToggleSidebar: () => void;
+  /** Callback when MIDI settings is requested */
+  onOpenMIDISettings: () => void;
+  /** Whether MIDI is connected */
+  midiConnected?: boolean;
   /** Optional class name */
   className?: string;
 }
@@ -27,6 +32,8 @@ export function FreeplayTopBar({
   onRequestHelp,
   sidebarCollapsed,
   onToggleSidebar,
+  onOpenMIDISettings,
+  midiConnected = false,
   className,
 }: FreeplayTopBarProps) {
   return (
@@ -53,8 +60,19 @@ export function FreeplayTopBar({
         </div>
       </div>
 
-      {/* Right side - Mentor help */}
+      {/* Right side - MIDI and Mentor help */}
       <div className={styles.rightSection}>
+        <button
+          className={`${styles.midiButton} ${midiConnected ? styles.midiConnected : ''}`}
+          onClick={onOpenMIDISettings}
+          aria-label="MIDI Controller Settings"
+          title="MIDI Controller Settings"
+        >
+          <span className={styles.midiIcon}>🎹</span>
+          <span className={styles.midiLabel}>MIDI</span>
+          {midiConnected && <span className={styles.midiStatus} />}
+        </button>
+
         <button
           className={`${styles.mentorButton} ${mentorEnabled ? styles.mentorActive : ''}`}
           onClick={onRequestHelp}

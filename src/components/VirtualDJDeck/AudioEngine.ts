@@ -18,8 +18,35 @@
 
 import * as Tone from 'tone';
 import { createRealtimeBpmAnalyzer, type BpmAnalyzer } from 'realtime-bpm-analyzer';
-import { DeckId, DJDeckError, DJDeckErrorType } from './types';
+import { DeckId, DJDeckError, DJDeckErrorType, EffectType } from './types';
 import { MIN_PLAYBACK_RATE, MAX_PLAYBACK_RATE, clampPlaybackRate } from '../../utils/audioConstants';
+import { EffectsEngine, getEffectsEngine } from './EffectsEngine';
+
+/**
+ * Keylock state for a deck
+ * When keylock is enabled, tempo changes don't affect pitch
+ */
+export interface KeylockState {
+  /** Whether keylock is enabled */
+  enabled: boolean;
+  /** Current pitch shift in semitones (-12 to +12) */
+  pitchSemitones: number;
+  /** Current playback rate (independent of pitch when keylock is on) */
+  playbackRate: number;
+}
+
+/**
+ * GrainPlayer configuration for optimal DJ performance
+ * These values provide a good balance between quality and latency
+ */
+const GRAIN_PLAYER_CONFIG = {
+  /** Size of each grain in seconds (smaller = less latency, larger = better quality) */
+  grainSize: 0.1,
+  /** Overlap between grains (0-1, higher = smoother but more CPU) */
+  overlap: 0.5,
+  /** Reverse playback */
+  reverse: false,
+} as const;
 
 export interface BpmUpdateEvent {
   deck: DeckId;
@@ -40,7 +67,10 @@ export interface AudioEngineConfig {
 
 export class AudioEngine {
   private players: Map<DeckId, Tone.Player>;
+  private grainPlayers: Map<DeckId, Tone.GrainPlayer>;
   private eqs: Map<DeckId, Tone.EQ3>;
+  private filters: Map<DeckId, Tone.Filter>;
+  private filterStates: Map<DeckId, { position: number; resonance: number }>;
   private gains: Map<DeckId, Tone.Gain>;
   private crossfader: Tone.CrossFade;
   private masterGain: Tone.Gain;
@@ -52,6 +82,13 @@ export class AudioEngine {
   // Track seek positions for each deck (Tone.js player.start() needs explicit offset)
   private seekPositions: Map<DeckId, number>;
 
+  // Keylock state for pitch-independent tempo control
+  private keylockStates: Map<DeckId, KeylockState>;
+  // Track which player is currently active (regular or grain)
+  private activePlayerType: Map<DeckId, 'regular' | 'grain'>;
+  // Audio buffers for loading into GrainPlayer (shared with regular Player)
+  private audioBuffers: Map<DeckId, Tone.ToneAudioBuffer>;
+
   // Realtime BPM detection
   private bpmAnalyzers: Map<DeckId, BpmAnalyzer>;
   private bpmNodes: Map<DeckId, { source: MediaStreamAudioSourceNode; streamDest: MediaStreamAudioDestinationNode }>;
@@ -60,17 +97,33 @@ export class AudioEngine {
   private onBpmUpdate?: (event: BpmUpdateEvent) => void;
   private detectedBpm: Map<DeckId, number>;
 
+  // Effects engine for DJ effects (reverb, delay, echo, flanger, phaser)
+  private effectsEngine: EffectsEngine | null = null;
+
+  // Loop state for each deck
+  private loopStates: Map<DeckId, { loopIn: number | null; loopOut: number | null; enabled: boolean }>;
+  // Loop monitor interval IDs
+  private loopMonitors: Map<DeckId, number>;
+
   constructor(config: AudioEngineConfig = {}) {
     this.players = new Map();
+    this.grainPlayers = new Map();
     this.eqs = new Map();
+    this.filters = new Map();
+    this.filterStates = new Map();
     this.gains = new Map();
     this.loadingPromises = new Map();
     this.seekPositions = new Map();
+    this.keylockStates = new Map();
+    this.activePlayerType = new Map();
+    this.audioBuffers = new Map();
     this.bpmAnalyzers = new Map();
     this.bpmNodes = new Map();
     this.bpmEventListeners = new Map();
     this.detectedBpm = new Map();
     this.onBpmUpdate = config.onBpmUpdate;
+    this.loopStates = new Map();
+    this.loopMonitors = new Map();
 
     // Initialize master gain
     this.masterGain = new Tone.Gain(config.masterVolume ?? 1);
@@ -141,12 +194,22 @@ export class AudioEngine {
 
   /**
    * Create a player instance for a deck
+   * Creates both regular Player (for normal mode) and GrainPlayer (for keylock mode)
    */
   private createPlayer(deck: DeckId): void {
-    // Create Tone.Player with minimal latency settings
+    // Create Tone.Player with minimal latency settings (used when keylock is OFF)
     const player = new Tone.Player({
       fadeIn: 0, // No fade in for instant response
       fadeOut: 0, // No fade out for instant response
+      loop: false,
+    });
+
+    // Create Tone.GrainPlayer for keylock mode (pitch-independent tempo control)
+    // GrainPlayer uses granular synthesis to decouple pitch from tempo
+    const grainPlayer = new Tone.GrainPlayer({
+      grainSize: GRAIN_PLAYER_CONFIG.grainSize,
+      overlap: GRAIN_PLAYER_CONFIG.overlap,
+      reverse: GRAIN_PLAYER_CONFIG.reverse,
       loop: false,
     });
 
@@ -159,23 +222,49 @@ export class AudioEngine {
       highFrequency: 2500, // Treble frequencies above 2500Hz
     });
 
+    // Create filter for DJ filter sweep effect
+    // Starts as lowpass at max frequency (20kHz) = effectively bypassed
+    const filter = new Tone.Filter({
+      type: 'lowpass',
+      frequency: 20000,
+      Q: 1, // Resonance (1 = no resonance, higher = more resonant peak)
+      rolloff: -24, // Steeper rolloff for more dramatic filter effect
+    });
+
     // Create gain node for volume control
     const gain = new Tone.Gain(1);
 
-    // Connect audio chain: Player -> EQ -> Gain
+    // Connect audio chains: Both players -> EQ -> Filter -> Gain
+    // Only one player will be active at a time
     player.connect(eq);
-    eq.connect(gain);
+    grainPlayer.connect(eq);
+    eq.connect(filter);
+    filter.connect(gain);
 
     this.players.set(deck, player);
+    this.grainPlayers.set(deck, grainPlayer);
     this.eqs.set(deck, eq);
+    this.filters.set(deck, filter);
+    this.filterStates.set(deck, { position: 0, resonance: 1 }); // Center position = no filtering
     this.gains.set(deck, gain);
 
-    console.log(`[AudioEngine] Created player with EQ for Deck ${deck}`);
+    // Initialize keylock state (disabled by default, use regular player)
+    this.keylockStates.set(deck, {
+      enabled: false,
+      pitchSemitones: 0,
+      playbackRate: 1,
+    });
+    this.activePlayerType.set(deck, 'regular');
+
+    console.log(`[AudioEngine] Created player with EQ and GrainPlayer for Deck ${deck}`);
   }
 
   /**
    * Load an audio track into a deck
    * Requirements: 5.2 - Pre-buffer audio for instant playback
+   *
+   * Loads the track into both the regular Player and GrainPlayer
+   * so we can seamlessly switch between keylock modes.
    *
    * @param deck - Deck identifier ('A' or 'B')
    * @param url - URL to audio file
@@ -184,7 +273,8 @@ export class AudioEngine {
     this.assertInitialized();
 
     const player = this.players.get(deck);
-    if (!player) {
+    const grainPlayer = this.grainPlayers.get(deck);
+    if (!player || !grainPlayer) {
       throw new Error(`Player not found for deck ${deck}`);
     }
 
@@ -195,17 +285,49 @@ export class AudioEngine {
       player.stop();
       console.log(`[AudioEngine] Stopped existing playback for Deck ${deck}`);
     }
+    if (grainPlayer.state === 'started') {
+      grainPlayer.stop();
+      console.log(`[AudioEngine] Stopped existing GrainPlayer for Deck ${deck}`);
+    }
 
     const loadingPromise = (async () => {
       try {
-        await this.withTimeout(
-          player.load(url),
+        // Load the audio buffer first, then assign to both players
+        const buffer = await this.withTimeout(
+          new Promise<Tone.ToneAudioBuffer>((resolve, reject) => {
+            const toneBuffer = new Tone.ToneAudioBuffer(url, () => {
+              resolve(toneBuffer);
+            }, reject);
+          }),
           this.loadTimeout,
           `Track loading for Deck ${deck}`
         );
 
+        // Store the buffer for reference
+        this.audioBuffers.set(deck, buffer);
+
+        // Assign buffer to regular Player
+        player.buffer = buffer;
+
+        // Assign buffer to GrainPlayer
+        grainPlayer.buffer = buffer;
+
         // Reset seek position to beginning for new track
         this.seekPositions.set(deck, 0);
+
+        // Reset keylock state for new track
+        const keylockState = this.keylockStates.get(deck);
+        if (keylockState) {
+          keylockState.pitchSemitones = 0;
+          keylockState.playbackRate = 1;
+          // Keep keylock enabled state as-is (user preference)
+        }
+
+        // Reset detune on GrainPlayer
+        grainPlayer.detune = 0;
+        grainPlayer.playbackRate = 1;
+        player.playbackRate = 1;
+
         console.log(`[AudioEngine] Track loaded for Deck ${deck}, position reset to beginning`);
       } catch (error) {
         console.error(`[AudioEngine] Failed to load track for Deck ${deck}:`, error);
@@ -228,8 +350,31 @@ export class AudioEngine {
   }
 
   /**
+   * Get the active player for a deck based on keylock state
+   * @param deck - Deck identifier ('A' or 'B')
+   * @returns The currently active player (regular or grain)
+   */
+  private getActivePlayer(deck: DeckId): Tone.Player | Tone.GrainPlayer {
+    const keylockState = this.keylockStates.get(deck);
+    if (keylockState?.enabled) {
+      return this.grainPlayers.get(deck)!;
+    }
+    return this.players.get(deck)!;
+  }
+
+  /**
+   * Check if any player for the deck has a loaded buffer
+   */
+  private isDeckLoaded(deck: DeckId): boolean {
+    const player = this.players.get(deck);
+    return player?.loaded ?? false;
+  }
+
+  /**
    * Start playback on a deck
    * Requirements: 1.1 - Play within 20ms
+   *
+   * Uses GrainPlayer when keylock is enabled, regular Player otherwise.
    *
    * @param deck - Deck identifier ('A' or 'B')
    */
@@ -238,22 +383,27 @@ export class AudioEngine {
     const startTime = performance.now();
 
     const player = this.players.get(deck);
-    if (!player) {
+    const grainPlayer = this.grainPlayers.get(deck);
+    if (!player || !grainPlayer) {
       throw new Error(`Player not found for deck ${deck}`);
     }
 
-    if (!player.loaded) {
+    if (!this.isDeckLoaded(deck)) {
       throw new DJDeckError(
         DJDeckErrorType.PLAYBACK_FAILED,
         `Cannot play: Track not loaded for Deck ${deck}`
       );
     }
 
+    const keylockState = this.keylockStates.get(deck);
+    const activePlayer = this.getActivePlayer(deck);
+    const offset = this.seekPositions.get(deck) ?? 0;
+
     // Start playback from the stored seek position (or 0 if none)
-    if (player.state !== 'started') {
-      const offset = this.seekPositions.get(deck) ?? 0;
-      player.start(undefined, offset);
-      console.log(`[AudioEngine] Deck ${deck} starting from offset ${offset.toFixed(2)}s`);
+    if (activePlayer.state !== 'started') {
+      activePlayer.start(undefined, offset);
+      const playerType = keylockState?.enabled ? 'GrainPlayer (keylock)' : 'Player';
+      console.log(`[AudioEngine] Deck ${deck} ${playerType} starting from offset ${offset.toFixed(2)}s`);
     }
 
     const latency = performance.now() - startTime;
@@ -268,6 +418,8 @@ export class AudioEngine {
    * Stop playback on a deck
    * Requirements: 1.2 - Pause within 20ms
    *
+   * Stops the active player (regular or grain based on keylock state).
+   *
    * @param deck - Deck identifier ('A' or 'B')
    */
   pause(deck: DeckId): void {
@@ -275,15 +427,31 @@ export class AudioEngine {
     const startTime = performance.now();
 
     const player = this.players.get(deck);
-    if (!player) {
+    const grainPlayer = this.grainPlayers.get(deck);
+    if (!player || !grainPlayer) {
       throw new Error(`Player not found for deck ${deck}`);
     }
 
-    // Store current position before stopping so we can resume from here
+    // Stop whichever player is currently playing and store position
+    // We check both players in case keylock was toggled during playback
+    let currentPos = 0;
+    let stopped = false;
+
     if (player.state === 'started') {
-      const currentPos = player.immediate();
-      this.seekPositions.set(deck, currentPos);
+      currentPos = player.immediate();
       player.stop();
+      stopped = true;
+    }
+    if (grainPlayer.state === 'started') {
+      // GrainPlayer doesn't have .immediate(), use stored seek position
+      // This is approximate but sufficient for pause/resume
+      currentPos = this.seekPositions.get(deck) ?? 0;
+      grainPlayer.stop();
+      stopped = true;
+    }
+
+    if (stopped) {
+      this.seekPositions.set(deck, currentPos);
       console.log(`[AudioEngine] Deck ${deck} paused at ${currentPos.toFixed(2)}s`);
     }
 
@@ -299,6 +467,8 @@ export class AudioEngine {
    * Seek to a specific position in the track
    * Requirements: 1.3 - Cue within 20ms
    *
+   * Works with both regular Player and GrainPlayer.
+   *
    * @param deck - Deck identifier ('A' or 'B')
    * @param time - Time in seconds
    */
@@ -307,11 +477,12 @@ export class AudioEngine {
     const startTime = performance.now();
 
     const player = this.players.get(deck);
-    if (!player) {
+    const grainPlayer = this.grainPlayers.get(deck);
+    if (!player || !grainPlayer) {
       throw new Error(`Player not found for deck ${deck}`);
     }
 
-    if (!player.loaded) {
+    if (!this.isDeckLoaded(deck)) {
       throw new DJDeckError(
         DJDeckErrorType.PLAYBACK_FAILED,
         `Cannot seek: Track not loaded for Deck ${deck}`
@@ -323,9 +494,14 @@ export class AudioEngine {
     // we need to pass the offset to player.start()
     this.seekPositions.set(deck, time);
 
-    // If currently playing, seek immediately
+    // If currently playing, seek immediately on the active player
     if (player.state === 'started') {
       player.seek(time);
+    }
+    if (grainPlayer.state === 'started') {
+      // GrainPlayer doesn't have seek(), need to restart at new position
+      grainPlayer.stop();
+      grainPlayer.start(undefined, time);
     }
 
     const latency = performance.now() - startTime;
@@ -340,6 +516,8 @@ export class AudioEngine {
    * Cue: Jump to cue point and start playing
    * Requirements: 1.3 - Cue within 20ms
    *
+   * Uses the active player based on keylock state.
+   *
    * @param deck - Deck identifier ('A' or 'B')
    * @param cuePoint - Cue point position in seconds
    */
@@ -348,24 +526,32 @@ export class AudioEngine {
     const startTime = performance.now();
 
     const player = this.players.get(deck);
-    if (!player) {
+    const grainPlayer = this.grainPlayers.get(deck);
+    if (!player || !grainPlayer) {
       throw new Error(`Player not found for deck ${deck}`);
     }
 
-    if (!player.loaded) {
+    if (!this.isDeckLoaded(deck)) {
       throw new DJDeckError(
         DJDeckErrorType.PLAYBACK_FAILED,
         `Cannot cue: Track not loaded for Deck ${deck}`
       );
     }
 
-    // Stop if playing
+    // Stop both players if playing
     if (player.state === 'started') {
       player.stop();
     }
+    if (grainPlayer.state === 'started') {
+      grainPlayer.stop();
+    }
 
-    // Seek to cue point and start
-    player.start(undefined, cuePoint);
+    // Store cue point as seek position
+    this.seekPositions.set(deck, cuePoint);
+
+    // Seek to cue point and start on the active player
+    const activePlayer = this.getActivePlayer(deck);
+    activePlayer.start(undefined, cuePoint);
 
     const latency = performance.now() - startTime;
     console.log(`[AudioEngine] Deck ${deck} cue latency: ${latency.toFixed(2)}ms`);
@@ -452,6 +638,46 @@ export class AudioEngine {
 
     console.log(
       `[AudioEngine] Crossfader position: ${clampedPosition.toFixed(2)} (fade: ${fadeValue.toFixed(2)})`
+    );
+  }
+
+  /**
+   * Set crossfader with pre-calculated curve volumes
+   * This bypasses the Tone.CrossFade equal-power curve and applies custom curve volumes directly
+   * Requirements: 3.1-3.4 - Smooth crossfading without clicks/pops
+   *
+   * @param volA - Volume for Deck A (0-1)
+   * @param volB - Volume for Deck B (0-1)
+   */
+  setCrossfadeWithCurve(volA: number, volB: number): void {
+    this.assertInitialized();
+
+    // Clamp volumes to valid range
+    const clampedVolA = Math.max(0, Math.min(1, volA));
+    const clampedVolB = Math.max(0, Math.min(1, volB));
+
+    // Get the crossfader gain nodes
+    // Tone.CrossFade internally has two gain nodes at a.gain and b.gain
+    // We'll use rampTo for smooth transitions to prevent audio clicks
+    const rampTime = 0.02; // 20ms ramp for smooth transitions
+
+    // Access the internal gain values of the crossfader
+    // Tone.CrossFade uses fade value to control a/b balance
+    // But we want to control the volumes directly for custom curves
+    // So we'll set the crossfader to center (0.5) and use the deck gains instead
+    this.crossfader.fade.value = 0.5;
+
+    // Apply curve volumes to the deck gain nodes
+    const gainA = this.gains.get('A');
+    const gainB = this.gains.get('B');
+
+    if (gainA && gainB) {
+      gainA.gain.rampTo(clampedVolA, rampTime);
+      gainB.gain.rampTo(clampedVolB, rampTime);
+    }
+
+    console.log(
+      `[AudioEngine] Crossfade with curve: volA=${clampedVolA.toFixed(2)}, volB=${clampedVolB.toFixed(2)}`
     );
   }
 
@@ -615,6 +841,102 @@ export class AudioEngine {
   }
 
   /**
+   * Set filter for a deck using a bi-directional control
+   *
+   * DJ Filter behavior:
+   * - Position 0 (center): No filtering (bypass)
+   * - Position -1 to 0 (left): Low-pass filter, frequency decreases as you turn left
+   * - Position 0 to 1 (right): High-pass filter, frequency increases as you turn right
+   *
+   * @param deck - Deck identifier ('A' or 'B')
+   * @param position - Filter position: -1 (full LP) to 1 (full HP), 0 is bypass
+   * @param resonance - Filter resonance/Q factor (0.5 to 15, default 1)
+   */
+  setFilter(deck: DeckId, position: number, resonance: number = 1): void {
+    this.assertInitialized();
+
+    const filter = this.filters.get(deck);
+    if (!filter) {
+      throw new Error(`Filter not found for deck ${deck}`);
+    }
+
+    // Clamp position to valid range
+    const clampedPosition = Math.max(-1, Math.min(1, position));
+    // Clamp resonance (Q) to safe range (0.5 to 15)
+    const clampedResonance = Math.max(0.5, Math.min(15, resonance));
+
+    // Store the filter state
+    this.filterStates.set(deck, { position: clampedPosition, resonance: clampedResonance });
+
+    // Define the bypass zone (small area around center where filter is off)
+    const BYPASS_THRESHOLD = 0.02; // 2% dead zone
+
+    if (Math.abs(clampedPosition) < BYPASS_THRESHOLD) {
+      // Center position: bypass filter (set lowpass at max frequency)
+      filter.type = 'lowpass';
+      filter.frequency.rampTo(20000, 0.05);
+      filter.Q.rampTo(1, 0.05); // Low Q when bypassed
+      console.log(`[AudioEngine] Deck ${deck} filter bypassed (center position)`);
+    } else if (clampedPosition < 0) {
+      // Left of center: Low-pass filter
+      // Map -1 to 0 -> 20Hz to 20000Hz (logarithmic scale)
+      // -1 = 20Hz (full bass), approaching 0 = 20000Hz (bypass)
+      const normalizedPos = Math.abs(clampedPosition); // 0 to 1, where 1 is full left
+      const minFreq = 20;
+      const maxFreq = 20000;
+      const logMin = Math.log(minFreq);
+      const logMax = Math.log(maxFreq);
+      // Invert: 0 -> maxFreq, 1 -> minFreq
+      const logFreq = logMax - normalizedPos * (logMax - logMin);
+      const frequency = Math.exp(logFreq);
+
+      filter.type = 'lowpass';
+      filter.frequency.rampTo(frequency, 0.05);
+      filter.Q.rampTo(clampedResonance, 0.05);
+      console.log(`[AudioEngine] Deck ${deck} lowpass filter: ${frequency.toFixed(0)}Hz, Q=${clampedResonance.toFixed(1)}`);
+    } else {
+      // Right of center: High-pass filter
+      // Map 0 to 1 -> 20Hz to 20000Hz (logarithmic scale)
+      // approaching 0 = 20Hz (bypass), 1 = 20000Hz (full treble)
+      const normalizedPos = clampedPosition; // 0 to 1, where 1 is full right
+      const minFreq = 20;
+      const maxFreq = 20000;
+      const logMin = Math.log(minFreq);
+      const logMax = Math.log(maxFreq);
+      const logFreq = logMin + normalizedPos * (logMax - logMin);
+      const frequency = Math.exp(logFreq);
+
+      filter.type = 'highpass';
+      filter.frequency.rampTo(frequency, 0.05);
+      filter.Q.rampTo(clampedResonance, 0.05);
+      console.log(`[AudioEngine] Deck ${deck} highpass filter: ${frequency.toFixed(0)}Hz, Q=${clampedResonance.toFixed(1)}`);
+    }
+  }
+
+  /**
+   * Get current filter state for a deck
+   *
+   * @param deck - Deck identifier ('A' or 'B')
+   * @returns Object with position (-1 to 1) and resonance (Q factor)
+   */
+  getFilter(deck: DeckId): { position: number; resonance: number } {
+    const state = this.filterStates.get(deck);
+    if (!state) {
+      return { position: 0, resonance: 1 };
+    }
+    return { ...state };
+  }
+
+  /**
+   * Reset filter to bypass (center position)
+   *
+   * @param deck - Deck identifier ('A' or 'B')
+   */
+  resetFilter(deck: DeckId): void {
+    this.setFilter(deck, 0, 1);
+  }
+
+  /**
    * Initialize realtime BPM detection for a deck
    * Uses the realtime-bpm-analyzer library with event-based API
    *
@@ -769,12 +1091,299 @@ export class AudioEngine {
     this.onBpmUpdate = callback;
   }
 
+  // =========================================================================
+  // DJ Effects Methods
+  // =========================================================================
+
+  /**
+   * Initialize the effects engine for a deck
+   * Should be called after the audio engine is initialized
+   *
+   * @param deck - Deck identifier ('A' or 'B')
+   */
+  initEffects(deck: DeckId): void {
+    this.assertInitialized();
+
+    if (!this.effectsEngine) {
+      this.effectsEngine = getEffectsEngine();
+    }
+
+    // Initialize effects for this deck
+    const { input, output } = this.effectsEngine.init(deck);
+
+    // Rewire audio chain: Filter -> Effects -> Gain
+    // Disconnect filter from gain, insert effects chain
+    const filter = this.filters.get(deck);
+    const gain = this.gains.get(deck);
+
+    if (filter && gain) {
+      filter.disconnect(gain);
+      filter.connect(input);
+      output.connect(gain);
+      console.log(`[AudioEngine] Effects chain inserted for Deck ${deck}`);
+    }
+  }
+
+  /**
+   * Set effect wet/dry mix for a deck
+   *
+   * @param deck - Deck identifier ('A' or 'B')
+   * @param effectType - Effect type (reverb, delay, echo, flanger, phaser)
+   * @param wet - Wet amount (0-1)
+   */
+  setEffectWet(deck: DeckId, effectType: EffectType, wet: number): void {
+    if (!this.effectsEngine) {
+      console.warn('[AudioEngine] Effects engine not initialized');
+      return;
+    }
+    this.effectsEngine.setEffectWet(deck, effectType, wet);
+  }
+
+  /**
+   * Toggle effect on/off for a deck
+   *
+   * @param deck - Deck identifier ('A' or 'B')
+   * @param effectType - Effect type (reverb, delay, echo, flanger, phaser)
+   * @returns New enabled state
+   */
+  toggleEffect(deck: DeckId, effectType: EffectType): boolean {
+    if (!this.effectsEngine) {
+      console.warn('[AudioEngine] Effects engine not initialized');
+      return false;
+    }
+    return this.effectsEngine.toggleEffect(deck, effectType);
+  }
+
+  /**
+   * Set effect parameter for a deck
+   *
+   * @param deck - Deck identifier ('A' or 'B')
+   * @param effectType - Effect type (reverb, delay, echo, flanger, phaser)
+   * @param param - Parameter name
+   * @param value - Parameter value
+   */
+  setEffectParam(deck: DeckId, effectType: EffectType, param: string, value: number): void {
+    if (!this.effectsEngine) {
+      console.warn('[AudioEngine] Effects engine not initialized');
+      return;
+    }
+    this.effectsEngine.setEffectParam(deck, effectType, param, value);
+  }
+
+  /**
+   * Update effects engine BPM for beat-synced effects
+   *
+   * @param deck - Deck identifier ('A' or 'B')
+   * @param bpm - Current BPM
+   */
+  setEffectsBPM(deck: DeckId, bpm: number): void {
+    if (!this.effectsEngine) {
+      return;
+    }
+    this.effectsEngine.setBPM(deck, bpm);
+  }
+
+  /**
+   * Get all effects state for a deck
+   *
+   * @param deck - Deck identifier ('A' or 'B')
+   * @returns Array of effect states
+   */
+  getEffects(deck: DeckId): ReturnType<EffectsEngine['getAllEffects']> {
+    if (!this.effectsEngine) {
+      return [];
+    }
+    return this.effectsEngine.getAllEffects(deck);
+  }
+
+  /**
+   * Check if effects engine is initialized
+   */
+  hasEffectsEngine(): boolean {
+    return this.effectsEngine !== null && this.effectsEngine.getIsInitialized();
+  }
+
+  // =========================================================================
+  // Loop Control Methods
+  // =========================================================================
+
+  /**
+   * Set loop points for a deck
+   *
+   * @param deck - Deck identifier ('A' or 'B')
+   * @param loopIn - Loop start point in seconds
+   * @param loopOut - Loop end point in seconds
+   */
+  setLoop(deck: DeckId, loopIn: number | null, loopOut: number | null): void {
+    this.assertInitialized();
+
+    let loopState = this.loopStates.get(deck);
+    if (!loopState) {
+      loopState = { loopIn: null, loopOut: null, enabled: false };
+      this.loopStates.set(deck, loopState);
+    }
+
+    loopState.loopIn = loopIn;
+    loopState.loopOut = loopOut;
+
+    console.log(`[AudioEngine] Deck ${deck} loop points set: in=${loopIn?.toFixed(2)}s, out=${loopOut?.toFixed(2)}s`);
+  }
+
+  /**
+   * Enable or disable loop playback for a deck
+   * When enabled, playback will jump back to loopIn when reaching loopOut
+   *
+   * @param deck - Deck identifier ('A' or 'B')
+   * @param enabled - Whether to enable the loop
+   */
+  enableLoop(deck: DeckId, enabled: boolean): void {
+    this.assertInitialized();
+
+    let loopState = this.loopStates.get(deck);
+    if (!loopState) {
+      loopState = { loopIn: null, loopOut: null, enabled: false };
+      this.loopStates.set(deck, loopState);
+    }
+
+    loopState.enabled = enabled;
+
+    if (enabled && loopState.loopIn !== null && loopState.loopOut !== null) {
+      // Start loop monitoring
+      this.startLoopMonitor(deck);
+      console.log(`[AudioEngine] Deck ${deck} loop enabled: ${loopState.loopIn.toFixed(2)}s - ${loopState.loopOut.toFixed(2)}s`);
+    } else {
+      // Stop loop monitoring
+      this.stopLoopMonitor(deck);
+      console.log(`[AudioEngine] Deck ${deck} loop disabled`);
+    }
+  }
+
+  /**
+   * Get current loop state for a deck
+   *
+   * @param deck - Deck identifier ('A' or 'B')
+   * @returns Loop state object with loopIn, loopOut, and enabled
+   */
+  getLoopState(deck: DeckId): { loopIn: number | null; loopOut: number | null; enabled: boolean } {
+    const loopState = this.loopStates.get(deck);
+    if (!loopState) {
+      return { loopIn: null, loopOut: null, enabled: false };
+    }
+    return { ...loopState };
+  }
+
+  /**
+   * Start monitoring loop boundaries during playback
+   * Uses a high-frequency interval to check if playback has reached loopOut
+   * and jumps back to loopIn when it does
+   *
+   * @param deck - Deck identifier ('A' or 'B')
+   */
+  private startLoopMonitor(deck: DeckId): void {
+    // Stop any existing monitor
+    this.stopLoopMonitor(deck);
+
+    const loopState = this.loopStates.get(deck);
+    if (!loopState || loopState.loopIn === null || loopState.loopOut === null) {
+      return;
+    }
+
+    const player = this.players.get(deck);
+    if (!player) {
+      return;
+    }
+
+    // Monitor at ~60fps (16.67ms) for precise loop timing
+    // This is crucial for seamless loops - any slower and the loop point might be missed
+    const LOOP_MONITOR_INTERVAL_MS = 10;
+
+    const monitorId = window.setInterval(() => {
+      const currentLoopState = this.loopStates.get(deck);
+      if (!currentLoopState || !currentLoopState.enabled ||
+          currentLoopState.loopIn === null || currentLoopState.loopOut === null) {
+        this.stopLoopMonitor(deck);
+        return;
+      }
+
+      // Check both regular player and grain player
+      const regularPlayer = this.players.get(deck);
+      const grainPlayer = this.grainPlayers.get(deck);
+
+      let currentTime = 0;
+      let isPlaying = false;
+
+      if (regularPlayer && regularPlayer.state === 'started') {
+        currentTime = regularPlayer.immediate();
+        isPlaying = true;
+      } else if (grainPlayer && grainPlayer.state === 'started') {
+        // GrainPlayer doesn't have immediate(), use stored seek position as approximation
+        currentTime = this.seekPositions.get(deck) ?? 0;
+        isPlaying = true;
+      }
+
+      if (!isPlaying) {
+        return;
+      }
+
+      // Check if we've reached or passed the loop out point
+      // Add a small buffer to handle timing precision issues
+      if (currentTime >= currentLoopState.loopOut - 0.005) {
+        // Jump back to loop in point
+        console.log(`[AudioEngine] Deck ${deck} loop: jumping from ${currentTime.toFixed(3)}s to ${currentLoopState.loopIn.toFixed(3)}s`);
+
+        if (regularPlayer && regularPlayer.state === 'started') {
+          regularPlayer.seek(currentLoopState.loopIn);
+        }
+        if (grainPlayer && grainPlayer.state === 'started') {
+          grainPlayer.stop();
+          grainPlayer.start(undefined, currentLoopState.loopIn);
+        }
+
+        // Update stored seek position
+        this.seekPositions.set(deck, currentLoopState.loopIn);
+      }
+    }, LOOP_MONITOR_INTERVAL_MS);
+
+    this.loopMonitors.set(deck, monitorId);
+    console.log(`[AudioEngine] Deck ${deck} loop monitor started`);
+  }
+
+  /**
+   * Stop loop monitoring for a deck
+   *
+   * @param deck - Deck identifier ('A' or 'B')
+   */
+  private stopLoopMonitor(deck: DeckId): void {
+    const monitorId = this.loopMonitors.get(deck);
+    if (monitorId !== undefined) {
+      window.clearInterval(monitorId);
+      this.loopMonitors.delete(deck);
+      console.log(`[AudioEngine] Deck ${deck} loop monitor stopped`);
+    }
+  }
+
+  /**
+   * Clear loop points and disable loop for a deck
+   *
+   * @param deck - Deck identifier ('A' or 'B')
+   */
+  clearLoop(deck: DeckId): void {
+    this.stopLoopMonitor(deck);
+    this.loopStates.set(deck, { loopIn: null, loopOut: null, enabled: false });
+    console.log(`[AudioEngine] Deck ${deck} loop cleared`);
+  }
+
   /**
    * Clean up resources
    * Requirements: 7.3 - Proper resource cleanup
    */
   destroy(): void {
     console.log('[AudioEngine] Destroying...');
+
+    // Stop all loop monitors
+    this.loopMonitors.forEach((_, deck) => {
+      this.stopLoopMonitor(deck);
+    });
 
     // Stop all players
     this.players.forEach((player, deck) => {
@@ -790,6 +1399,12 @@ export class AudioEngine {
       eq.disconnect();
       eq.dispose();
       console.log(`[AudioEngine] Disposed EQ for Deck ${deck}`);
+    });
+
+    this.filters.forEach((filter, deck) => {
+      filter.disconnect();
+      filter.dispose();
+      console.log(`[AudioEngine] Disposed filter for Deck ${deck}`);
     });
 
     this.gains.forEach((gain, deck) => {
@@ -829,9 +1444,18 @@ export class AudioEngine {
       }
     });
 
+    // Clean up effects engine
+    if (this.effectsEngine) {
+      this.effectsEngine.destroy();
+      this.effectsEngine = null;
+      console.log('[AudioEngine] Disposed effects engine');
+    }
+
     // Clear maps
     this.players.clear();
     this.eqs.clear();
+    this.filters.clear();
+    this.filterStates.clear();
     this.gains.clear();
     this.loadingPromises.clear();
     this.seekPositions.clear();
@@ -839,6 +1463,8 @@ export class AudioEngine {
     this.bpmNodes.clear();
     this.bpmEventListeners.clear();
     this.detectedBpm.clear();
+    this.loopStates.clear();
+    this.loopMonitors.clear();
 
     this.isInitialized = false;
 

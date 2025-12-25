@@ -166,14 +166,61 @@ export function PlaylistSidebar({
 
   return (
     <div className={`${styles.container} ${className || ''}`}>
-      {/* Header */}
+      {/* Header with New Playlist button */}
       <div className={styles.header}>
         <span className={styles.title}>Playlists</span>
-        {onToggleCollapse && (
-          <button className={styles.collapseBtn} onClick={onToggleCollapse} title="Collapse">
-            ◀
-          </button>
-        )}
+        <div className={styles.headerActions}>
+          {isCreating ? (
+            <div className={styles.createFormInline}>
+              <input
+                type="text"
+                value={newPlaylistName}
+                onChange={(e) => setNewPlaylistName(e.target.value)}
+                placeholder="Name..."
+                className={styles.createInputInline}
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleCreatePlaylist();
+                  if (e.key === 'Escape') {
+                    setIsCreating(false);
+                    setNewPlaylistName('');
+                  }
+                }}
+              />
+              <button
+                className={styles.createConfirmInline}
+                onClick={handleCreatePlaylist}
+                disabled={!newPlaylistName.trim()}
+                title="Create"
+              >
+                ✓
+              </button>
+              <button
+                className={styles.createCancelInline}
+                onClick={() => {
+                  setIsCreating(false);
+                  setNewPlaylistName('');
+                }}
+                title="Cancel"
+              >
+                ✕
+              </button>
+            </div>
+          ) : (
+            <button
+              className={styles.newPlaylistBtn}
+              onClick={() => setIsCreating(true)}
+              title="New Playlist"
+            >
+              +
+            </button>
+          )}
+          {onToggleCollapse && (
+            <button className={styles.collapseBtn} onClick={onToggleCollapse} title="Collapse">
+              ◀
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Favorite Banks */}
@@ -216,52 +263,6 @@ export function PlaylistSidebar({
       {/* Standalone Playlists */}
       <div className={styles.section}>
         {standalonePlaylists.map(renderPlaylistItem)}
-      </div>
-
-      {/* Create playlist */}
-      <div className={styles.createSection}>
-        {isCreating ? (
-          <div className={styles.createForm}>
-            <input
-              type="text"
-              value={newPlaylistName}
-              onChange={(e) => setNewPlaylistName(e.target.value)}
-              placeholder="Playlist name..."
-              className={styles.createInput}
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleCreatePlaylist();
-                if (e.key === 'Escape') {
-                  setIsCreating(false);
-                  setNewPlaylistName('');
-                }
-              }}
-            />
-            <button
-              className={styles.createConfirm}
-              onClick={handleCreatePlaylist}
-              disabled={!newPlaylistName.trim()}
-            >
-              ✓
-            </button>
-            <button
-              className={styles.createCancel}
-              onClick={() => {
-                setIsCreating(false);
-                setNewPlaylistName('');
-              }}
-            >
-              ✕
-            </button>
-          </div>
-        ) : (
-          <button
-            className={styles.createBtn}
-            onClick={() => setIsCreating(true)}
-          >
-            <span>+</span> New Playlist
-          </button>
-        )}
       </div>
     </div>
   );

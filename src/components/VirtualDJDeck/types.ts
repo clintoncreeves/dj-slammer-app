@@ -4,6 +4,8 @@
  * This file contains all TypeScript interfaces and types for the Virtual DJ Deck component.
  */
 
+import type { SpectralWaveformData } from '../../utils/waveformUtils';
+
 /**
  * Configuration for a single deck (A or B)
  */
@@ -75,12 +77,61 @@ export interface DeckState {
   /** Pre-computed waveform data for visualization */
   waveformData: number[];
 
+  /** Spectral waveform data with frequency analysis (for colored waveforms) */
+  spectralWaveformData: SpectralWaveformData | null;
+
+  /** Whether to display colored (spectral) waveform vs monochrome */
+  showSpectralColors: boolean;
+
   /** EQ low band value in dB (-12 to +12) */
   eqLow: number;
   /** EQ mid band value in dB (-12 to +12) */
   eqMid: number;
   /** EQ high band value in dB (-12 to +12) */
   eqHigh: number;
+
+  /** Filter position: -1 (full lowpass) to 1 (full highpass), 0 is bypass */
+  filterPosition: number;
+  /** Filter resonance/Q factor (0.5 to 15) */
+  filterResonance: number;
+
+  /** Loop start point in seconds (null if not set) */
+  loopIn: number | null;
+  /** Loop end point in seconds (null if not set) */
+  loopOut: number | null;
+  /** Whether looping is currently active */
+  loopActive: boolean;
+  /** Loop length in beats (1/8, 1/4, 1/2, 1, 2, 4, 8, 16) */
+  loopLength: number;
+
+  /** Detected musical key (e.g., "A", "C#", "F") */
+  detectedKey: string;
+  /** Detected key mode (major or minor) */
+  detectedKeyMode: 'major' | 'minor';
+  /** Camelot wheel code for harmonic mixing (e.g., "8A", "11B") */
+  camelotCode: string;
+
+  /** Active effects for this deck */
+  effects: DeckEffect[];
+}
+
+/**
+ * Effect types available in the DJ effects system
+ */
+export type EffectType = 'reverb' | 'delay' | 'echo' | 'flanger' | 'phaser';
+
+/**
+ * Effect state for a single effect
+ */
+export interface DeckEffect {
+  /** Type of effect */
+  type: EffectType;
+  /** Wet/dry mix (0-1, 0 = fully dry, 1 = fully wet) */
+  wet: number;
+  /** Whether the effect is enabled */
+  enabled: boolean;
+  /** Effect-specific parameters */
+  params: Record<string, number>;
 }
 
 /**
@@ -144,6 +195,166 @@ export class DJDeckError extends Error {
     this.name = 'DJDeckError';
   }
 }
+
+/**
+ * Crossfader curve types
+ * Each curve provides a different mixing characteristic
+ */
+export type CrossfaderCurveType = 'linear' | 'constantPower' | 'fastCut' | 'slowCut';
+
+/**
+ * Crossfader curve configuration
+ */
+export interface CrossfaderCurve {
+  type: CrossfaderCurveType;
+  /** Display name for UI */
+  name: string;
+  /** Description of the curve behavior */
+  description: string;
+}
+
+/**
+ * Available crossfader curves with their display names and descriptions
+ */
+export const CROSSFADER_CURVES: Record<CrossfaderCurveType, CrossfaderCurve> = {
+  linear: {
+    type: 'linear',
+    name: 'Linear',
+    description: 'Smooth, even blend between decks',
+  },
+  constantPower: {
+    type: 'constantPower',
+    name: 'Constant Power',
+    description: 'Equal power curve - prevents volume dip at center',
+  },
+  fastCut: {
+    type: 'fastCut',
+    name: 'Fast Cut',
+    description: 'Quick transitions at edges - scratch DJ style',
+  },
+  slowCut: {
+    type: 'slowCut',
+    name: 'Slow Cut',
+    description: 'Gradual S-curve transition - mixing style',
+  },
+};
+
+/**
+ * Calculate volume levels for each deck based on crossfader position and curve type
+ *
+ * @param position - Crossfader position: 0 = full A, 0.5 = center, 1 = full B
+ * @param curveType - The type of crossfader curve to apply
+ * @returns Object with volA and volB values (0-1)
+ */
+export function calculateCrossfaderVolumes(
+  position: number,
+  curveType: CrossfaderCurveType
+): { volA: number; volB: number } {
+  // Clamp position to valid range
+  const pos = Math.max(0, Math.min(1, position));
+
+  switch (curveType) {
+    case 'linear':
+      // Simple linear crossfade
+      return {
+        volA: 1 - pos,
+        volB: pos,
+      };
+
+    case 'constantPower':
+      // Equal power curve using sine/cosine
+      // This maintains perceived loudness at center position
+      return {
+        volA: Math.cos(pos * Math.PI / 2),
+        volB: Math.sin(pos * Math.PI / 2),
+      };
+
+    case 'fastCut':
+      // Steep transitions at edges with quick cut
+      // Center region has both at moderate volume
+      if (pos < 0.1) {
+        // Full A region (0-10%)
+        return { volA: 1, volB: pos / 0.1 * 0.5 };
+      } else if (pos > 0.9) {
+        // Full B region (90-100%)
+        return { volA: (1 - pos) / 0.1 * 0.5, volB: 1 };
+      } else {
+        // Center region (10-90%) - both at 50%
+        return { volA: 0.5, volB: 0.5 };
+      }
+
+    case 'slowCut':
+      // Smooth S-curve using smoothstep function
+      // Provides gradual transition ideal for mixing
+      const smoothstep = (x: number): number => {
+        return x * x * (3 - 2 * x);
+      };
+      const smoothB = smoothstep(pos);
+      return {
+        volA: 1 - smoothB,
+        volB: smoothB,
+      };
+
+    default:
+      // Fallback to linear
+      return {
+        volA: 1 - pos,
+        volB: pos,
+      };
+  }
+}
+
+// ============================================================================
+// BPM and Key Detection Types
+// ============================================================================
+
+/**
+ * Result from a single BPM detection method
+ */
+export interface BPMDetectionResult {
+  /** Detected BPM value */
+  bpm: number;
+  /** Confidence score (0-100) */
+  confidence: number;
+  /** Detection method used */
+  method: 'autocorrelation' | 'peak-detection' | 'combined';
+}
+
+/**
+ * Result from key detection
+ */
+export interface KeyDetectionResult {
+  /** Musical key (A-G with sharps/flats) */
+  key: string;
+  /** Key mode */
+  mode: 'major' | 'minor';
+  /** Camelot wheel code for harmonic mixing (e.g., "8A", "11B") */
+  camelotCode: string;
+  /** Confidence score (0-100) */
+  confidence: number;
+}
+
+/**
+ * Combined result from BPM and key detection
+ */
+export interface BPMKeyDetectionResult {
+  /** Detected BPM value */
+  bpm: number;
+  /** BPM detection confidence (0-100) */
+  bpmConfidence: number;
+  /** Musical key (A-G with sharps/flats) */
+  key: string;
+  /** Key mode */
+  keyMode: 'major' | 'minor';
+  /** Camelot wheel code for harmonic mixing */
+  camelotCode: string;
+  /** Key detection confidence (0-100) */
+  keyConfidence: number;
+}
+
+// ============================================================================
+// Track Types
+// ============================================================================
 
 /**
  * Track metadata
