@@ -106,6 +106,28 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStart, isLoading
         <p className={styles.hint}>
           Your browser will ask for audio permission
         </p>
+
+        {/* Help links */}
+        <div className={styles.helpLinks}>
+          <a
+            href="https://github.com/clintoncreeves/dj-slammer-app/blob/main/docs/TANNER_DJ_GUIDE.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.helpLink}
+          >
+            <span className={styles.helpIcon}>📖</span>
+            <span>DJ Guide</span>
+          </a>
+          <a
+            href="https://github.com/clintoncreeves/dj-slammer-app/blob/main/docs/TANNER_MIDI_SETUP.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.helpLink}
+          >
+            <span className={styles.helpIcon}>🎛️</span>
+            <span>MIDI Setup</span>
+          </a>
+        </div>
       </div>
 
       {/* Footer */}
