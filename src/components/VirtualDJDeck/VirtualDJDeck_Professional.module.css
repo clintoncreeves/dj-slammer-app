@@ -121,6 +121,42 @@
   flex-shrink: 0;
 }
 
+.waveformContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.autoCueButton {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.65rem;
+  font-family: 'Space Mono', monospace;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid var(--button-color, #00F0FF);
+  border-radius: 4px;
+  color: var(--button-color, #00F0FF);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.autoCueButton:hover:not(:disabled) {
+  background: rgba(var(--button-color-rgb, 0, 240, 255), 0.2);
+  box-shadow: 0 0 8px rgba(var(--button-color-rgb, 0, 240, 255), 0.4);
+}
+
+.autoCueButton:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 .bpmDisplay {
   margin-bottom: 0.25rem;
   flex-shrink: 0;

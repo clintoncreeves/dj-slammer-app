@@ -216,4 +216,7 @@ export interface UseDJMentorResult {
 
   /** Get tips relevant to current context */
   getContextualTips: () => MentorTip[];
+
+  /** Show a system message (for feedback on auto-actions) */
+  showSystemMessage: (message: string, variant?: 'info' | 'success') => void;
 }

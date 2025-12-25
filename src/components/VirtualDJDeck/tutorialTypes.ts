@@ -20,7 +20,7 @@ export interface TutorialStep {
   highlightTarget: {
     type: 'button' | 'slider' | 'deck' | 'crossfader';
     deck?: DeckId;
-    control?: 'play' | 'pause' | 'cue' | 'setCue' | 'tempo' | 'volume';
+    control?: 'play' | 'pause' | 'cue' | 'setCue' | 'tempo' | 'volume' | 'eq-low' | 'eq-mid' | 'eq-high';
   };
 
   /** Function to check if this step has been completed */

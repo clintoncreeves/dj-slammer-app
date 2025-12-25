@@ -164,24 +164,33 @@ export function Waveform({
       ctx.setLineDash([]);
     }
 
-    // Draw playhead
-    ctx.strokeStyle = '#FFFFFF';
-    ctx.lineWidth = 2 * dpr;
-    ctx.beginPath();
-    ctx.moveTo(playheadX, 0);
-    ctx.lineTo(playheadX, h);
-    ctx.stroke();
-
-    // Playhead glow
-    ctx.shadowColor = color;
-    ctx.shadowBlur = 10 * dpr;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2 * dpr;
+    // Draw playhead - bright yellow for maximum visibility
+    ctx.strokeStyle = '#FFFF00';
+    ctx.lineWidth = 3 * dpr;
+    ctx.shadowColor = '#FFFF00';
+    ctx.shadowBlur = 15 * dpr;
     ctx.beginPath();
     ctx.moveTo(playheadX, 0);
     ctx.lineTo(playheadX, h);
     ctx.stroke();
     ctx.shadowBlur = 0;
+
+    // Draw playhead triangle marker at top
+    ctx.fillStyle = '#FFFF00';
+    ctx.beginPath();
+    ctx.moveTo(playheadX, 0);
+    ctx.lineTo(playheadX - 6 * dpr, 10 * dpr);
+    ctx.lineTo(playheadX + 6 * dpr, 10 * dpr);
+    ctx.closePath();
+    ctx.fill();
+
+    // Draw playhead triangle marker at bottom
+    ctx.beginPath();
+    ctx.moveTo(playheadX, h);
+    ctx.lineTo(playheadX - 6 * dpr, h - 10 * dpr);
+    ctx.lineTo(playheadX + 6 * dpr, h - 10 * dpr);
+    ctx.closePath();
+    ctx.fill();
   }, [waveformData, color, canvasWidth, height, playheadPosition, isHovering, hoverPosition, suggestedCuePoints, cuePoint, duration]);
 
   // Set up canvas resolution and track container size

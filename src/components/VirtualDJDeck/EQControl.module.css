@@ -52,6 +52,25 @@
   position: relative;
 }
 
+/* Tutorial highlighting for individual bands */
+.bandContainer.bandHighlighted {
+  border: 2px solid #FFFF00;
+  border-radius: 8px;
+  padding: 4px;
+  margin: -4px;
+  box-shadow: 0 0 20px rgba(255, 255, 0, 0.6);
+  animation: bandHighlightPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes bandHighlightPulse {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(255, 255, 0, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 255, 0, 0.9);
+  }
+}
+
 /* Transition guidance styles for bass swap */
 .bandContainer.guidanceCut {
   animation: pulseCut 1s ease-in-out infinite;

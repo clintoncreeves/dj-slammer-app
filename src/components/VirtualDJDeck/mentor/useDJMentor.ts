@@ -180,6 +180,22 @@ export function useDJMentor({
   }, []);
 
   /**
+   * Show a temporary system message (for feedback on auto-actions)
+   */
+  const showSystemMessage = useCallback((message: string, variant: 'info' | 'success' = 'info') => {
+    // Create a temporary tip for the system message
+    const systemTip: MentorTip = {
+      id: `system-${Date.now()}`,
+      content: message,
+      category: 'beginner',
+      context: { trigger: 'action', conditions: [] },
+      priority: 10,
+      celebrationVariant: variant === 'success' ? 'sparkle' : undefined,
+    };
+    setCurrentTip(systemTip);
+  }, []);
+
+  /**
    * Dismiss the current tip
    */
   const dismissTip = useCallback(() => {
@@ -275,6 +291,7 @@ export function useDJMentor({
     toggleMentor,
     recordAction,
     getContextualTips,
+    showSystemMessage,
   };
 }
 

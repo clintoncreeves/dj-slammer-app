@@ -73,6 +73,16 @@
   }
 }
 
+/* Sync button special styling - double border for emphasis */
+.syncButton {
+  border-width: 3px;
+  background: rgba(255, 200, 0, 0.1);
+}
+
+.syncButton:hover:not(:disabled) {
+  background: rgba(255, 200, 0, 0.2);
+}
+
 /* Cue button special styling */
 .cueButton {
   border-style: dashed;

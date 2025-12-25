@@ -55,6 +55,10 @@ interface DeckContextValue {
   setDeckEQ: (deck: DeckId, band: 'low' | 'mid' | 'high', value: number) => void;
   setPlaybackRate: (deck: DeckId, rate: number) => void;
 
+  // Manual DJ Assistant Functions (user-triggered via buttons)
+  syncBeatPhase: (deck: DeckId) => void;
+  autoCue: (deck: DeckId) => void;
+
   // State Queries
   getState: () => VirtualDJDeckState;
   getDeckState: (deck: DeckId) => DeckState;
@@ -289,39 +293,12 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
         console.log(`[DeckContext] Deck ${deck} auto-calculated cue points:`, cuePoints);
       }
 
-      // Context-aware cue point selection:
-      // If a cue point wasn't explicitly specified (cuePoint = 0),
-      // and the OTHER deck is currently playing, find a smart starting point
-      // based on where the playing track is in its timeline
-      let smartCuePoint = cuePoint;
-      if (cuePoint === 0) {
-        const otherDeck = deck === 'A' ? deckBState : deckAState;
-
-        // Check if the other deck is playing and the crossfader favors it
-        const crossfaderFavorsOther =
-          (deck === 'A' && crossfaderPosition > 0) ||
-          (deck === 'B' && crossfaderPosition < 0);
-
-        if (otherDeck.isPlaying && otherDeck.isLoaded && crossfaderFavorsOther) {
-          smartCuePoint = findBestCuePointForTransition(
-            cuePoints,
-            duration,
-            otherDeck.currentTime,
-            otherDeck.duration
-          );
-          if (smartCuePoint > 0) {
-            console.log(
-              `[DeckContext] Deck ${deck} smart cue point: ${smartCuePoint}s ` +
-              `(based on other deck at ${otherDeck.currentTime.toFixed(1)}s / ${otherDeck.duration.toFixed(1)}s)`
-            );
-          }
-        }
-      }
-
-      // Seek to the cue point (either explicit, smart, or 0)
-      if (smartCuePoint > 0) {
-        audioEngineRef.current.seek(deck, smartCuePoint);
-        console.log(`[DeckContext] Deck ${deck} seeked to cue point ${smartCuePoint}s`);
+      // Simple cue point handling - just use what was provided or 0
+      // User can manually trigger autoCue() if they want smart cue selection
+      const initialCuePoint = cuePoint;
+      if (initialCuePoint > 0) {
+        audioEngineRef.current.seek(deck, initialCuePoint);
+        console.log(`[DeckContext] Deck ${deck} seeked to cue point ${initialCuePoint}s`);
       }
 
       const updateState = deck === 'A' ? setDeckAState : setDeckBState;
@@ -330,14 +307,14 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
         isLoaded: true,
         isPlaying: false,  // Reset playback state
         isPaused: false,   // Reset pause state
-        currentTime: smartCuePoint,  // Start at cue point position
+        currentTime: initialCuePoint,  // Start at cue point position
         duration,
         waveformData,
         trackName: name,
         artistName: artist,
         originalBPM: bpm,
         currentBPM: bpm,
-        cuePoint: smartCuePoint,
+        cuePoint: initialCuePoint,
         suggestedCuePoints: cuePoints,
       }));
 
@@ -378,11 +355,10 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
       onError?.(err as Error);
       throw err;
     }
-  }, [notifyStateChange, onError, deckAState, deckBState, crossfaderPosition]);
+  }, [notifyStateChange, onError]);
 
-  // Play a deck with automatic beat-phase synchronization
-  // When one deck is already playing, the new deck will automatically
-  // sync its beat phase to match, ensuring smooth transitions
+  // Play a deck - simple playback, no automatic sync
+  // User can manually trigger syncBeatPhase() before playing if needed
   const playDeck = useCallback((deck: DeckId) => {
     if (!audioEngineRef.current || !isInitialized) {
       console.warn('[DeckContext] Cannot play: AudioEngine not initialized');
@@ -390,50 +366,10 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     }
 
     try {
-      const otherDeck: DeckId = deck === 'A' ? 'B' : 'A';
-      const otherDeckState = otherDeck === 'A' ? deckAState : deckBState;
-      const thisDeckState = deck === 'A' ? deckAState : deckBState;
+      audioEngineRef.current.play(deck);
 
-      // Auto-sync beat phase if the other deck is playing and both have BPM info
-      if (otherDeckState.isPlaying && otherDeckState.currentBPM > 0 && thisDeckState.currentBPM > 0) {
-        // Calculate beat positions
-        // Seconds per beat = 60 / BPM
-        const otherSecsPerBeat = 60 / otherDeckState.currentBPM;
-        const thisSecsPerBeat = 60 / thisDeckState.currentBPM;
-
-        // Find where the other deck is within its current beat (0 to 1)
-        // beatPhase = (currentTime % secondsPerBeat) / secondsPerBeat
-        const otherBeatPhase = (otherDeckState.currentTime % otherSecsPerBeat) / otherSecsPerBeat;
-
-        // Start from cue point, then adjust to match the phase
-        const thisCuePoint = thisDeckState.cuePoint;
-        const phaseOffset = otherBeatPhase * thisSecsPerBeat;
-        const syncedPosition = thisCuePoint + phaseOffset;
-
-        console.log(
-          `[DeckContext] Auto-sync - Deck ${deck} syncing to Deck ${otherDeck}:`,
-          `Other phase: ${(otherBeatPhase * 100).toFixed(1)}%,`,
-          `Seeking to: ${syncedPosition.toFixed(3)}s`
-        );
-
-        // Seek to the synchronized position, then play
-        audioEngineRef.current.seek(deck, syncedPosition);
-        audioEngineRef.current.play(deck);
-
-        const updateState = deck === 'A' ? setDeckAState : setDeckBState;
-        updateState((prev) => ({
-          ...prev,
-          isPlaying: true,
-          isPaused: false,
-          currentTime: syncedPosition,
-        }));
-      } else {
-        // No other deck playing, just play normally
-        audioEngineRef.current.play(deck);
-
-        const updateState = deck === 'A' ? setDeckAState : setDeckBState;
-        updateState((prev) => ({ ...prev, isPlaying: true, isPaused: false }));
-      }
+      const updateState = deck === 'A' ? setDeckAState : setDeckBState;
+      updateState((prev) => ({ ...prev, isPlaying: true, isPaused: false }));
 
       notifyStateChange();
       console.log(`[DeckContext] Deck ${deck} playing`);
@@ -441,7 +377,7 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
       console.error(`[DeckContext] Failed to play Deck ${deck}:`, err);
       onError?.(err as Error);
     }
-  }, [isInitialized, deckAState, deckBState, notifyStateChange, onError]);
+  }, [isInitialized, notifyStateChange, onError]);
 
   // Pause a deck
   const pauseDeck = useCallback((deck: DeckId) => {
@@ -692,6 +628,123 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     return syncBPM(deck, masterDeck);
   }, [syncBPM]);
 
+  // Manual beat-phase sync - user-triggered via SYNC button
+  // Syncs the specified deck's beat phase to match the other playing deck
+  const syncBeatPhase = useCallback((deck: DeckId) => {
+    if (!audioEngineRef.current || !isInitialized) {
+      console.warn('[DeckContext] Cannot sync beat phase: AudioEngine not initialized');
+      return;
+    }
+
+    const otherDeck: DeckId = deck === 'A' ? 'B' : 'A';
+    const otherDeckState = otherDeck === 'A' ? deckAState : deckBState;
+    const thisDeckState = deck === 'A' ? deckAState : deckBState;
+
+    if (!otherDeckState.isPlaying) {
+      console.log(`[DeckContext] Cannot sync Deck ${deck}: other deck not playing`);
+      return;
+    }
+
+    if (otherDeckState.currentBPM <= 0 || thisDeckState.currentBPM <= 0) {
+      console.warn('[DeckContext] Cannot sync: BPM info not available');
+      return;
+    }
+
+    try {
+      // Calculate beat positions
+      const otherSecsPerBeat = 60 / otherDeckState.currentBPM;
+      const thisSecsPerBeat = 60 / thisDeckState.currentBPM;
+
+      // Find where the other deck is within its current beat (0 to 1)
+      const otherBeatPhase = (otherDeckState.currentTime % otherSecsPerBeat) / otherSecsPerBeat;
+
+      // Start from current position or cue point, then adjust to match the phase
+      const basePosition = thisDeckState.isPlaying ? thisDeckState.currentTime : thisDeckState.cuePoint;
+      const currentPhase = (basePosition % thisSecsPerBeat) / thisSecsPerBeat;
+
+      // Calculate phase difference and adjust
+      let phaseDiff = otherBeatPhase - currentPhase;
+      if (phaseDiff < -0.5) phaseDiff += 1;
+      if (phaseDiff > 0.5) phaseDiff -= 1;
+
+      const syncedPosition = Math.max(0, basePosition + phaseDiff * thisSecsPerBeat);
+
+      console.log(
+        `[DeckContext] Beat sync - Deck ${deck} syncing to Deck ${otherDeck}:`,
+        `Phase diff: ${(phaseDiff * 100).toFixed(1)}%,`,
+        `Seeking to: ${syncedPosition.toFixed(3)}s`
+      );
+
+      // Seek to the synchronized position
+      audioEngineRef.current.seek(deck, syncedPosition);
+
+      const updateState = deck === 'A' ? setDeckAState : setDeckBState;
+      updateState((prev) => ({
+        ...prev,
+        currentTime: syncedPosition,
+      }));
+
+      notifyStateChange();
+    } catch (err) {
+      console.error(`[DeckContext] Failed to sync beat phase for Deck ${deck}:`, err);
+      onError?.(err as Error);
+    }
+  }, [isInitialized, deckAState, deckBState, notifyStateChange, onError]);
+
+  // Manual auto-cue - user-triggered via AUTO CUE button
+  // Finds the best cue point based on where the other deck is playing
+  const autoCue = useCallback((deck: DeckId) => {
+    if (!audioEngineRef.current || !isInitialized) {
+      console.warn('[DeckContext] Cannot auto-cue: AudioEngine not initialized');
+      return;
+    }
+
+    const otherDeck = deck === 'A' ? deckBState : deckAState;
+    const thisDeckState = deck === 'A' ? deckAState : deckBState;
+
+    if (!thisDeckState.isLoaded) {
+      console.warn('[DeckContext] Cannot auto-cue: track not loaded');
+      return;
+    }
+
+    // If the other deck is playing, find a context-aware cue point
+    let bestCuePoint = 0;
+    if (otherDeck.isPlaying && otherDeck.isLoaded && thisDeckState.suggestedCuePoints.length > 0) {
+      bestCuePoint = findBestCuePointForTransition(
+        thisDeckState.suggestedCuePoints,
+        thisDeckState.duration,
+        otherDeck.currentTime,
+        otherDeck.duration
+      );
+      console.log(
+        `[DeckContext] Auto-cue Deck ${deck}: ${bestCuePoint}s ` +
+        `(based on other deck at ${otherDeck.currentTime.toFixed(1)}s / ${otherDeck.duration.toFixed(1)}s)`
+      );
+    } else if (thisDeckState.suggestedCuePoints.length > 0) {
+      // No other deck playing, use first suggested cue point
+      bestCuePoint = thisDeckState.suggestedCuePoints[0];
+      console.log(`[DeckContext] Auto-cue Deck ${deck}: ${bestCuePoint}s (first phrase boundary)`);
+    }
+
+    try {
+      // Seek to the cue point and update state
+      audioEngineRef.current.seek(deck, bestCuePoint);
+
+      const updateState = deck === 'A' ? setDeckAState : setDeckBState;
+      updateState((prev) => ({
+        ...prev,
+        currentTime: bestCuePoint,
+        cuePoint: bestCuePoint,
+      }));
+
+      notifyStateChange();
+      console.log(`[DeckContext] Deck ${deck} auto-cued to ${bestCuePoint}s`);
+    } catch (err) {
+      console.error(`[DeckContext] Failed to auto-cue Deck ${deck}:`, err);
+      onError?.(err as Error);
+    }
+  }, [isInitialized, deckAState, deckBState, notifyStateChange, onError]);
+
   // Update playback time periodically
   // This is handled by a useEffect in the component that uses the context
 
@@ -715,6 +768,8 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     updateCurrentTime,
     setDeckEQ,
     setPlaybackRate,
+    syncBeatPhase,
+    autoCue,
     getState,
     getDeckState,
     initializeAudioEngine,

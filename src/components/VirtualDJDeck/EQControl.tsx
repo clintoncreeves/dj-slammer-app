@@ -32,6 +32,9 @@ interface EQControlProps {
   /** Whether this control should be highlighted (tutorial mode) */
   highlighted?: boolean;
 
+  /** Highlight specific EQ band (for tutorial - 'low', 'mid', or 'high') */
+  highlightedBand?: 'low' | 'mid' | 'high';
+
   /** Transition guidance for bass swap - shows visual cues on LOW band */
   transitionGuidance?: TransitionGuidance;
 
@@ -47,6 +50,7 @@ export function EQControl({
   color,
   onChange,
   highlighted = false,
+  highlightedBand,
   transitionGuidance = null,
   className,
 }: EQControlProps) {
@@ -170,6 +174,7 @@ export function EQControl({
   ) => {
     const percent = dbToPercent(value);
     const isDragging = draggingBand === band;
+    const isBandHighlighted = highlightedBand === band;
 
     // Determine guidance class for LOW band only
     const guidanceClass = guidance === 'cut-bass'
@@ -179,7 +184,7 @@ export function EQControl({
         : '';
 
     return (
-      <div className={`${styles.bandContainer} ${guidanceClass}`}>
+      <div className={`${styles.bandContainer} ${guidanceClass} ${isBandHighlighted ? styles.bandHighlighted : ''}`}>
         <label className={styles.label}>{label}</label>
 
         {/* Guidance label for bass swap */}
