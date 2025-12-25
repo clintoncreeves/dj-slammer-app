@@ -19,16 +19,17 @@ export const TutorialLesson: React.FC = () => {
   const [mode, setMode] = useState<AppMode>('tutorial');
 
   // Configuration for both decks
+  // Using tracks at 123 BPM for easier mixing
   const config: VirtualDJDeckConfig = {
     deckA: {
       trackUrl: yourFirstMixLesson.tracks.deckA,
-      initialBPM: 152,
+      initialBPM: 123, // Dance Until Dark
       cuePoint: 0,
       waveformColor: '#00F0FF', // Cyan for Deck A
     },
     deckB: {
       trackUrl: yourFirstMixLesson.tracks.deckB,
-      initialBPM: 72,
+      initialBPM: 123, // OOTD Upbeat Summer House
       cuePoint: 0,
       waveformColor: '#FF006E', // Magenta for Deck B
     },

@@ -119,7 +119,8 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     eqHigh: 0,
   });
 
-  const [crossfaderPosition, setCrossfaderPositionState] = useState(0);
+  // Start crossfader fully on Deck A (-1) so users learn to crossfade to Deck B
+  const [crossfaderPosition, setCrossfaderPositionState] = useState(-1);
 
   // Get complete state
   const getState = useCallback((): VirtualDJDeckState => {
