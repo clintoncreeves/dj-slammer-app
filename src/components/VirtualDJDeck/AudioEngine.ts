@@ -49,6 +49,9 @@ export class AudioEngine {
   private initTimeout: number;
   private loadTimeout: number;
 
+  // Track seek positions for each deck (Tone.js player.start() needs explicit offset)
+  private seekPositions: Map<DeckId, number>;
+
   // Realtime BPM detection
   private bpmAnalyzers: Map<DeckId, BpmAnalyzer>;
   private bpmNodes: Map<DeckId, { source: MediaStreamAudioSourceNode; streamDest: MediaStreamAudioDestinationNode }>;
@@ -62,6 +65,7 @@ export class AudioEngine {
     this.eqs = new Map();
     this.gains = new Map();
     this.loadingPromises = new Map();
+    this.seekPositions = new Map();
     this.bpmAnalyzers = new Map();
     this.bpmNodes = new Map();
     this.bpmEventListeners = new Map();
@@ -200,9 +204,9 @@ export class AudioEngine {
           `Track loading for Deck ${deck}`
         );
 
-        // Seek to beginning of track after loading
-        player.seek(0);
-        console.log(`[AudioEngine] Track loaded for Deck ${deck}, seeked to beginning`);
+        // Reset seek position to beginning for new track
+        this.seekPositions.set(deck, 0);
+        console.log(`[AudioEngine] Track loaded for Deck ${deck}, position reset to beginning`);
       } catch (error) {
         console.error(`[AudioEngine] Failed to load track for Deck ${deck}:`, error);
 
@@ -245,9 +249,11 @@ export class AudioEngine {
       );
     }
 
-    // Start playback immediately
+    // Start playback from the stored seek position (or 0 if none)
     if (player.state !== 'started') {
-      player.start();
+      const offset = this.seekPositions.get(deck) ?? 0;
+      player.start(undefined, offset);
+      console.log(`[AudioEngine] Deck ${deck} starting from offset ${offset.toFixed(2)}s`);
     }
 
     const latency = performance.now() - startTime;
@@ -273,9 +279,12 @@ export class AudioEngine {
       throw new Error(`Player not found for deck ${deck}`);
     }
 
-    // Stop playback immediately
+    // Store current position before stopping so we can resume from here
     if (player.state === 'started') {
+      const currentPos = player.immediate();
+      this.seekPositions.set(deck, currentPos);
       player.stop();
+      console.log(`[AudioEngine] Deck ${deck} paused at ${currentPos.toFixed(2)}s`);
     }
 
     const latency = performance.now() - startTime;
@@ -309,11 +318,18 @@ export class AudioEngine {
       );
     }
 
-    // Seek to position
-    player.seek(time);
+    // Store the seek position for use when play() is called
+    // Tone.js player.seek() only works during playback; for stopped players,
+    // we need to pass the offset to player.start()
+    this.seekPositions.set(deck, time);
+
+    // If currently playing, seek immediately
+    if (player.state === 'started') {
+      player.seek(time);
+    }
 
     const latency = performance.now() - startTime;
-    console.log(`[AudioEngine] Deck ${deck} seek latency: ${latency.toFixed(2)}ms`);
+    console.log(`[AudioEngine] Deck ${deck} seek to ${time.toFixed(2)}s, latency: ${latency.toFixed(2)}ms`);
 
     if (latency > 20) {
       console.warn(`[AudioEngine] Seek latency exceeded 20ms target: ${latency.toFixed(2)}ms`);
@@ -818,6 +834,7 @@ export class AudioEngine {
     this.eqs.clear();
     this.gains.clear();
     this.loadingPromises.clear();
+    this.seekPositions.clear();
     this.bpmAnalyzers.clear();
     this.bpmNodes.clear();
     this.bpmEventListeners.clear();
