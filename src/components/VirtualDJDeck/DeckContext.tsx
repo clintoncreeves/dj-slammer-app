@@ -72,6 +72,9 @@ interface DeckProviderProps {
   onError?: (error: Error) => void;
 }
 
+// Initial crossfader position - used by both state and AudioEngine initialization
+const INITIAL_CROSSFADER_POSITION = -1; // Full Deck A
+
 export function DeckProvider({ children, onStateChange, onError }: DeckProviderProps) {
   const audioEngineRef = useRef<AudioEngine | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -119,8 +122,8 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     eqHigh: 0,
   });
 
-  // Start crossfader fully on Deck A (-1) so users learn to crossfade to Deck B
-  const [crossfaderPosition, setCrossfaderPositionState] = useState(-1);
+  // Start crossfader fully on Deck A so users learn to crossfade to Deck B
+  const [crossfaderPosition, setCrossfaderPositionState] = useState(INITIAL_CROSSFADER_POSITION);
 
   // Get complete state
   const getState = useCallback((): VirtualDJDeckState => {
@@ -147,8 +150,12 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
       const engine = new AudioEngine();
       audioEngineRef.current = engine;
       await engine.init();
+
+      // Sync crossfader to initial state - AudioEngine defaults to center (0.5)
+      engine.setCrossfade(INITIAL_CROSSFADER_POSITION);
+
       setIsInitialized(true);
-      console.log('[DeckContext] AudioEngine initialized');
+      console.log('[DeckContext] AudioEngine initialized with crossfader at', INITIAL_CROSSFADER_POSITION);
     } catch (err) {
       console.error('[DeckContext] Failed to initialize AudioEngine:', err);
       onError?.(err as Error);

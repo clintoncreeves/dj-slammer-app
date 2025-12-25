@@ -43,6 +43,12 @@ interface TutorialOverlayProps {
 
   /** Callback when user clicks "More Lessons" on completion screen */
   onMoreLessons?: () => void;
+
+  /** Callback when user clicks "Next Lesson" on completion screen */
+  onNextLesson?: () => void;
+
+  /** Title of the next lesson (if available) */
+  nextLessonTitle?: string;
 }
 
 export function TutorialOverlay({
@@ -56,6 +62,8 @@ export function TutorialOverlay({
   showHintButton,
   onReplayLesson,
   onFreePlayMode,
+  onNextLesson,
+  nextLessonTitle,
 }: TutorialOverlayProps) {
   // Initialize rewards for confetti celebrations
   const { rewardSmall, rewardBig } = useRewards('tutorial-reward', {
@@ -107,8 +115,17 @@ export function TutorialOverlay({
               >
                 🔄 Replay
               </button>
+              {onNextLesson && nextLessonTitle && (
+                <button
+                  className={`${styles.bannerButton} ${styles.bannerButtonPrimary}`}
+                  onClick={onNextLesson}
+                  title={`Start ${nextLessonTitle}`}
+                >
+                  ➡️ Next: {nextLessonTitle}
+                </button>
+              )}
               <button
-                className={`${styles.bannerButton} ${styles.bannerButtonPrimary}`}
+                className={`${styles.bannerButton} ${onNextLesson ? styles.bannerButtonSecondary : styles.bannerButtonPrimary}`}
                 onClick={onFreePlayMode || onExit}
                 title="Start free play mode"
               >

@@ -22,7 +22,7 @@ import { Crossfader } from './Crossfader';
 import { VolumeControl } from './VolumeControl';
 import { EQControl } from './EQControl';
 import { useTutorial } from './useTutorial';
-import { TutorialConfig } from './tutorialTypes';
+import { TutorialConfig, TutorialLesson } from './tutorialTypes';
 import { TutorialOverlay } from './TutorialOverlay';
 import { TutorialInstructionPanel } from './TutorialInstructionPanel';
 import { DeckProvider, useDeck } from './DeckContext';
@@ -54,13 +54,19 @@ interface VirtualDJDeckProps {
   mode?: AppMode;
   onModeChange?: (mode: AppMode) => void;
   onReplayLesson?: () => void;
+  // Lesson navigation
+  onNextLesson?: () => void;
+  nextLessonTitle?: string;
+  allLessons?: TutorialLesson[];
+  currentLessonId?: string;
+  onSelectLesson?: (lesson: TutorialLesson) => void;
 }
 
 /**
  * Internal component that consumes DeckContext
  */
 const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps>(
-  ({ config, tutorialConfig, className, mode = 'tutorial', onModeChange, onReplayLesson }, ref) => {
+  ({ config, tutorialConfig, className, mode = 'tutorial', onModeChange, onReplayLesson, onNextLesson, nextLessonTitle }, ref) => {
     // Use the centralized deck context
     const deck = useDeck();
     
@@ -660,6 +666,8 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
             onReplayLesson={handleReplayLesson}
             onFreePlayMode={handleFreePlayMode}
             onMoreLessons={handleMoreLessons}
+            onNextLesson={onNextLesson}
+            nextLessonTitle={nextLessonTitle}
           />
         )}
       </div>
