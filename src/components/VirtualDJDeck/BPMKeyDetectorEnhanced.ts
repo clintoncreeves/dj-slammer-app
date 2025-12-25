@@ -132,7 +132,7 @@ interface BPMCandidate {
 /**
  * Detect BPM using Essentia.js RhythmExtractor2013
  */
-async function detectBPMEssentia(audioData: Float32Array, sampleRate: number): Promise<BPMCandidate | null> {
+async function detectBPMEssentia(audioData: Float32Array, _sampleRate: number): Promise<BPMCandidate | null> {
   const essentia = await loadEssentia();
   if (!essentia) return null;
 
@@ -364,7 +364,7 @@ interface KeyCandidate {
 /**
  * Detect key using Essentia.js KeyExtractor with EDMA profile
  */
-async function detectKeyEssentia(audioData: Float32Array, sampleRate: number): Promise<{ key: string; mode: 'major' | 'minor'; confidence: number } | null> {
+async function detectKeyEssentia(audioData: Float32Array, _sampleRate: number): Promise<{ key: string; mode: 'major' | 'minor'; confidence: number } | null> {
   const essentia = await loadEssentia();
   if (!essentia) return null;
 
