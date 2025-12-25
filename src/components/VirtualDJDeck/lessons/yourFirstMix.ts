@@ -46,7 +46,7 @@ export const yourFirstMixLesson: TutorialLesson = {
         return currentState.deckA.isPlaying && !previousState.deckA.isPlaying;
       },
       hint: 'Hit the PLAY button on Deck A - the crossfader is already set so you only hear Deck A',
-      celebrationMessage: 'NICE! The beat is live!',
+      celebrationMessage: 'NICE! The beat is live at 123 BPM!',
     },
 
     {
@@ -66,7 +66,7 @@ export const yourFirstMixLesson: TutorialLesson = {
         );
       },
       hint: "Hit PLAY on Deck B - you won't hear it yet because the crossfader is on Deck A",
-      celebrationMessage: 'PERFECT! Both decks are rolling!',
+      celebrationMessage: 'PERFECT! Both tracks are at 123 BPM - they\'ll blend smoothly!',
     },
 
     {

@@ -73,7 +73,7 @@ export const beatmatching101Lesson: TutorialLesson = {
     // Step 3: Match the tempo FIRST (before any crossfading)
     {
       id: 'adjust-tempo-b',
-      instruction: 'Adjust Deck B\'s TEMPO slider UP to speed it up toward 129 BPM!',
+      instruction: 'Adjust Deck B\'s TEMPO slider UP to speed it up toward 129 BPM! (Keep crossfader on A!)',
       highlightTarget: {
         type: 'slider',
         deck: 'B',
@@ -82,9 +82,12 @@ export const beatmatching101Lesson: TutorialLesson = {
       validate: (currentState) => {
         // Check if Deck B's BPM has been adjusted closer to Deck A
         // Original is 123, target is ~129, so current BPM should be > 126
-        return currentState.deckB.currentBPM > 126;
+        // Also verify crossfader is still on Deck A side (don't move it yet!)
+        const bpmGettingClose = currentState.deckB.currentBPM > 126;
+        const crossfaderOnA = currentState.crossfaderPosition < 0;
+        return bpmGettingClose && crossfaderOnA;
       },
-      hint: 'Move Deck B\'s tempo slider UP (towards the +) to increase the BPM from 123 toward 129',
+      hint: 'Move Deck B\'s tempo slider UP to increase BPM. Don\'t touch the crossfader yet - keep it on Deck A!',
       celebrationMessage: 'GETTING CLOSER! Keep going until the BPMs match!',
     },
 
@@ -99,10 +102,13 @@ export const beatmatching101Lesson: TutorialLesson = {
       },
       validate: (currentState) => {
         // BPMs should be within 1 BPM of each other
+        // Also verify crossfader is still on Deck A side
         const bpmDiff = Math.abs(currentState.deckA.currentBPM - currentState.deckB.currentBPM);
-        return bpmDiff < 1.5;
+        const bpmsMatched = bpmDiff < 1.5;
+        const crossfaderOnA = currentState.crossfaderPosition < 0;
+        return bpmsMatched && crossfaderOnA;
       },
-      hint: 'Keep adjusting until both BPM displays show the same number - aim for 129 BPM on both!',
+      hint: 'Keep adjusting until both BPM displays show 129 BPM. The crossfader stays on A until the beats match!',
       celebrationMessage: 'LOCKED IN! BPMs are matched - NOW we can start the transition!',
     },
 
