@@ -21,6 +21,11 @@
   padding-top: 0;
 }
 
+/* Add padding when mentor panel is shown (freeplay mode) */
+.container.withMentorPanel {
+  padding-top: 70px; /* Space for fixed mentor panel */
+}
+
 .decksContainer {
   display: grid;
   grid-template-columns: 1fr 1fr;

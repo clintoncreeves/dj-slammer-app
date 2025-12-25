@@ -3,11 +3,13 @@
  *
  * On-demand help overlay with categorized tips.
  * Shows contextual suggestions and general DJ guidance.
+ * Displays progress toward next skill level.
  */
 
-import { useEffect, useCallback } from 'react';
-import { MentorTip, SkillLevel, HighlightTarget } from './mentor/mentorTypes';
+import { useEffect, useCallback, useMemo } from 'react';
+import { MentorTip, SkillLevel, HighlightTarget, UserAction, UserSkillProfile } from './mentor/mentorTypes';
 import { getSkillLevelDisplayName } from './mentor/useDJMentor';
+import { getProgressSummary, loadSkillProfile } from './mentor/skillTracker';
 import styles from './MentorHelpPanel.module.css';
 
 interface MentorHelpPanelProps {
@@ -24,12 +26,46 @@ interface MentorHelpPanelProps {
   onSelectTip?: (target: HighlightTarget | undefined) => void;
 }
 
+/** Map tip IDs to actions that complete them */
+const TIP_TO_ACTION: Record<string, UserAction> = {
+  'start-playing-tip': 'play_deck_a',
+  'first-play-tip': 'play_deck_a',
+  'both-decks-tip': 'both_decks_playing',
+  'crossfader-tip': 'use_crossfader',
+  'crossfader-blend-tip': 'use_crossfader',
+  'cue-point-tip': 'set_cue',
+  'cue-point-phrases-tip': 'jump_to_cue',
+  'tempo-tip': 'adjust_tempo',
+  'bpm-sync-tip': 'sync_bpm',
+  'volume-tip': 'adjust_volume',
+  'eq-intro-tip': 'adjust_eq_low',
+  'eq-bass-swap-tip': 'adjust_eq_low',
+  'help-play': 'play_deck_a',
+  'help-cue': 'jump_to_cue',
+  'help-tempo': 'adjust_tempo',
+  'help-crossfader': 'use_crossfader',
+  'help-volume': 'adjust_volume',
+  'help-eq': 'adjust_eq_low',
+  'help-sync': 'sync_bpm',
+};
+
+/** Check if a tip's corresponding action has been completed */
+function isTipCompleted(tipId: string, profile: UserSkillProfile): boolean {
+  const action = TIP_TO_ACTION[tipId];
+  if (!action) return false;
+  return (profile.actionsPerformed[action] || 0) > 0;
+}
+
 export function MentorHelpPanel({
   tips,
   userLevel,
   onClose,
   onSelectTip,
 }: MentorHelpPanelProps) {
+  // Load skill profile to check completion status
+  const profile = useMemo(() => loadSkillProfile(), []);
+  const progressSummary = useMemo(() => getProgressSummary(profile), [profile]);
+
   // Close on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -142,21 +178,29 @@ export function MentorHelpPanel({
             <div className={styles.section}>
               <h3 className={styles.sectionTitle}>Suggested Right Now</h3>
               <div className={styles.tipList}>
-                {contextualTips.slice(0, 3).map((tip) => (
-                  <button
-                    key={tip.id}
-                    className={styles.tipCard}
-                    onClick={() => handleTipClick(tip)}
-                  >
-                    <div className={styles.tipIcon}>{getTipIcon(tip)}</div>
-                    <div className={styles.tipContent}>
-                      <div className={styles.tipText}>{tip.content}</div>
-                      <div className={`${styles.tipCategory} ${getCategoryClass(tip.category)}`}>
-                        {tip.category}
+                {contextualTips.slice(0, 3).map((tip) => {
+                  const isCompleted = isTipCompleted(tip.id, profile);
+                  return (
+                    <button
+                      key={tip.id}
+                      className={`${styles.tipCard} ${isCompleted ? styles.tipCardCompleted : ''}`}
+                      onClick={() => handleTipClick(tip)}
+                    >
+                      <div className={styles.tipIcon}>{getTipIcon(tip)}</div>
+                      <div className={styles.tipContent}>
+                        <div className={styles.tipText}>{tip.content}</div>
+                        <div className={`${styles.tipCategory} ${getCategoryClass(tip.category)}`}>
+                          {tip.category}
+                        </div>
                       </div>
-                    </div>
-                  </button>
-                ))}
+                      {isCompleted && (
+                        <div className={styles.completedBadge} title="You've done this!">
+                          ✓
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -166,21 +210,29 @@ export function MentorHelpPanel({
             <div className={styles.section}>
               <h3 className={styles.sectionTitle}>Controls Guide</h3>
               <div className={styles.tipList}>
-                {generalTips.map((tip) => (
-                  <button
-                    key={tip.id}
-                    className={styles.tipCard}
-                    onClick={() => handleTipClick(tip)}
-                  >
-                    <div className={styles.tipIcon}>{getTipIcon(tip)}</div>
-                    <div className={styles.tipContent}>
-                      <div className={styles.tipText}>{tip.content}</div>
-                      <div className={`${styles.tipCategory} ${getCategoryClass(tip.category)}`}>
-                        {tip.category}
+                {generalTips.map((tip) => {
+                  const isCompleted = isTipCompleted(tip.id, profile);
+                  return (
+                    <button
+                      key={tip.id}
+                      className={`${styles.tipCard} ${isCompleted ? styles.tipCardCompleted : ''}`}
+                      onClick={() => handleTipClick(tip)}
+                    >
+                      <div className={styles.tipIcon}>{getTipIcon(tip)}</div>
+                      <div className={styles.tipContent}>
+                        <div className={styles.tipText}>{tip.content}</div>
+                        <div className={`${styles.tipCategory} ${getCategoryClass(tip.category)}`}>
+                          {tip.category}
+                        </div>
                       </div>
-                    </div>
-                  </button>
-                ))}
+                      {isCompleted && (
+                        <div className={styles.completedBadge} title="You've done this!">
+                          ✓
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -196,11 +248,29 @@ export function MentorHelpPanel({
           )}
         </div>
 
-        {/* Footer */}
+        {/* Footer with progress */}
         <div className={styles.footer}>
-          <div className={styles.levelInfo}>
-            <span className={styles.levelLabel}>Your Level:</span>
-            <span className={styles.levelBadge}>{getSkillLevelDisplayName(userLevel)}</span>
+          <div className={styles.progressSection}>
+            <div className={styles.levelInfo}>
+              <span className={styles.levelLabel}>Your Level:</span>
+              <span className={styles.levelBadge}>{getSkillLevelDisplayName(userLevel)}</span>
+            </div>
+            {userLevel !== 'advanced' && (
+              <div className={styles.progressBar}>
+                <div className={styles.progressLabel}>
+                  {userLevel === 'beginner' ? 'To Intermediate' : 'To Advanced'}: {progressSummary.nextLevelProgress}%
+                </div>
+                <div className={styles.progressTrack}>
+                  <div
+                    className={styles.progressFill}
+                    style={{ width: `${progressSummary.nextLevelProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
+            <div className={styles.stats}>
+              {progressSummary.totalActions} actions | {progressSummary.uniqueActions} skills learned
+            </div>
           </div>
           <div className={styles.keyboardHint}>
             Press <kbd>?</kbd> or <kbd>Esc</kbd> to close

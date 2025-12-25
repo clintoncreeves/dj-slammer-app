@@ -372,9 +372,12 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
     // Check if tutorial banner should be shown
     const showTutorialBanner = mode === 'tutorial' && tutorial.progress.isActive && tutorial.currentStep && tutorialConfig;
 
+    // Check if mentor panel banner should be shown
+    const showMentorBanner = mode === 'freeplay' && mentor.isEnabled && mentor.currentTip;
+
     // Render main professional UI
     return (
-      <div className={`${styles.container} ${!showTutorialBanner ? styles.noTutorial : ''} ${className || ''}`}>
+      <div className={`${styles.container} ${!showTutorialBanner && !showMentorBanner ? styles.noTutorial : ''} ${showMentorBanner ? styles.withMentorPanel : ''} ${className || ''}`}>
         {/* Tutorial Instruction Panel - Fixed at top, Guitar Hero style */}
         {showTutorialBanner && tutorial.currentStep && (
           <TutorialInstructionPanel

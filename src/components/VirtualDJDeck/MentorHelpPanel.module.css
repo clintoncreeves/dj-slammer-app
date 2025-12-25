@@ -223,6 +223,32 @@
   color: #FF6B35;
 }
 
+/* Completed tip styling */
+.tipCardCompleted {
+  background: rgba(0, 255, 136, 0.1);
+  border-color: rgba(0, 255, 136, 0.3);
+}
+
+.tipCardCompleted:hover {
+  background: rgba(0, 255, 136, 0.15);
+  border-color: rgba(0, 255, 136, 0.5);
+}
+
+.completedBadge {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00FF88 0%, #00CC6E 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+}
+
 /* Empty state */
 .emptyState {
   text-align: center;
@@ -246,8 +272,16 @@
   background: rgba(0, 0, 0, 0.3);
   border-top: 1px solid rgba(155, 89, 182, 0.3);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 16px;
+}
+
+.progressSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
 }
 
 .levelInfo {
@@ -272,9 +306,42 @@
   border: 1px solid rgba(155, 89, 182, 0.4);
 }
 
+.progressBar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.progressLabel {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+}
+
+.progressTrack {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  max-width: 200px;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #9B59B6 0%, #00FF88 100%);
+  border-radius: 3px;
+  transition: width 300ms ease-out;
+}
+
+.stats {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
 .keyboardHint {
   font-size: 11px;
   color: rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
 }
 
 .keyboardHint kbd {
