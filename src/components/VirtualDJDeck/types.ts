@@ -66,8 +66,11 @@ export interface DeckState {
   /** Whether the track is fully loaded and buffered */
   isLoaded: boolean;
 
-  /** Cue point position in seconds */
+  /** Current cue point position in seconds (user-set or default) */
   cuePoint: number;
+
+  /** Suggested cue points at musical phrase boundaries (for DJ assistant) */
+  suggestedCuePoints: number[];
 
   /** Pre-computed waveform data for visualization */
   waveformData: number[];

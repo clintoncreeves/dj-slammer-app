@@ -408,6 +408,8 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
               height={100}
               className={styles.waveform}
               onSeek={(time) => seekDeckWithMentor('A', time)}
+              suggestedCuePoints={deck.deckAState.suggestedCuePoints}
+              cuePoint={deck.deckAState.cuePoint}
             />
 
             <BPMDisplay
@@ -531,6 +533,8 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
               height={100}
               className={styles.waveform}
               onSeek={(time) => seekDeckWithMentor('B', time)}
+              suggestedCuePoints={deck.deckBState.suggestedCuePoints}
+              cuePoint={deck.deckBState.cuePoint}
             />
 
             <BPMDisplay

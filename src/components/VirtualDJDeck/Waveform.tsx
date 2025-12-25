@@ -24,6 +24,10 @@ interface WaveformProps {
   className?: string;
   /** Callback when user clicks to seek (receives time in seconds) */
   onSeek?: (time: number) => void;
+  /** Suggested cue points at phrase boundaries (in seconds) */
+  suggestedCuePoints?: number[];
+  /** Current cue point position (in seconds) */
+  cuePoint?: number;
 }
 
 export function Waveform({
@@ -35,6 +39,8 @@ export function Waveform({
   height = 100,
   className,
   onSeek,
+  suggestedCuePoints = [],
+  cuePoint = 0,
 }: WaveformProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -93,6 +99,58 @@ export function Waveform({
 
     ctx.globalAlpha = 1;
 
+    // Draw suggested cue point markers (subtle vertical lines)
+    if (suggestedCuePoints.length > 0 && duration > 0) {
+      suggestedCuePoints.forEach((cueTime) => {
+        const cueX = (cueTime / duration) * w;
+
+        // Skip if too close to start or out of bounds
+        if (cueX < 2 || cueX > w - 2) return;
+
+        // Draw subtle dashed line for suggested cue points
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+        ctx.lineWidth = 1 * dpr;
+        ctx.setLineDash([2 * dpr, 4 * dpr]);
+        ctx.beginPath();
+        ctx.moveTo(cueX, 0);
+        ctx.lineTo(cueX, h);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Draw small triangle marker at bottom
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.beginPath();
+        ctx.moveTo(cueX, h);
+        ctx.lineTo(cueX - 4 * dpr, h - 6 * dpr);
+        ctx.lineTo(cueX + 4 * dpr, h - 6 * dpr);
+        ctx.closePath();
+        ctx.fill();
+      });
+    }
+
+    // Draw current cue point marker (more prominent)
+    if (cuePoint > 0 && duration > 0) {
+      const cueX = (cuePoint / duration) * w;
+
+      // Solid orange line for current cue point
+      ctx.strokeStyle = '#FF9800';
+      ctx.lineWidth = 2 * dpr;
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(cueX, 0);
+      ctx.lineTo(cueX, h);
+      ctx.stroke();
+
+      // Draw small cue marker triangle at top
+      ctx.fillStyle = '#FF9800';
+      ctx.beginPath();
+      ctx.moveTo(cueX, 0);
+      ctx.lineTo(cueX - 5 * dpr, 7 * dpr);
+      ctx.lineTo(cueX + 5 * dpr, 7 * dpr);
+      ctx.closePath();
+      ctx.fill();
+    }
+
     // Draw hover indicator
     if (isHovering && hoverPosition !== null) {
       const hoverX = hoverPosition * w;
@@ -124,7 +182,7 @@ export function Waveform({
     ctx.lineTo(playheadX, h);
     ctx.stroke();
     ctx.shadowBlur = 0;
-  }, [waveformData, color, canvasWidth, height, playheadPosition, isHovering, hoverPosition]);
+  }, [waveformData, color, canvasWidth, height, playheadPosition, isHovering, hoverPosition, suggestedCuePoints, cuePoint, duration]);
 
   // Set up canvas resolution and track container size
   useEffect(() => {

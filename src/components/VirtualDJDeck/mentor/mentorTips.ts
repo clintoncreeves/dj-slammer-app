@@ -102,6 +102,42 @@ export const MENTOR_TIPS: MentorTip[] = [
     cooldown: 180000,
   },
 
+  // Suggested cue points tip - phrases
+  {
+    id: 'cue-point-phrases-tip',
+    content: "Pro tip: Most dance tracks have 8-bar phrases. Look for the waveform markers - they show the best spots to drop in your next track!",
+    category: 'intermediate',
+    context: {
+      trigger: 'state',
+      conditions: [
+        { type: 'deck_loaded', deck: 'both' },
+        { type: 'deck_playing', deck: 'any' },
+      ],
+    },
+    highlightTarget: { type: 'waveform', deck: 'B' },
+    priority: 6,
+    showOnce: true,
+    cooldown: 300000,
+  },
+
+  // Cue point for transitions
+  {
+    id: 'cue-transition-timing',
+    content: "When mixing in a new track, cue it up at a phrase boundary - where you see the markers on the waveform. It'll sound way more natural!",
+    category: 'intermediate',
+    context: {
+      trigger: 'state',
+      conditions: [
+        { type: 'both_playing' },
+        { type: 'crossfader_center' },
+      ],
+    },
+    highlightTarget: { type: 'button', deck: 'B', control: 'cue' },
+    priority: 5,
+    showOnce: true,
+    cooldown: 240000,
+  },
+
   // Idle encouragement
   {
     id: 'idle-encouragement',
@@ -365,6 +401,38 @@ export const MENTOR_TIPS: MentorTip[] = [
     priority: 4,
     showOnce: true,
     cooldown: 360000,
+  },
+
+  {
+    id: 'cue-energy-match',
+    content: "Pro DJ secret: Match energy levels! Start your mix from a phrase that has similar energy to what's playing. Check the waveform height - similar peaks = similar energy!",
+    category: 'advanced',
+    context: {
+      trigger: 'state',
+      conditions: [
+        { type: 'both_playing' },
+        { type: 'bpm_matched' },
+      ],
+    },
+    highlightTarget: { type: 'waveform' },
+    priority: 5,
+    showOnce: true,
+    cooldown: 420000,
+  },
+
+  {
+    id: 'cue-phrase-counting',
+    content: "Count your phrases: 1-2-3-4, 1-2-3-4... Most transitions sound best when you drop the new track on the 1 of a new phrase. Practice timing!",
+    category: 'advanced',
+    context: {
+      trigger: 'state',
+      conditions: [
+        { type: 'both_playing' },
+        { type: 'crossfader_center' },
+      ],
+    },
+    priority: 4,
+    cooldown: 300000,
   },
 
   // ==========================================

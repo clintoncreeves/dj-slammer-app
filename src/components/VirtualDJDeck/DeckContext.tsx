@@ -25,6 +25,8 @@ export interface TrackInfo {
   artist: string;
   bpm: number;
   cuePoint?: number;
+  /** Suggested cue points at musical phrase boundaries */
+  suggestedCuePoints?: number[];
 }
 
 interface DeckContextValue {
@@ -75,6 +77,105 @@ interface DeckProviderProps {
 // Initial crossfader position - used by both state and AudioEngine initialization
 const INITIAL_CROSSFADER_POSITION = -1; // Full Deck A
 
+/**
+ * Calculate suggested cue points at musical phrase boundaries
+ *
+ * In most electronic/dance music, phrases are typically 8 bars long.
+ * At a given BPM, we calculate where each 8-bar phrase boundary falls.
+ * These make excellent cue points for mixing because they're musically meaningful.
+ *
+ * @param duration - Track duration in seconds
+ * @param bpm - Track BPM
+ * @returns Array of cue points in seconds at 8-bar phrase boundaries
+ */
+function calculateSuggestedCuePoints(duration: number, bpm: number): number[] {
+  if (!duration || !bpm || duration <= 0 || bpm <= 0) {
+    return [];
+  }
+
+  // Calculate seconds per beat: 60 seconds / BPM
+  const secondsPerBeat = 60 / bpm;
+
+  // 8 bars * 4 beats per bar = 32 beats per phrase (in 4/4 time)
+  const beatsPerPhrase = 32;
+  const secondsPerPhrase = secondsPerBeat * beatsPerPhrase;
+
+  const cuePoints: number[] = [];
+
+  // Start from 0 (beginning of track is always a good cue point)
+  // Then add phrase boundaries until we're near the end
+  // Skip the last phrase to avoid cueing too close to track end
+  let position = 0;
+  while (position < duration - secondsPerPhrase) {
+    cuePoints.push(Math.round(position * 100) / 100); // Round to 2 decimal places
+    position += secondsPerPhrase;
+  }
+
+  // Ensure we have at least the start position
+  if (cuePoints.length === 0) {
+    cuePoints.push(0);
+  }
+
+  return cuePoints;
+}
+
+/**
+ * Find the best cue point for a new track based on where the other deck is playing
+ *
+ * Context-aware DJ assistant: When loading a track onto one deck while another
+ * is playing, suggest a starting cue point that would make for a natural transition.
+ * This finds a phrase boundary in the new track that has similar "energy position"
+ * (relative position within the track structure).
+ *
+ * @param newTrackCuePoints - Array of phrase boundary cue points for the new track
+ * @param newTrackDuration - Duration of the new track in seconds
+ * @param playingTrackCurrentTime - Current playback position of the playing track
+ * @param playingTrackDuration - Total duration of the playing track
+ * @returns Best cue point to start the new track, or 0 if none found
+ */
+function findBestCuePointForTransition(
+  newTrackCuePoints: number[],
+  newTrackDuration: number,
+  playingTrackCurrentTime: number,
+  playingTrackDuration: number
+): number {
+  if (!newTrackCuePoints.length || !newTrackDuration || !playingTrackDuration) {
+    return 0;
+  }
+
+  // Calculate where we are in the playing track as a percentage (0-1)
+  const playingTrackProgress = playingTrackCurrentTime / playingTrackDuration;
+
+  // For a good transition, we typically want to start the new track at a point
+  // that has similar energy. In most dance tracks:
+  // - 0-25%: Intro/buildup
+  // - 25-50%: First main section
+  // - 50-75%: Peak/drop section
+  // - 75-100%: Outro
+
+  // Find a cue point in the new track that's in a similar "zone"
+  // but not too close to the end (leave room for mixing out)
+  const targetProgress = Math.min(playingTrackProgress, 0.6); // Don't start past 60%
+  const targetTime = targetProgress * newTrackDuration;
+
+  // Find the closest cue point to our target
+  let bestCuePoint = 0;
+  let smallestDiff = Infinity;
+
+  for (const cuePoint of newTrackCuePoints) {
+    // Skip cue points too close to the end
+    if (cuePoint > newTrackDuration * 0.7) continue;
+
+    const diff = Math.abs(cuePoint - targetTime);
+    if (diff < smallestDiff) {
+      smallestDiff = diff;
+      bestCuePoint = cuePoint;
+    }
+  }
+
+  return bestCuePoint;
+}
+
 export function DeckProvider({ children, onStateChange, onError }: DeckProviderProps) {
   const audioEngineRef = useRef<AudioEngine | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -97,6 +198,7 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     volume: 1,
     isLoaded: false,
     cuePoint: 0,
+    suggestedCuePoints: [],
     waveformData: [],
     eqLow: 0,
     eqMid: 0,
@@ -116,6 +218,7 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     volume: 1,
     isLoaded: false,
     cuePoint: 0,
+    suggestedCuePoints: [],
     waveformData: [],
     eqLow: 0,
     eqMid: 0,
@@ -169,7 +272,7 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
       throw new Error('AudioEngine not initialized');
     }
 
-    const { url, name, artist, bpm, cuePoint = 0 } = trackInfo;
+    const { url, name, artist, bpm, cuePoint = 0, suggestedCuePoints } = trackInfo;
 
     try {
       await audioEngineRef.current.loadTrack(deck, url);
@@ -178,10 +281,47 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
       const waveformData = buffer ? generateWaveformData(buffer, 200) : [];
       const duration = audioEngineRef.current.getDuration(deck);
 
-      // Seek to cue point if specified (for tutorials with pre-set positions)
-      if (cuePoint > 0) {
-        audioEngineRef.current.seek(deck, cuePoint);
-        console.log(`[DeckContext] Deck ${deck} seeked to cue point ${cuePoint}s`);
+      // Calculate suggested cue points if not provided
+      // Use phrase boundaries based on BPM (8-bar sections)
+      let cuePoints = suggestedCuePoints;
+      if (!cuePoints || cuePoints.length === 0) {
+        cuePoints = calculateSuggestedCuePoints(duration, bpm);
+        console.log(`[DeckContext] Deck ${deck} auto-calculated cue points:`, cuePoints);
+      }
+
+      // Context-aware cue point selection:
+      // If a cue point wasn't explicitly specified (cuePoint = 0),
+      // and the OTHER deck is currently playing, find a smart starting point
+      // based on where the playing track is in its timeline
+      let smartCuePoint = cuePoint;
+      if (cuePoint === 0) {
+        const otherDeck = deck === 'A' ? deckBState : deckAState;
+
+        // Check if the other deck is playing and the crossfader favors it
+        const crossfaderFavorsOther =
+          (deck === 'A' && crossfaderPosition > 0) ||
+          (deck === 'B' && crossfaderPosition < 0);
+
+        if (otherDeck.isPlaying && otherDeck.isLoaded && crossfaderFavorsOther) {
+          smartCuePoint = findBestCuePointForTransition(
+            cuePoints,
+            duration,
+            otherDeck.currentTime,
+            otherDeck.duration
+          );
+          if (smartCuePoint > 0) {
+            console.log(
+              `[DeckContext] Deck ${deck} smart cue point: ${smartCuePoint}s ` +
+              `(based on other deck at ${otherDeck.currentTime.toFixed(1)}s / ${otherDeck.duration.toFixed(1)}s)`
+            );
+          }
+        }
+      }
+
+      // Seek to the cue point (either explicit, smart, or 0)
+      if (smartCuePoint > 0) {
+        audioEngineRef.current.seek(deck, smartCuePoint);
+        console.log(`[DeckContext] Deck ${deck} seeked to cue point ${smartCuePoint}s`);
       }
 
       const updateState = deck === 'A' ? setDeckAState : setDeckBState;
@@ -190,14 +330,15 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
         isLoaded: true,
         isPlaying: false,  // Reset playback state
         isPaused: false,   // Reset pause state
-        currentTime: cuePoint,  // Start at cue point position
+        currentTime: smartCuePoint,  // Start at cue point position
         duration,
         waveformData,
         trackName: name,
         artistName: artist,
         originalBPM: bpm,
         currentBPM: bpm,
-        cuePoint,
+        cuePoint: smartCuePoint,
+        suggestedCuePoints: cuePoints,
       }));
 
       // Initialize realtime BPM detection if not already initialized for this deck
@@ -237,7 +378,7 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
       onError?.(err as Error);
       throw err;
     }
-  }, [notifyStateChange, onError]);
+  }, [notifyStateChange, onError, deckAState, deckBState, crossfaderPosition]);
 
   // Play a deck
   const playDeck = useCallback((deck: DeckId) => {

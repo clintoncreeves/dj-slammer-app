@@ -21,6 +21,26 @@ interface Track {
   bpm: number;
   isUserUploaded: boolean;
   duration?: number;
+  /** Suggested cue points at musical phrase boundaries */
+  suggestedCuePoints?: number[];
+}
+
+/** Track metadata from tracks-metadata.json */
+interface TrackMetadata {
+  id: string;
+  title: string;
+  artist: string;
+  bpm: number;
+  duration: number;
+  filename: string;
+  cuePoints: number[];
+  waveformColor: string;
+  key: string;
+  keyMode: string;
+  camelotCode: string;
+  keyColor: string;
+  tempoCategory: string;
+  compatibleKeys: string[];
 }
 
 /**
@@ -120,6 +140,55 @@ export function TrackLibrary({
   const [uploadProgress, setUploadProgress] = useState<string>('');
   const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [metadataLoaded, setMetadataLoaded] = useState(false);
+
+  // Load track metadata from JSON to enrich tracks with cue points
+  useEffect(() => {
+    if (metadataLoaded) return;
+
+    async function loadMetadata() {
+      try {
+        const response = await fetch('/audio/tracks-metadata.json');
+        if (!response.ok) {
+          console.warn('[TrackLibrary] Could not load tracks metadata');
+          return;
+        }
+        const data = await response.json() as { tracks: TrackMetadata[] };
+
+        // Create a lookup map by filename
+        const metadataByFilename = new Map<string, TrackMetadata>();
+        data.tracks.forEach(meta => {
+          metadataByFilename.set(meta.filename, meta);
+        });
+
+        // Enrich tracks with metadata (cue points, accurate BPM)
+        setTracks(prev => prev.map(track => {
+          // Extract filename from URL
+          const filename = track.url.split('/').pop() || '';
+          const meta = metadataByFilename.get(filename);
+
+          if (meta) {
+            return {
+              ...track,
+              bpm: meta.bpm, // Use accurate BPM from metadata
+              duration: meta.duration,
+              suggestedCuePoints: meta.cuePoints,
+              artist: meta.artist,
+              name: meta.title,
+            };
+          }
+          return track;
+        }));
+
+        setMetadataLoaded(true);
+        console.log('[TrackLibrary] Loaded metadata for', data.tracks.length, 'tracks');
+      } catch (err) {
+        console.warn('[TrackLibrary] Error loading track metadata:', err);
+      }
+    }
+
+    loadMetadata();
+  }, [metadataLoaded]);
 
   // Cleanup blob URLs on unmount
   useEffect(() => {
@@ -205,6 +274,9 @@ export function TrackLibrary({
         artist: artist,
         bpm: track.bpm,
         cuePoint: 0,
+        // Pass suggested cue points from metadata (if available)
+        // DeckContext will calculate them dynamically if not provided
+        suggestedCuePoints: track.suggestedCuePoints,
       });
       onTrackLoaded?.(deckId, track);
       setSelectedTrack(null);
