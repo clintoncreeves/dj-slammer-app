@@ -83,6 +83,12 @@ function evaluateCondition(condition: ContextCondition, state: DeckStateSnapshot
       result = Math.abs(state.crossfaderPosition) >= (condition.threshold ?? THRESHOLDS.crossfaderExtreme);
       break;
 
+    case 'crossfader_moving':
+      // "Moving" means in the transition zone (not at extremes) - real movement detection
+      // would require tracking previous position, so we use position-based heuristic
+      result = Math.abs(state.crossfaderPosition) < (condition.threshold ?? THRESHOLDS.crossfaderExtreme);
+      break;
+
     case 'volume_low': {
       const threshold = condition.threshold ?? THRESHOLDS.volumeLow;
       if (condition.deck === 'A') {

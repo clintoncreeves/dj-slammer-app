@@ -11,6 +11,9 @@ import { DeckId } from './types';
 import { clamp } from '../../utils/audioUtils';
 import styles from './EQControl.module.css';
 
+/** Transition guidance type for bass swap visual cues */
+export type TransitionGuidance = 'cut-bass' | 'boost-bass' | null;
+
 interface EQControlProps {
   /** Deck identifier */
   deck: DeckId;
@@ -29,6 +32,9 @@ interface EQControlProps {
   /** Whether this control should be highlighted (tutorial mode) */
   highlighted?: boolean;
 
+  /** Transition guidance for bass swap - shows visual cues on LOW band */
+  transitionGuidance?: TransitionGuidance;
+
   /** Additional CSS classes */
   className?: string;
 }
@@ -41,6 +47,7 @@ export function EQControl({
   color,
   onChange,
   highlighted = false,
+  transitionGuidance = null,
   className,
 }: EQControlProps) {
   const [draggingBand, setDraggingBand] = useState<'low' | 'mid' | 'high' | null>(null);
@@ -158,14 +165,34 @@ export function EQControl({
     band: 'low' | 'mid' | 'high',
     label: string,
     value: number,
-    sliderRef: React.RefObject<HTMLDivElement>
+    sliderRef: React.RefObject<HTMLDivElement>,
+    guidance?: TransitionGuidance
   ) => {
     const percent = dbToPercent(value);
     const isDragging = draggingBand === band;
 
+    // Determine guidance class for LOW band only
+    const guidanceClass = guidance === 'cut-bass'
+      ? styles.guidanceCut
+      : guidance === 'boost-bass'
+        ? styles.guidanceBoost
+        : '';
+
     return (
-      <div className={styles.bandContainer}>
+      <div className={`${styles.bandContainer} ${guidanceClass}`}>
         <label className={styles.label}>{label}</label>
+
+        {/* Guidance label for bass swap */}
+        {guidance && (
+          <div className={`${styles.guidanceLabel} ${guidance === 'cut-bass' ? styles.guidanceLabelCut : styles.guidanceLabelBoost}`}>
+            <span className={styles.guidanceArrow}>
+              {guidance === 'cut-bass' ? '↓' : '↑'}
+            </span>
+            <span className={styles.guidanceText}>
+              {guidance === 'cut-bass' ? 'CUT' : 'BOOST'}
+            </span>
+          </div>
+        )}
 
         <div
           ref={sliderRef}
@@ -176,7 +203,7 @@ export function EQControl({
           onKeyDown={handleKeyDown(band)}
           tabIndex={0}
           role="slider"
-          aria-label={`${label} EQ control for Deck ${deck}`}
+          aria-label={`${label} EQ control for Deck ${deck}${guidance ? ` - ${guidance === 'cut-bass' ? 'cut bass for transition' : 'boost bass for transition'}` : ''}`}
           aria-valuenow={Math.round(value)}
           aria-valuemin={-12}
           aria-valuemax={12}
@@ -235,7 +262,7 @@ export function EQControl({
     >
       <div className={styles.title}>3-BAND EQ</div>
       <div className={styles.bandsRow}>
-        {renderBand('low', 'LOW', eqLow, lowSliderRef)}
+        {renderBand('low', 'LOW', eqLow, lowSliderRef, transitionGuidance)}
         {renderBand('mid', 'MID', eqMid, midSliderRef)}
         {renderBand('high', 'HIGH', eqHigh, highSliderRef)}
       </div>

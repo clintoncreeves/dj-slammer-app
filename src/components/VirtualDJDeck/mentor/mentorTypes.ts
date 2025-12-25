@@ -41,6 +41,7 @@ export interface ContextCondition {
     | 'both_playing'     // Both decks playing
     | 'crossfader_center' // Crossfader near center
     | 'crossfader_extreme' // Crossfader at A or B extreme
+    | 'crossfader_moving' // Crossfader is being moved (transition in progress)
     | 'volume_low'       // Volume below threshold
     | 'volume_high'      // Volume at max
     | 'bpm_mismatch'     // BPMs differ significantly

@@ -33,6 +33,8 @@ import { useDJMentor } from './mentor/useDJMentor';
 import { MentorPanel, MentorToggleButton } from './MentorPanel';
 import { MentorHelpPanel } from './MentorHelpPanel';
 import { HighlightTarget } from './mentor/mentorTypes';
+import { useTransitionState } from './useTransitionState';
+import { TransitionGuidance } from './EQControl';
 import styles from './VirtualDJDeck_Professional.module.css';
 
 export interface VirtualDJDeckHandle {
@@ -136,6 +138,25 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
 
     // State for mentor highlight (when user clicks a tip to highlight a control)
     const [mentorHighlight, setMentorHighlight] = useState<HighlightTarget | null>(null);
+
+    // Transition state for EQ guidance during mixing
+    const transition = useTransitionState({
+      isPlayingA: deck.deckAState.isPlaying,
+      isPlayingB: deck.deckBState.isPlaying,
+      crossfaderPosition: deck.crossfaderPosition,
+    });
+
+    // Determine EQ guidance for each deck based on transition state
+    const getEQGuidance = (deckId: DeckId): TransitionGuidance => {
+      if (!transition.isTransitioning) return null;
+
+      if (transition.outgoingDeck === deckId) {
+        return 'cut-bass';
+      } else if (transition.incomingDeck === deckId) {
+        return 'boost-bass';
+      }
+      return null;
+    };
 
     // Clear mentor highlight after a delay
     useEffect(() => {
@@ -477,6 +498,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                   mentorHighlight?.type === 'eq' &&
                   (mentorHighlight?.deck === 'A' || !mentorHighlight?.deck)
                 }
+                transitionGuidance={getEQGuidance('A')}
               />
 
               <DeckControls
@@ -602,6 +624,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                   mentorHighlight?.type === 'eq' &&
                   (mentorHighlight?.deck === 'B' || !mentorHighlight?.deck)
                 }
+                transitionGuidance={getEQGuidance('B')}
               />
 
               <DeckControls

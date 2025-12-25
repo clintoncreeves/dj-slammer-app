@@ -281,6 +281,39 @@ export const MENTOR_TIPS: MentorTip[] = [
     cooldown: 240000,
   },
 
+  {
+    id: 'transition-visual-guide',
+    content: "Watch the LOW EQ! When mixing, I'll show you CUT (↓) on the outgoing deck and BOOST (↑) on the incoming one. Follow the glowing arrows!",
+    category: 'intermediate',
+    context: {
+      trigger: 'state',
+      conditions: [
+        { type: 'both_playing' },
+        { type: 'crossfader_moving' },
+      ],
+    },
+    highlightTarget: { type: 'eq', control: 'low' },
+    priority: 9,
+    showOnce: true,
+  },
+
+  {
+    id: 'bass-swap-success',
+    content: "Perfect bass swap! No more clashing basslines - that's how the pros do it!",
+    category: 'intermediate',
+    context: {
+      trigger: 'action',
+      conditions: [
+        { type: 'both_playing' },
+        { type: 'eq_cut', deck: 'any' },
+        { type: 'crossfader_moving' },
+      ],
+    },
+    celebrationVariant: 'fire',
+    priority: 8,
+    cooldown: 30000,
+  },
+
   // ==========================================
   // INTERMEDIATE TIPS - Transitions
   // ==========================================
