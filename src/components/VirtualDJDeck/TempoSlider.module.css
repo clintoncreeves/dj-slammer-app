@@ -41,15 +41,37 @@
   overflow: hidden;
 }
 
+/* Center notch at 0% (original BPM) - visual reference for the midpoint */
+.centerNotch {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.4);
+  z-index: 2;
+  pointer-events: none;
+}
+
 .fill {
   position: absolute;
-  bottom: 0;
   left: 0;
   width: 100%;
   background: var(--slider-color, #00F0FF);
   opacity: 0.5;
-  transition: height 0.1s ease;
+  transition: height 0.1s ease, bottom 0.1s ease;
   pointer-events: none;
+}
+
+/* Fill above center (speeding up) - bright color */
+.fillAbove {
+  background: var(--slider-color, #00F0FF);
+}
+
+/* Fill below center (slowing down) - dimmer color */
+.fillBelow {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .thumb {

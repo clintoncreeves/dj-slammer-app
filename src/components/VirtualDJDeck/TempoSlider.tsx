@@ -163,6 +163,9 @@ export function TempoSlider({
       >
         {/* Track */}
         <div className={styles.track}>
+          {/* Center notch at 0% (original BPM) */}
+          <div className={styles.centerNotch} />
+
           {/* Markers */}
           <div className={`${styles.marker} ${styles.markerTop}`}>
             <span>{maxPercent > 0 ? '+' : ''}{maxPercent}%</span>
@@ -174,11 +177,14 @@ export function TempoSlider({
             <span>{minPercent}%</span>
           </div>
 
-          {/* Fill */}
+          {/* Fill - extends from center (50%) based on current position */}
           <div
-            className={styles.fill}
+            className={`${styles.fill} ${percentage >= 50 ? styles.fillAbove : styles.fillBelow}`}
             style={{
-              height: `${percentage}%`,
+              // When above center: fill from 50% up to current position
+              // When below center: fill from current position up to 50%
+              bottom: percentage >= 50 ? '50%' : `${percentage}%`,
+              height: percentage >= 50 ? `${percentage - 50}%` : `${50 - percentage}%`,
             }}
           />
         </div>
