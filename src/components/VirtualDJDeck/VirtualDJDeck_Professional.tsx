@@ -12,7 +12,7 @@
  * - AudioEngine is controlled through DeckContext, not directly by UI components
  */
 
-import { useEffect, useState, useImperativeHandle, forwardRef, useCallback } from 'react';
+import { useEffect, useState, useImperativeHandle, forwardRef, useCallback, useRef } from 'react';
 import { VirtualDJDeckConfig, VirtualDJDeckState, DeckId } from './types';
 import { DeckControls } from './DeckControls';
 import { Waveform } from './Waveform';
@@ -77,11 +77,20 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
     const [needsUserGesture, setNeedsUserGesture] = useState(!skipWelcomeScreen);
     const [error, setError] = useState<Error | null>(null);
 
-    // Cleanup on unmount
+    // Keep a ref to the audioEngine for cleanup (avoids stale closure issues)
+    const audioEngineRef = useRef(deck.audioEngine);
+
+    // Update the ref whenever audioEngine changes
+    useEffect(() => {
+      audioEngineRef.current = deck.audioEngine;
+    }, [deck.audioEngine]);
+
+    // Cleanup on unmount - destroy audioEngine to stop all playback
     useEffect(() => {
       return () => {
-        if (deck.audioEngine) {
-          deck.audioEngine.destroy();
+        if (audioEngineRef.current) {
+          console.log('[VirtualDJDeck] Unmounting - destroying AudioEngine');
+          audioEngineRef.current.destroy();
         }
       };
     }, []);
