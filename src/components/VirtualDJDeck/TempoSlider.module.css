@@ -26,6 +26,8 @@
   cursor: pointer;
   user-select: none;
   touch-action: none;
+  /* Prevent thumb from escaping slider bounds */
+  overflow: hidden;
 }
 
 .slider.dragging {

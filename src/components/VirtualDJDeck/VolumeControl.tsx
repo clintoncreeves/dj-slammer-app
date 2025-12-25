@@ -100,9 +100,30 @@ export function VolumeControl({
     };
   }, [isDragging]);
 
-  // Reset to 100% on double-click
-  const handleDoubleClick = () => {
-    onChange(1);
+  // Position-aware double-click:
+  // - Top third: go to max (100%)
+  // - Middle third: go to 50%
+  // - Bottom third: go to min (0%)
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    if (!sliderRef.current) {
+      onChange(1);
+      return;
+    }
+
+    const rect = sliderRef.current.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const relativePosition = y / rect.height;
+
+    if (relativePosition < 0.33) {
+      // Top third - go to max
+      onChange(1);
+    } else if (relativePosition > 0.67) {
+      // Bottom third - go to min
+      onChange(0);
+    } else {
+      // Middle third - go to 50%
+      onChange(0.5);
+    }
   };
 
   // Keyboard support

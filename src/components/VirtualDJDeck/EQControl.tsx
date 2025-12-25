@@ -129,9 +129,31 @@ export function EQControl({
     };
   }, [draggingBand]);
 
-  // Reset to 0 dB on double-click
-  const handleDoubleClick = (band: 'low' | 'mid' | 'high') => () => {
-    onChange(band, 0);
+  // Position-aware double-click:
+  // - Top third: go to max (+12 dB)
+  // - Middle third: reset to center (0 dB)
+  // - Bottom third: go to min (-12 dB)
+  const handleDoubleClick = (band: 'low' | 'mid' | 'high') => (e: React.MouseEvent) => {
+    const sliderRef = band === 'low' ? lowSliderRef : band === 'mid' ? midSliderRef : highSliderRef;
+    if (!sliderRef.current) {
+      onChange(band, 0);
+      return;
+    }
+
+    const rect = sliderRef.current.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const relativePosition = y / rect.height;
+
+    if (relativePosition < 0.33) {
+      // Top third - go to max
+      onChange(band, 12);
+    } else if (relativePosition > 0.67) {
+      // Bottom third - go to min
+      onChange(band, -12);
+    } else {
+      // Middle third - reset to center
+      onChange(band, 0);
+    }
   };
 
   // Keyboard support

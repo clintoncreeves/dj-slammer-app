@@ -189,11 +189,12 @@ export function TempoSlider({
           />
         </div>
 
-        {/* Thumb - scale position to keep within bounds */}
+        {/* Thumb - constrained within track bounds */}
+        {/* Map 0-100% to position that keeps thumb inside the track area */}
         <div
           className={styles.thumb}
           style={{
-            bottom: `calc(${percentage}% * 0.85)`,
+            bottom: `calc(${percentage}% * 0.7 + 2%)`,
           }}
         />
       </div>
