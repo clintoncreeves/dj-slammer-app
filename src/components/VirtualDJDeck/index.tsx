@@ -38,6 +38,18 @@ export type {
   TutorialCallbacks,
 } from './tutorialTypes';
 
+// Export mentor system
+export { useDJMentor, getSkillLevelDisplayName, getSkillLevelEmoji } from './mentor/useDJMentor';
+export { MentorPanel, MentorToggleButton } from './MentorPanel';
+export { MentorHelpPanel } from './MentorHelpPanel';
+export type {
+  MentorTip,
+  SkillLevel,
+  UserAction,
+  UserSkillProfile,
+  UseDJMentorResult,
+} from './mentor/mentorTypes';
+
 // Export types
 export type {
   VirtualDJDeckConfig,

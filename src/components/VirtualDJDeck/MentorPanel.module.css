@@ -1,0 +1,322 @@
+/**
+ * MentorPanel Styles
+ *
+ * Professional DJ mentor assistant panel with friendly personality.
+ * Adapted from TutorialInstructionPanel with mentor-specific styling.
+ */
+
+/* Main panel - fixed at top of viewport */
+.panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-tutorial, 900);
+  background: linear-gradient(135deg, rgba(30, 30, 50, 0.95) 0%, rgba(42, 42, 60, 0.95) 100%);
+  border-bottom: 2px solid var(--color-mentor, #9B59B6); /* Purple for mentor */
+  padding: 14px 24px;
+  padding-right: 100px; /* Space for help and close buttons */
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 30px rgba(155, 89, 182, 0.2);
+  animation: panelSlideIn 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes panelSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Content container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+}
+
+/* Mentor avatar/icon */
+.mentorIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #9B59B6 0%, #8E44AD 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  box-shadow: 0 0 15px rgba(155, 89, 182, 0.5);
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(155, 89, 182, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(155, 89, 182, 0.8);
+  }
+}
+
+/* Skill level badge */
+.skillBadge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #9B59B6;
+  background: rgba(155, 89, 182, 0.2);
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(155, 89, 182, 0.4);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-family: 'Inter', 'Space Grotesk', -apple-system, sans-serif;
+}
+
+/* Main tip text */
+.tipContent {
+  flex: 1;
+  font-size: 18px;
+  font-weight: 600;
+  color: #FFFFFF;
+  line-height: 1.4;
+  font-family: 'Inter', 'Space Grotesk', -apple-system, sans-serif;
+}
+
+/* Button group container */
+.buttonGroup {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Help button */
+.helpButton {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(155, 89, 182, 0.3);
+  border: 1px solid rgba(155, 89, 182, 0.5);
+  border-radius: 50%;
+  color: #D8B4E8;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 150ms ease;
+  padding: 0;
+  line-height: 1;
+  font-family: 'Inter', -apple-system, sans-serif;
+}
+
+.helpButton:hover {
+  background: rgba(155, 89, 182, 0.5);
+  border-color: #9B59B6;
+  color: #FFFFFF;
+  transform: scale(1.1);
+}
+
+.helpButton:active {
+  transform: scale(0.95);
+}
+
+.helpButton:focus-visible {
+  outline: 2px solid #9B59B6;
+  outline-offset: 2px;
+}
+
+/* Dismiss button */
+.dismissButton {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  color: #999;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 150ms ease;
+  padding: 0;
+  line-height: 1;
+}
+
+.dismissButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #FFF;
+}
+
+.dismissButton:active {
+  transform: scale(0.95);
+}
+
+.dismissButton:focus-visible {
+  outline: 2px solid #9B59B6;
+  outline-offset: 2px;
+}
+
+/* Celebration variants */
+.panelCelebration {
+  border-bottom-color: #00FF88 !important;
+  animation: celebrationGlow 600ms ease-out;
+}
+
+.panelCelebration .mentorIcon {
+  background: linear-gradient(135deg, #00FF88 0%, #00CC6E 100%);
+  animation: celebrationBounce 600ms ease-out;
+}
+
+@keyframes celebrationGlow {
+  0%, 100% {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  }
+  50% {
+    box-shadow: 0 4px 40px rgba(0, 255, 136, 0.6), 0 0 60px rgba(0, 255, 136, 0.3);
+  }
+}
+
+@keyframes celebrationBounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+/* Fire celebration */
+.panelFire {
+  border-bottom-color: #FF6B35 !important;
+}
+
+.panelFire .mentorIcon {
+  background: linear-gradient(135deg, #FF6B35 0%, #E55A2B 100%);
+}
+
+/* Sync celebration */
+.panelSync {
+  border-bottom-color: #00F0FF !important;
+}
+
+.panelSync .mentorIcon {
+  background: linear-gradient(135deg, #00F0FF 0%, #00C4CC 100%);
+}
+
+/* Mentor toggle button (when mentor is minimized) */
+.toggleButton {
+  position: fixed;
+  top: 12px;
+  right: 16px;
+  z-index: var(--z-tutorial, 900);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(155, 89, 182, 0.9) 0%, rgba(142, 68, 173, 0.9) 100%);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  color: #FFFFFF;
+  font-size: 24px;
+  cursor: pointer;
+  transition: all 150ms ease;
+  box-shadow: 0 4px 15px rgba(155, 89, 182, 0.5);
+}
+
+.toggleButton:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 25px rgba(155, 89, 182, 0.7);
+}
+
+.toggleButton:active {
+  transform: scale(0.95);
+}
+
+.toggleButton:focus-visible {
+  outline: 2px solid #FFFFFF;
+  outline-offset: 2px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .panel {
+    padding: 12px 16px;
+    padding-right: 90px;
+  }
+
+  .container {
+    gap: 12px;
+  }
+
+  .mentorIcon {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+
+  .tipContent {
+    font-size: 15px;
+  }
+
+  .skillBadge {
+    display: none;
+  }
+
+  .buttonGroup {
+    right: 12px;
+  }
+
+  .helpButton,
+  .dismissButton {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .panel {
+    background: rgba(0, 0, 0, 0.98);
+    border-bottom-width: 3px;
+  }
+
+  .tipContent {
+    font-weight: 700;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation: none;
+  }
+
+  .mentorIcon {
+    animation: none;
+  }
+
+  .panelCelebration {
+    animation: none;
+  }
+
+  .panelCelebration .mentorIcon {
+    animation: none;
+  }
+}

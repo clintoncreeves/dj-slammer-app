@@ -12,7 +12,7 @@
  * - AudioEngine is controlled through DeckContext, not directly by UI components
  */
 
-import { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
+import { useEffect, useState, useImperativeHandle, forwardRef, useCallback } from 'react';
 import { VirtualDJDeckConfig, VirtualDJDeckState, DeckId } from './types';
 import { DeckControls } from './DeckControls';
 import { Waveform } from './Waveform';
@@ -29,6 +29,10 @@ import { DeckProvider, useDeck } from './DeckContext';
 import { BPMSyncResult } from '../../utils/bpmSync';
 import { WelcomeScreen } from '../Welcome';
 import { TrackLibrary } from './TrackLibrary';
+import { useDJMentor } from './mentor/useDJMentor';
+import { MentorPanel, MentorToggleButton } from './MentorPanel';
+import { MentorHelpPanel } from './MentorHelpPanel';
+import { HighlightTarget } from './mentor/mentorTypes';
 import styles from './VirtualDJDeck_Professional.module.css';
 
 export interface VirtualDJDeckHandle {
@@ -80,6 +84,54 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
 
     // Get highlight target once for rendering
     const highlightTarget = tutorial.getHighlightTarget();
+
+    // Initialize mentor system for freeplay mode
+    const mentor = useDJMentor({
+      deckA: deck.deckAState.isLoaded
+        ? {
+            isPlaying: deck.deckAState.isPlaying,
+            isLoaded: deck.deckAState.isLoaded,
+            volume: deck.deckAState.volume,
+            currentBPM: deck.deckAState.currentBPM,
+            originalBPM: deck.deckAState.originalBPM,
+            eqLow: deck.deckAState.eqLow,
+            eqMid: deck.deckAState.eqMid,
+            eqHigh: deck.deckAState.eqHigh,
+          }
+        : null,
+      deckB: deck.deckBState.isLoaded
+        ? {
+            isPlaying: deck.deckBState.isPlaying,
+            isLoaded: deck.deckBState.isLoaded,
+            volume: deck.deckBState.volume,
+            currentBPM: deck.deckBState.currentBPM,
+            originalBPM: deck.deckBState.originalBPM,
+            eqLow: deck.deckBState.eqLow,
+            eqMid: deck.deckBState.eqMid,
+            eqHigh: deck.deckBState.eqHigh,
+          }
+        : null,
+      crossfaderPosition: deck.crossfaderPosition,
+      isActive: mode === 'freeplay',
+    });
+
+    // State for mentor highlight (when user clicks a tip to highlight a control)
+    const [mentorHighlight, setMentorHighlight] = useState<HighlightTarget | null>(null);
+
+    // Clear mentor highlight after a delay
+    useEffect(() => {
+      if (mentorHighlight) {
+        const timer = setTimeout(() => setMentorHighlight(null), 3000);
+        return () => clearTimeout(timer);
+      }
+    }, [mentorHighlight]);
+
+    // Handle mentor tip highlight selection
+    const handleMentorHighlight = useCallback((target: HighlightTarget | undefined) => {
+      if (target) {
+        setMentorHighlight(target);
+      }
+    }, []);
 
 
     // Handle lesson completion actions
@@ -171,13 +223,22 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
       };
     };
 
-    // Wrap deck operations to include tutorial validation with expected state
+    // Wrap deck operations to include tutorial validation and mentor action tracking
     const playDeckWithTutorial = (deckId: DeckId) => {
       deck.playDeck(deckId);
       const expectedState = createExpectedState({
         [deckId === 'A' ? 'deckA' : 'deckB']: { isPlaying: true, isPaused: false },
       });
       tutorial.validateStep(expectedState);
+      // Track for mentor
+      mentor.recordAction(deckId === 'A' ? 'play_deck_a' : 'play_deck_b');
+      // Check if both decks are now playing
+      if (
+        (deckId === 'A' && deck.deckBState.isPlaying) ||
+        (deckId === 'B' && deck.deckAState.isPlaying)
+      ) {
+        mentor.recordAction('both_decks_playing');
+      }
     };
 
     const pauseDeckWithTutorial = (deckId: DeckId) => {
@@ -186,16 +247,19 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
         [deckId === 'A' ? 'deckA' : 'deckB']: { isPlaying: false, isPaused: true },
       });
       tutorial.validateStep(expectedState);
+      mentor.recordAction('pause_deck');
     };
 
     const cueDeckWithTutorial = (deckId: DeckId) => {
       deck.cueDeck(deckId);
       tutorial.validateStep(getState());
+      mentor.recordAction('jump_to_cue');
     };
 
     const setCuePointWithTutorial = (deckId: DeckId) => {
       deck.setCuePoint(deckId);
       tutorial.validateStep(getState());
+      mentor.recordAction('set_cue');
     };
 
     const setBPMWithTutorial = (deckId: DeckId, bpm: number) => {
@@ -204,6 +268,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
         [deckId === 'A' ? 'deckA' : 'deckB']: { bpm },
       });
       tutorial.validateStep(expectedState);
+      mentor.recordAction('adjust_tempo');
     };
 
     const setVolumeWithTutorial = (deckId: DeckId, volume: number) => {
@@ -212,12 +277,28 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
         [deckId === 'A' ? 'deckA' : 'deckB']: { volume },
       });
       tutorial.validateStep(expectedState);
+      mentor.recordAction('adjust_volume');
     };
 
     const setCrossfaderWithTutorial = (position: number) => {
       deck.setCrossfader(position);
       const expectedState = createExpectedState({ crossfaderPosition: position });
       tutorial.validateStep(expectedState);
+      mentor.recordAction('use_crossfader');
+    };
+
+    // EQ change handler with mentor tracking
+    const setDeckEQWithMentor = (deckId: DeckId, band: 'low' | 'mid' | 'high', value: number) => {
+      deck.setDeckEQ(deckId, band, value);
+      if (band === 'low') mentor.recordAction('adjust_eq_low');
+      else if (band === 'mid') mentor.recordAction('adjust_eq_mid');
+      else mentor.recordAction('adjust_eq_high');
+    };
+
+    // Seek handler with mentor tracking
+    const seekDeckWithMentor = (deckId: DeckId, time: number) => {
+      deck.seekDeck(deckId, time);
+      mentor.recordAction('seek_waveform');
     };
 
     // Render error state
@@ -307,7 +388,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
               duration={deck.deckAState.duration}
               height={100}
               className={styles.waveform}
-              onSeek={(time) => deck.seekDeck('A', time)}
+              onSeek={(time) => seekDeckWithMentor('A', time)}
             />
 
             <BPMDisplay
@@ -351,7 +432,11 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 eqMid={deck.deckAState.eqMid}
                 eqHigh={deck.deckAState.eqHigh}
                 color={config.deckA.waveformColor}
-                onChange={(band, value) => deck.setDeckEQ('A', band, value)}
+                onChange={(band, value) => setDeckEQWithMentor('A', band, value)}
+                highlighted={
+                  mentorHighlight?.type === 'eq' &&
+                  (mentorHighlight?.deck === 'A' || !mentorHighlight?.deck)
+                }
               />
 
               <DeckControls
@@ -426,7 +511,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
               duration={deck.deckBState.duration}
               height={100}
               className={styles.waveform}
-              onSeek={(time) => deck.seekDeck('B', time)}
+              onSeek={(time) => seekDeckWithMentor('B', time)}
             />
 
             <BPMDisplay
@@ -470,7 +555,11 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 eqMid={deck.deckBState.eqMid}
                 eqHigh={deck.deckBState.eqHigh}
                 color={config.deckB.waveformColor}
-                onChange={(band, value) => deck.setDeckEQ('B', band, value)}
+                onChange={(band, value) => setDeckEQWithMentor('B', band, value)}
+                highlighted={
+                  mentorHighlight?.type === 'eq' &&
+                  (mentorHighlight?.deck === 'B' || !mentorHighlight?.deck)
+                }
               />
 
               <DeckControls
@@ -528,6 +617,34 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
 
         {/* Track Library - Upload and load tracks */}
         <TrackLibrary className={styles.trackLibrary} />
+
+        {/* Mentor Panel - Context-aware DJ assistant for freeplay mode */}
+        {mode === 'freeplay' && mentor.isEnabled && mentor.currentTip && (
+          <MentorPanel
+            tip={mentor.currentTip}
+            userLevel={mentor.userLevel}
+            onDismiss={mentor.dismissTip}
+            onRequestHelp={mentor.requestHelp}
+          />
+        )}
+
+        {/* Mentor Toggle Button - Shows when no tip is active */}
+        {mode === 'freeplay' && !mentor.currentTip && (
+          <MentorToggleButton
+            onClick={mentor.requestHelp}
+            isEnabled={mentor.isEnabled}
+          />
+        )}
+
+        {/* Mentor Help Panel - On-demand help overlay */}
+        {mode === 'freeplay' && mentor.showHelpPanel && (
+          <MentorHelpPanel
+            tips={mentor.getContextualTips()}
+            userLevel={mentor.userLevel}
+            onClose={mentor.closeHelpPanel}
+            onSelectTip={handleMentorHighlight}
+          />
+        )}
 
         {/* Tutorial Overlay - ONLY show for final lesson completion */}
         {mode === 'tutorial' && tutorial.progress.isActive && tutorial.progress.lessonCompleted && tutorialConfig && (
