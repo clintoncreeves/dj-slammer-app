@@ -189,7 +189,7 @@ export function TrackLibrary({
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState('');
   const [showCompatibleOnly, setShowCompatibleOnly] = useState(false);
-  const [sortBy, setSortBy] = useState<'name' | 'bpm' | 'key' | 'compatibility'>('name');
+  const [sortBy, setSortBy] = useState<'name' | 'bpm' | 'key' | 'compatibility'>('bpm');
 
   // Get current playlist filter from library context
   const activePlaylist = library.activePlaylistId

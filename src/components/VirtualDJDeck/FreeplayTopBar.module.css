@@ -1,0 +1,163 @@
+/**
+ * FreeplayTopBar Styles
+ *
+ * Professional top navigation bar for freeplay mode.
+ */
+
+.topBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 800;
+  height: 48px;
+  background: linear-gradient(180deg, rgba(26, 26, 40, 0.98) 0%, rgba(20, 20, 32, 0.98) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  backdrop-filter: blur(10px);
+}
+
+/* Left section */
+.leftSection {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Sidebar toggle button */
+.sidebarToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(0, 255, 255, 0.1);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  border-radius: 8px;
+  color: #00ffff;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.sidebarToggle:hover {
+  background: rgba(0, 255, 255, 0.2);
+  border-color: rgba(0, 255, 255, 0.5);
+}
+
+.sidebarToggle:focus-visible {
+  outline: 2px solid #00ffff;
+  outline-offset: 2px;
+}
+
+.sidebarIcon {
+  font-size: 14px;
+}
+
+.sidebarLabel {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Mode indicator */
+.modeIndicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(155, 89, 182, 0.15);
+  border: 1px solid rgba(155, 89, 182, 0.3);
+  border-radius: 20px;
+}
+
+.modeIcon {
+  font-size: 14px;
+}
+
+.modeLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #d8b4e8;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Right section */
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Mentor button */
+.mentorButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, rgba(155, 89, 182, 0.2) 0%, rgba(142, 68, 173, 0.2) 100%);
+  border: 1px solid rgba(155, 89, 182, 0.4);
+  border-radius: 8px;
+  color: #d8b4e8;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.mentorButton:hover {
+  background: linear-gradient(135deg, rgba(155, 89, 182, 0.35) 0%, rgba(142, 68, 173, 0.35) 100%);
+  border-color: rgba(155, 89, 182, 0.6);
+  color: #ffffff;
+  box-shadow: 0 0 15px rgba(155, 89, 182, 0.3);
+}
+
+.mentorButton:focus-visible {
+  outline: 2px solid #9b59b6;
+  outline-offset: 2px;
+}
+
+.mentorButton.mentorActive {
+  background: linear-gradient(135deg, rgba(155, 89, 182, 0.4) 0%, rgba(142, 68, 173, 0.4) 100%);
+  border-color: rgba(155, 89, 182, 0.7);
+  color: #ffffff;
+}
+
+.mentorIcon {
+  font-size: 16px;
+}
+
+.mentorLabel {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .topBar {
+    padding: 0 12px;
+    height: 44px;
+  }
+
+  .sidebarLabel,
+  .modeLabel,
+  .mentorLabel {
+    display: none;
+  }
+
+  .sidebarToggle,
+  .mentorButton {
+    padding: 8px 12px;
+  }
+
+  .modeIndicator {
+    padding: 6px 10px;
+  }
+}

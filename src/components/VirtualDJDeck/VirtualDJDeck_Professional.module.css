@@ -26,6 +26,16 @@
   padding-top: 70px; /* Space for fixed mentor panel */
 }
 
+/* Add padding for freeplay top bar */
+.container.withFreeplayBar {
+  padding-top: 48px; /* Space for freeplay top bar */
+}
+
+/* When both mentor panel and freeplay bar could show, mentor takes priority */
+.container.withFreeplayBar.withMentorPanel {
+  padding-top: 70px;
+}
+
 /* Layout with sidebar expanded (freeplay mode) */
 .container.withSidebar {
   display: flex;
@@ -48,10 +58,29 @@
 .decksContainer {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1px; /* Thin divider like Pioneer */
-  background: rgba(255, 255, 255, 0.05);
+  gap: 0;
   padding: 0;
   flex: 0 0 auto;
+  position: relative;
+}
+
+/* Clear dividing line between decks */
+.decksContainer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 240, 255, 0.6) 0%,
+    rgba(255, 255, 255, 0.3) 30%,
+    rgba(255, 255, 255, 0.3) 70%,
+    rgba(255, 0, 110, 0.6) 100%
+  );
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+  z-index: 5;
 }
 
 .deck {

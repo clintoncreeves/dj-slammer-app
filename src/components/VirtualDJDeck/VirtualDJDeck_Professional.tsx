@@ -30,7 +30,8 @@ import { BPMSyncResult } from '../../utils/bpmSync';
 import { WelcomeScreen } from '../Welcome';
 import { TrackLibrary } from './TrackLibrary';
 import { useDJMentor } from './mentor/useDJMentor';
-import { MentorPanel, MentorToggleButton } from './MentorPanel';
+import { MentorPanel } from './MentorPanel';
+import { FreeplayTopBar } from './FreeplayTopBar';
 import { MentorHelpPanel } from './MentorHelpPanel';
 import { HighlightTarget } from './mentor/mentorTypes';
 import { useTransitionState } from './useTransitionState';
@@ -425,7 +426,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
 
     // Render main professional UI
     return (
-      <div className={`${styles.container} ${!showTutorialBanner && !showMentorBanner ? styles.noTutorial : ''} ${showMentorBanner ? styles.withMentorPanel : ''} ${mode === 'freeplay' && !sidebarCollapsed ? styles.withSidebar : ''} ${className || ''}`}>
+      <div className={`${styles.container} ${!showTutorialBanner && mode !== 'freeplay' ? styles.noTutorial : ''} ${showMentorBanner ? styles.withMentorPanel : ''} ${mode === 'freeplay' ? styles.withFreeplayBar : ''} ${mode === 'freeplay' && !sidebarCollapsed ? styles.withSidebar : ''} ${className || ''}`}>
         {/* Tutorial Instruction Panel - Fixed at top, Guitar Hero style */}
         {showTutorialBanner && tutorial.currentStep && (
           <TutorialInstructionPanel
@@ -434,6 +435,16 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
             currentStep={tutorial.currentStep}
             showCelebration={tutorial.showCelebration}
             onClose={handleFreePlayMode}
+          />
+        )}
+
+        {/* Freeplay Top Bar - Shows in freeplay mode when no mentor tip */}
+        {mode === 'freeplay' && !mentor.currentTip && (
+          <FreeplayTopBar
+            mentorEnabled={mentor.isEnabled}
+            onRequestHelp={mentor.requestHelp}
+            sidebarCollapsed={sidebarCollapsed}
+            onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
           />
         )}
 
@@ -773,14 +784,6 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
             userLevel={mentor.userLevel}
             onDismiss={mentor.dismissTip}
             onRequestHelp={mentor.requestHelp}
-          />
-        )}
-
-        {/* Mentor Toggle Button - Shows when no tip is active */}
-        {mode === 'freeplay' && !mentor.currentTip && (
-          <MentorToggleButton
-            onClick={mentor.requestHelp}
-            isEnabled={mentor.isEnabled}
           />
         )}
 
