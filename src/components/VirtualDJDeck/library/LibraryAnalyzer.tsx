@@ -457,7 +457,7 @@ export function LibraryAnalyzer() {
       <h1 style={{ color: '#00f0ff' }}>DJ Slammer Library Analyzer</h1>
       <p>Analyzes audio files using <strong>Enhanced BPM/Key Detection</strong></p>
       <p style={{ fontSize: '12px', color: '#888', marginTop: '5px' }}>
-        Using Essentia.js + Multi-segment analysis + EDM-optimized key profiles for ~99% accuracy
+        Using Fourier Tempogram + Multi-segment analysis + EDM-optimized key profiles for ~99% accuracy
       </p>
 
       <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>

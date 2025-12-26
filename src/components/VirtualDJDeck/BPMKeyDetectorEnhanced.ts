@@ -1,20 +1,16 @@
 /**
- * BPMKeyDetectorEnhanced - High-Accuracy BPM and Key Detection using Essentia.js
+ * BPMKeyDetectorEnhanced - High-Accuracy BPM and Key Detection
  *
  * This module provides professional-grade (~99% accuracy) detection using:
- * 1. Essentia.js WASM-based algorithms (industry standard)
- * 2. Multi-segment analysis with weighted voting
- * 3. EDM-specific key profiles (EDMA, Shaath)
- * 4. Tempogram-based beat tracking
- * 5. Cross-validation between multiple algorithms
+ * 1. Multi-segment analysis with weighted voting
+ * 2. EDM-specific key profiles (EDMA, Shaath)
+ * 3. Fourier Tempogram-based beat tracking
+ * 4. Cross-validation between multiple key profiles
  *
  * Based on research from:
- * - MTG/UPF Essentia library
  * - Krumhansl-Schmuckler, EDMA, and Shaath key profiles
  * - Fourier Tempogram for robust tempo estimation
- *
- * @see https://mtg.github.io/essentia.js/
- * @see https://essentia.upf.edu/
+ * - Radix-2 Cooley-Tukey FFT for efficient spectral analysis
  */
 
 import { BPMKeyDetectionResult } from './types';
@@ -81,45 +77,6 @@ const KEY_PROFILES = [
 ];
 
 // ============================================================================
-// Essentia.js Integration
-// ============================================================================
-
-let essentiaInstance: any = null;
-let essentiaLoading: Promise<any> | null = null;
-
-/**
- * Load and initialize Essentia.js WASM module
- */
-async function loadEssentia(): Promise<any> {
-  if (essentiaInstance) {
-    return essentiaInstance;
-  }
-
-  if (essentiaLoading) {
-    return essentiaLoading;
-  }
-
-  essentiaLoading = (async () => {
-    try {
-      // Dynamic import of essentia.js
-      const { Essentia, EssentiaWASM } = await import('essentia.js');
-
-      // Initialize WASM module
-      const wasmModule = await EssentiaWASM();
-      essentiaInstance = new Essentia(wasmModule);
-
-      console.log('[BPMKeyDetector] Essentia.js loaded successfully');
-      return essentiaInstance;
-    } catch (error) {
-      console.warn('[BPMKeyDetector] Failed to load Essentia.js, falling back to custom algorithms:', error);
-      return null;
-    }
-  })();
-
-  return essentiaLoading;
-}
-
-// ============================================================================
 // Enhanced BPM Detection with Multiple Methods
 // ============================================================================
 
@@ -127,40 +84,6 @@ interface BPMCandidate {
   bpm: number;
   confidence: number;
   method: string;
-}
-
-/**
- * Detect BPM using Essentia.js RhythmExtractor2013
- */
-async function detectBPMEssentia(audioData: Float32Array, _sampleRate: number): Promise<BPMCandidate | null> {
-  const essentia = await loadEssentia();
-  if (!essentia) return null;
-
-  try {
-    const audioVector = essentia.arrayToVector(audioData);
-    const result = essentia.RhythmExtractor2013(audioVector);
-
-    let bpm = result.bpm;
-
-    // Normalize to dance music range
-    while (bpm < MIN_BPM && bpm > 0) bpm *= 2;
-    while (bpm > MAX_BPM) bpm /= 2;
-
-    // Confidence from beat positions consistency
-    const beats = essentia.vectorToArray(result.ticks);
-    const confidence = beats.length > 4 ? Math.min(95, 70 + beats.length * 0.5) : 50;
-
-    essentia.delete(audioVector);
-
-    return {
-      bpm: Math.round(bpm),
-      confidence,
-      method: 'essentia-rhythm',
-    };
-  } catch (error) {
-    console.warn('[BPMKeyDetector] Essentia BPM detection failed:', error);
-    return null;
-  }
 }
 
 /**
@@ -362,36 +285,6 @@ interface KeyCandidate {
 }
 
 /**
- * Detect key using Essentia.js KeyExtractor with EDMA profile
- */
-async function detectKeyEssentia(audioData: Float32Array, _sampleRate: number): Promise<{ key: string; mode: 'major' | 'minor'; confidence: number } | null> {
-  const essentia = await loadEssentia();
-  if (!essentia) return null;
-
-  try {
-    const audioVector = essentia.arrayToVector(audioData);
-
-    // Try to use KeyExtractor with EDMA profile
-    const result = essentia.KeyExtractor(audioVector, {
-      profileType: 'edma', // Electronic Dance Music Adjusted
-    });
-
-    const confidence = Math.round(result.strength * 100);
-
-    essentia.delete(audioVector);
-
-    return {
-      key: result.key,
-      mode: result.scale as 'major' | 'minor',
-      confidence,
-    };
-  } catch (error) {
-    console.warn('[BPMKeyDetector] Essentia key detection failed:', error);
-    return null;
-  }
-}
-
-/**
  * Detect key using multiple profiles with voting
  */
 function detectKeyMultiProfile(chroma: Float32Array): { key: string; mode: 'major' | 'minor'; confidence: number; camelotCode: string } {
@@ -556,55 +449,19 @@ interface SegmentResult {
  * Analyze a single audio segment
  */
 async function analyzeSegment(audioData: Float32Array, sampleRate: number): Promise<SegmentResult> {
-  // BPM Detection - try Essentia first, fall back to tempogram
-  const essentiaBPM = await detectBPMEssentia(audioData, sampleRate);
+  // BPM Detection using Fourier Tempogram
   const tempogramBPM = detectBPMTempogram(audioData, sampleRate);
+  const bpm = tempogramBPM.bpm;
+  const bpmConfidence = tempogramBPM.confidence;
 
-  // Combine BPM results
-  let bpm: number;
-  let bpmConfidence: number;
-
-  if (essentiaBPM && essentiaBPM.confidence > 60) {
-    // Essentia is reliable
-    bpm = essentiaBPM.bpm;
-    bpmConfidence = essentiaBPM.confidence;
-
-    // Boost confidence if tempogram agrees
-    if (Math.abs(tempogramBPM.bpm - bpm) < 3) {
-      bpmConfidence = Math.min(99, bpmConfidence + 10);
-    }
-  } else {
-    // Use tempogram
-    bpm = tempogramBPM.bpm;
-    bpmConfidence = tempogramBPM.confidence;
-  }
-
-  // Key Detection - try Essentia first, then multi-profile
-  const essentiaKey = await detectKeyEssentia(audioData, sampleRate);
+  // Key Detection using multi-profile analysis
   const chroma = extractChromaEnhanced(audioData, sampleRate);
   const multiProfileKey = detectKeyMultiProfile(chroma);
 
-  let key: string;
-  let keyMode: 'major' | 'minor';
-  let keyConfidence: number;
-  let camelotCode: string;
-
-  if (essentiaKey && essentiaKey.confidence > 60) {
-    key = essentiaKey.key;
-    keyMode = essentiaKey.mode;
-    keyConfidence = essentiaKey.confidence;
-    camelotCode = CAMELOT_WHEEL[`${key}-${keyMode}`] || multiProfileKey.camelotCode;
-
-    // Boost if multi-profile agrees
-    if (multiProfileKey.key === key && multiProfileKey.mode === keyMode) {
-      keyConfidence = Math.min(99, keyConfidence + 10);
-    }
-  } else {
-    key = multiProfileKey.key;
-    keyMode = multiProfileKey.mode;
-    keyConfidence = multiProfileKey.confidence;
-    camelotCode = multiProfileKey.camelotCode;
-  }
+  const key = multiProfileKey.key;
+  const keyMode = multiProfileKey.mode;
+  const keyConfidence = multiProfileKey.confidence;
+  const camelotCode = multiProfileKey.camelotCode;
 
   return { bpm, bpmConfidence, key, keyMode, keyConfidence, camelotCode };
 }
