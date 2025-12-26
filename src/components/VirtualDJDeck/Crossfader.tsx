@@ -191,38 +191,39 @@ export function Crossfader({
         highlighted ? highlightStyles.highlighted : ''
       }`}
     >
-      {/* Deck Status Indicators */}
-      <div className={styles.statusIndicators}>
-        <div className={styles.deckStatus} data-deck="a">
-          <div className={`${styles.statusDot} ${deckALoaded ? styles.loaded : ''} ${deckAPlaying ? styles.playing : ''}`} 
-               style={{ backgroundColor: deckALoaded ? colorA : '#333' }} />
-          <span className={styles.statusLabel} style={{ color: deckAPlaying ? colorA : '#666' }}>
-            {deckALoaded ? (deckAPlaying ? 'Playing' : 'Ready') : 'No Track'}
-          </span>
-          <span className={styles.volumeLevel} style={{ color: colorA, opacity: deckAVolume / 100 }}>
-            {Math.round(deckAVolume)}%
-          </span>
-        </div>
-        <div className={styles.deckStatus} data-deck="b">
-          <span className={styles.volumeLevel} style={{ color: colorB, opacity: deckBVolume / 100 }}>
-            {Math.round(deckBVolume)}%
-          </span>
-          <span className={styles.statusLabel} style={{ color: deckBPlaying ? colorB : '#666' }}>
-            {deckBLoaded ? (deckBPlaying ? 'Playing' : 'Ready') : 'No Track'}
-          </span>
-          <div className={`${styles.statusDot} ${deckBLoaded ? styles.loaded : ''} ${deckBPlaying ? styles.playing : ''}`}
-               style={{ backgroundColor: deckBLoaded ? colorB : '#333' }} />
-        </div>
-      </div>
-
+      {/* Deck Labels with Status */}
       <div className={styles.labels}>
-        <span className={styles.labelA} style={{ color: colorA, opacity: deckAVolume / 100 + 0.3 }}>
-          Deck A
-        </span>
+        <div className={styles.deckLabelGroup}>
+          <span className={styles.labelA} style={{ color: colorA }}>
+            Deck A
+          </span>
+          <div className={styles.statusUnderLabel}>
+            <div className={`${styles.statusDot} ${deckALoaded ? styles.loaded : ''} ${deckAPlaying ? styles.playing : ''}`}
+                 style={{ backgroundColor: deckALoaded ? colorA : '#333' }} />
+            <span className={styles.statusLabel} style={{ color: deckAPlaying ? colorA : '#666' }}>
+              {deckALoaded ? (deckAPlaying ? 'Playing' : 'Ready') : 'No Track'}
+            </span>
+            <span className={styles.volumeLevel} style={{ color: colorA, opacity: deckAVolume / 100 + 0.3 }}>
+              {Math.round(deckAVolume)}%
+            </span>
+          </div>
+        </div>
         <span className={styles.labelCenter}>Mix</span>
-        <span className={styles.labelB} style={{ color: colorB, opacity: deckBVolume / 100 + 0.3 }}>
-          Deck B
-        </span>
+        <div className={styles.deckLabelGroup}>
+          <span className={styles.labelB} style={{ color: colorB }}>
+            Deck B
+          </span>
+          <div className={styles.statusUnderLabel}>
+            <span className={styles.volumeLevel} style={{ color: colorB, opacity: deckBVolume / 100 + 0.3 }}>
+              {Math.round(deckBVolume)}%
+            </span>
+            <span className={styles.statusLabel} style={{ color: deckBPlaying ? colorB : '#666' }}>
+              {deckBLoaded ? (deckBPlaying ? 'Playing' : 'Ready') : 'No Track'}
+            </span>
+            <div className={`${styles.statusDot} ${deckBLoaded ? styles.loaded : ''} ${deckBPlaying ? styles.playing : ''}`}
+                 style={{ backgroundColor: deckBLoaded ? colorB : '#333' }} />
+          </div>
+        </div>
       </div>
 
       <div

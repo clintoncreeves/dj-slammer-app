@@ -81,22 +81,40 @@
 .labels {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
 
+.deckLabelGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.statusUnderLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.5rem;
+}
+
 .labelA,
 .labelB {
   text-shadow: 0 0 10px currentColor;
   transition: opacity 0.3s ease;
+  font-size: 0.7rem;
+  font-weight: 700;
 }
 
 .labelCenter {
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.625rem;
+  align-self: center;
+  padding-top: 0.5rem;
 }
 
 .slider {
