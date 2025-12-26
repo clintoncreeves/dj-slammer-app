@@ -91,6 +91,45 @@ const DEFAULT_FAVORITE_BANKS: FavoriteBank[] = Array.from({ length: 9 }, (_, i) 
   playlistId: null,
 }));
 
+/**
+ * Default playlists with harmonically compatible track pairs
+ * All tracks in each playlist share the same BPM and Camelot key
+ */
+const DEFAULT_PLAYLISTS: Playlist[] = [
+  {
+    id: 'playlist-default-1',
+    name: '🎯 Mix Ready: 129 BPM / 11A',
+    trackIds: ['1am-gridlock', 'sunshine-on-the-floor'],
+    createdAt: Date.now(),
+    color: '#9C36B5', // Purple for 11A
+    order: 0,
+  },
+  {
+    id: 'playlist-default-2',
+    name: '🎯 Mix Ready: 123 BPM / 3A',
+    trackIds: ['2am-shuffle', 'aye'],
+    createdAt: Date.now(),
+    color: '#FFB347', // Orange for 3A
+    order: 1,
+  },
+  {
+    id: 'playlist-default-3',
+    name: '🎯 Mix Ready: 129 BPM / 7A',
+    trackIds: ['dance-until-dark-329026', 'davik-x-zyroz-fire-royalty-free-music-166955', 'remix-453493'],
+    createdAt: Date.now(),
+    color: '#45B7D1', // Blue for 7A
+    order: 2,
+  },
+  {
+    id: 'playlist-default-4',
+    name: '🎯 Mix Ready: 129 BPM / 8B',
+    trackIds: ['kawaii-dance-upbeat-japan-anime-edm-242104', 'luthfi-syach-amp-shirina-biswas-without-you-royalty-free-music-176255', 'party-music-348444'],
+    createdAt: Date.now(),
+    color: '#4EA8DE', // Light blue for 8B
+    order: 3,
+  },
+];
+
 // ==========================================
 // Context Definition
 // ==========================================
@@ -162,13 +201,18 @@ interface LibraryProviderProps {
 }
 
 export function LibraryProvider({ children }: LibraryProviderProps) {
-  // Load initial state from localStorage
+  // Load initial state from localStorage, falling back to default playlists
   const [playlists, setPlaylists] = useState<Playlist[]>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.PLAYLISTS);
-      return stored ? JSON.parse(stored) : [];
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        // Return defaults if stored is empty array
+        return parsed.length > 0 ? parsed : DEFAULT_PLAYLISTS;
+      }
+      return DEFAULT_PLAYLISTS;
     } catch {
-      return [];
+      return DEFAULT_PLAYLISTS;
     }
   });
 

@@ -37,7 +37,7 @@ import { HighlightTarget } from './mentor/mentorTypes';
 import { useTransitionState } from './useTransitionState';
 import { TransitionGuidance } from './EQControl';
 import { LibraryProvider } from './library/LibraryContext';
-// import { PlaylistSidebar } from './library/PlaylistSidebar'; // Hidden - not working yet
+import { PlaylistSidebar } from './library/PlaylistSidebar';
 import { MIDIProvider, useMIDI } from './MIDIContext';
 import { MIDISettings } from './MIDISettings';
 import { PerformanceControls } from './PerformanceControls';
@@ -90,6 +90,9 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
 
     // MIDI settings panel state
     const [showMIDISettings, setShowMIDISettings] = useState(false);
+
+    // Playlist sidebar collapsed state
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     // Keep a ref to the audioEngine for cleanup (avoids stale closure issues)
     const audioEngineRef = useRef(deck.audioEngine);
@@ -542,21 +545,21 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
           <FreeplayTopBar
             mentorEnabled={mentor.isEnabled}
             onRequestHelp={mentor.requestHelp}
-            sidebarCollapsed={true}
-            onToggleSidebar={() => {/* Sidebar hidden for now */}}
+            sidebarCollapsed={sidebarCollapsed}
+            onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
             onOpenMIDISettings={handleOpenMIDISettings}
             midiConnected={midi.isEnabled}
           />
         )}
 
-        {/* Playlist Sidebar - Hidden for now (not working) */}
-        {/* {mode === 'freeplay' && (
+        {/* Playlist Sidebar */}
+        {mode === 'freeplay' && (
           <PlaylistSidebar
             className={styles.playlistSidebar}
             isCollapsed={sidebarCollapsed}
             onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
           />
-        )} */}
+        )}
 
         <div className={styles.decksContainer}>
           {/* Deck A */}
