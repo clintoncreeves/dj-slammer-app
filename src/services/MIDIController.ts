@@ -38,6 +38,7 @@ export interface MIDIMapping {
 }
 
 export type MIDIAction =
+  // Transport controls
   | 'play_a'
   | 'play_b'
   | 'pause_a'
@@ -46,21 +47,46 @@ export type MIDIAction =
   | 'cue_b'
   | 'sync_a'
   | 'sync_b'
+  // Mixer controls
   | 'crossfader'
   | 'volume_a'
   | 'volume_b'
+  // EQ controls
   | 'eq_low_a'
   | 'eq_mid_a'
   | 'eq_high_a'
   | 'eq_low_b'
   | 'eq_mid_b'
   | 'eq_high_b'
+  // Jog/Pitch controls
   | 'jog_a'
   | 'jog_b'
   | 'pitch_a'
   | 'pitch_b'
+  // Filter controls
   | 'filter_a'
-  | 'filter_b';
+  | 'filter_b'
+  // Hot cues (8 per deck)
+  | 'hotcue_1_a' | 'hotcue_2_a' | 'hotcue_3_a' | 'hotcue_4_a'
+  | 'hotcue_5_a' | 'hotcue_6_a' | 'hotcue_7_a' | 'hotcue_8_a'
+  | 'hotcue_1_b' | 'hotcue_2_b' | 'hotcue_3_b' | 'hotcue_4_b'
+  | 'hotcue_5_b' | 'hotcue_6_b' | 'hotcue_7_b' | 'hotcue_8_b'
+  // Loop controls
+  | 'loop_in_a' | 'loop_in_b'
+  | 'loop_out_a' | 'loop_out_b'
+  | 'loop_toggle_a' | 'loop_toggle_b'
+  | 'loop_double_a' | 'loop_double_b'
+  | 'loop_halve_a' | 'loop_halve_b'
+  // Auto loop (common sizes: 1, 2, 4, 8 beats)
+  | 'loop_1_a' | 'loop_2_a' | 'loop_4_a' | 'loop_8_a'
+  | 'loop_1_b' | 'loop_2_b' | 'loop_4_b' | 'loop_8_b'
+  // Beat sync (phase alignment)
+  | 'beat_sync_a' | 'beat_sync_b'
+  // Effects (toggle on/off)
+  | 'fx_reverb_a' | 'fx_reverb_b'
+  | 'fx_delay_a' | 'fx_delay_b'
+  | 'fx_echo_a' | 'fx_echo_b'
+  | 'fx_flanger_a' | 'fx_flanger_b';
 
 export interface MIDIEvent {
   action: MIDIAction;
@@ -91,8 +117,15 @@ type MIDILearnCallback = (control: MIDIControl) => void;
 /**
  * Default MIDI mappings for common DJ controllers
  * These can be overridden or extended by the user
+ *
+ * Note: These are generic mappings. Most DJ controllers use different CC/note numbers.
+ * Users should use MIDI Learn to map their specific controller.
  */
 export const DEFAULT_MAPPINGS: MIDIMapping[] = [
+  // ============================================================================
+  // Transport Controls
+  // ============================================================================
+
   // Deck A controls (typically left side, MIDI channel 1)
   { id: 'play_a', control: { type: 'note', channel: 1, number: 11, name: 'Play A' }, action: 'play_a', deck: 'A' },
   { id: 'pause_a', control: { type: 'note', channel: 1, number: 12, name: 'Pause A' }, action: 'pause_a', deck: 'A' },
@@ -105,32 +138,120 @@ export const DEFAULT_MAPPINGS: MIDIMapping[] = [
   { id: 'cue_b', control: { type: 'note', channel: 2, number: 13, name: 'Cue B' }, action: 'cue_b', deck: 'B' },
   { id: 'sync_b', control: { type: 'note', channel: 2, number: 14, name: 'Sync B' }, action: 'sync_b', deck: 'B' },
 
-  // Mixer controls (typically MIDI channel 1, CC messages)
+  // ============================================================================
+  // Mixer Controls
+  // ============================================================================
+
   { id: 'crossfader', control: { type: 'cc', channel: 1, number: 1, name: 'Crossfader' }, action: 'crossfader', deck: 'both' },
   { id: 'volume_a', control: { type: 'cc', channel: 1, number: 2, name: 'Volume A' }, action: 'volume_a', deck: 'A' },
   { id: 'volume_b', control: { type: 'cc', channel: 1, number: 3, name: 'Volume B' }, action: 'volume_b', deck: 'B' },
 
-  // EQ controls for Deck A
+  // ============================================================================
+  // EQ Controls
+  // ============================================================================
+
+  // Deck A EQ
   { id: 'eq_low_a', control: { type: 'cc', channel: 1, number: 4, name: 'EQ Low A' }, action: 'eq_low_a', deck: 'A' },
   { id: 'eq_mid_a', control: { type: 'cc', channel: 1, number: 5, name: 'EQ Mid A' }, action: 'eq_mid_a', deck: 'A' },
   { id: 'eq_high_a', control: { type: 'cc', channel: 1, number: 6, name: 'EQ High A' }, action: 'eq_high_a', deck: 'A' },
 
-  // EQ controls for Deck B
+  // Deck B EQ
   { id: 'eq_low_b', control: { type: 'cc', channel: 2, number: 4, name: 'EQ Low B' }, action: 'eq_low_b', deck: 'B' },
   { id: 'eq_mid_b', control: { type: 'cc', channel: 2, number: 5, name: 'EQ Mid B' }, action: 'eq_mid_b', deck: 'B' },
   { id: 'eq_high_b', control: { type: 'cc', channel: 2, number: 6, name: 'EQ High B' }, action: 'eq_high_b', deck: 'B' },
 
-  // Jog wheels (typically high-resolution CC)
+  // ============================================================================
+  // Jog Wheels & Pitch
+  // ============================================================================
+
   { id: 'jog_a', control: { type: 'cc', channel: 1, number: 7, name: 'Jog A' }, action: 'jog_a', deck: 'A' },
   { id: 'jog_b', control: { type: 'cc', channel: 2, number: 7, name: 'Jog B' }, action: 'jog_b', deck: 'B' },
-
-  // Pitch faders
   { id: 'pitch_a', control: { type: 'cc', channel: 1, number: 8, name: 'Pitch A' }, action: 'pitch_a', deck: 'A' },
   { id: 'pitch_b', control: { type: 'cc', channel: 2, number: 8, name: 'Pitch B' }, action: 'pitch_b', deck: 'B' },
 
-  // Filter knobs
+  // ============================================================================
+  // Filter Controls
+  // ============================================================================
+
   { id: 'filter_a', control: { type: 'cc', channel: 1, number: 9, name: 'Filter A' }, action: 'filter_a', deck: 'A' },
   { id: 'filter_b', control: { type: 'cc', channel: 2, number: 9, name: 'Filter B' }, action: 'filter_b', deck: 'B' },
+
+  // ============================================================================
+  // Hot Cues (8 per deck) - Common on pads/buttons
+  // ============================================================================
+
+  // Deck A Hot Cues (notes 36-43 = pads on many controllers)
+  { id: 'hotcue_1_a', control: { type: 'note', channel: 1, number: 36, name: 'Hot Cue 1 A' }, action: 'hotcue_1_a', deck: 'A' },
+  { id: 'hotcue_2_a', control: { type: 'note', channel: 1, number: 37, name: 'Hot Cue 2 A' }, action: 'hotcue_2_a', deck: 'A' },
+  { id: 'hotcue_3_a', control: { type: 'note', channel: 1, number: 38, name: 'Hot Cue 3 A' }, action: 'hotcue_3_a', deck: 'A' },
+  { id: 'hotcue_4_a', control: { type: 'note', channel: 1, number: 39, name: 'Hot Cue 4 A' }, action: 'hotcue_4_a', deck: 'A' },
+  { id: 'hotcue_5_a', control: { type: 'note', channel: 1, number: 40, name: 'Hot Cue 5 A' }, action: 'hotcue_5_a', deck: 'A' },
+  { id: 'hotcue_6_a', control: { type: 'note', channel: 1, number: 41, name: 'Hot Cue 6 A' }, action: 'hotcue_6_a', deck: 'A' },
+  { id: 'hotcue_7_a', control: { type: 'note', channel: 1, number: 42, name: 'Hot Cue 7 A' }, action: 'hotcue_7_a', deck: 'A' },
+  { id: 'hotcue_8_a', control: { type: 'note', channel: 1, number: 43, name: 'Hot Cue 8 A' }, action: 'hotcue_8_a', deck: 'A' },
+
+  // Deck B Hot Cues
+  { id: 'hotcue_1_b', control: { type: 'note', channel: 2, number: 36, name: 'Hot Cue 1 B' }, action: 'hotcue_1_b', deck: 'B' },
+  { id: 'hotcue_2_b', control: { type: 'note', channel: 2, number: 37, name: 'Hot Cue 2 B' }, action: 'hotcue_2_b', deck: 'B' },
+  { id: 'hotcue_3_b', control: { type: 'note', channel: 2, number: 38, name: 'Hot Cue 3 B' }, action: 'hotcue_3_b', deck: 'B' },
+  { id: 'hotcue_4_b', control: { type: 'note', channel: 2, number: 39, name: 'Hot Cue 4 B' }, action: 'hotcue_4_b', deck: 'B' },
+  { id: 'hotcue_5_b', control: { type: 'note', channel: 2, number: 40, name: 'Hot Cue 5 B' }, action: 'hotcue_5_b', deck: 'B' },
+  { id: 'hotcue_6_b', control: { type: 'note', channel: 2, number: 41, name: 'Hot Cue 6 B' }, action: 'hotcue_6_b', deck: 'B' },
+  { id: 'hotcue_7_b', control: { type: 'note', channel: 2, number: 42, name: 'Hot Cue 7 B' }, action: 'hotcue_7_b', deck: 'B' },
+  { id: 'hotcue_8_b', control: { type: 'note', channel: 2, number: 43, name: 'Hot Cue 8 B' }, action: 'hotcue_8_b', deck: 'B' },
+
+  // ============================================================================
+  // Loop Controls
+  // ============================================================================
+
+  // Deck A Loop
+  { id: 'loop_in_a', control: { type: 'note', channel: 1, number: 20, name: 'Loop In A' }, action: 'loop_in_a', deck: 'A' },
+  { id: 'loop_out_a', control: { type: 'note', channel: 1, number: 21, name: 'Loop Out A' }, action: 'loop_out_a', deck: 'A' },
+  { id: 'loop_toggle_a', control: { type: 'note', channel: 1, number: 22, name: 'Loop Toggle A' }, action: 'loop_toggle_a', deck: 'A' },
+  { id: 'loop_double_a', control: { type: 'note', channel: 1, number: 23, name: 'Loop x2 A' }, action: 'loop_double_a', deck: 'A' },
+  { id: 'loop_halve_a', control: { type: 'note', channel: 1, number: 24, name: 'Loop /2 A' }, action: 'loop_halve_a', deck: 'A' },
+
+  // Deck B Loop
+  { id: 'loop_in_b', control: { type: 'note', channel: 2, number: 20, name: 'Loop In B' }, action: 'loop_in_b', deck: 'B' },
+  { id: 'loop_out_b', control: { type: 'note', channel: 2, number: 21, name: 'Loop Out B' }, action: 'loop_out_b', deck: 'B' },
+  { id: 'loop_toggle_b', control: { type: 'note', channel: 2, number: 22, name: 'Loop Toggle B' }, action: 'loop_toggle_b', deck: 'B' },
+  { id: 'loop_double_b', control: { type: 'note', channel: 2, number: 23, name: 'Loop x2 B' }, action: 'loop_double_b', deck: 'B' },
+  { id: 'loop_halve_b', control: { type: 'note', channel: 2, number: 24, name: 'Loop /2 B' }, action: 'loop_halve_b', deck: 'B' },
+
+  // Auto Loop (beat-based) - Deck A
+  { id: 'loop_1_a', control: { type: 'note', channel: 1, number: 44, name: 'Loop 1 Beat A' }, action: 'loop_1_a', deck: 'A' },
+  { id: 'loop_2_a', control: { type: 'note', channel: 1, number: 45, name: 'Loop 2 Beat A' }, action: 'loop_2_a', deck: 'A' },
+  { id: 'loop_4_a', control: { type: 'note', channel: 1, number: 46, name: 'Loop 4 Beat A' }, action: 'loop_4_a', deck: 'A' },
+  { id: 'loop_8_a', control: { type: 'note', channel: 1, number: 47, name: 'Loop 8 Beat A' }, action: 'loop_8_a', deck: 'A' },
+
+  // Auto Loop (beat-based) - Deck B
+  { id: 'loop_1_b', control: { type: 'note', channel: 2, number: 44, name: 'Loop 1 Beat B' }, action: 'loop_1_b', deck: 'B' },
+  { id: 'loop_2_b', control: { type: 'note', channel: 2, number: 45, name: 'Loop 2 Beat B' }, action: 'loop_2_b', deck: 'B' },
+  { id: 'loop_4_b', control: { type: 'note', channel: 2, number: 46, name: 'Loop 4 Beat B' }, action: 'loop_4_b', deck: 'B' },
+  { id: 'loop_8_b', control: { type: 'note', channel: 2, number: 47, name: 'Loop 8 Beat B' }, action: 'loop_8_b', deck: 'B' },
+
+  // ============================================================================
+  // Beat Sync (Phase Alignment)
+  // ============================================================================
+
+  { id: 'beat_sync_a', control: { type: 'note', channel: 1, number: 15, name: 'Beat Sync A' }, action: 'beat_sync_a', deck: 'A' },
+  { id: 'beat_sync_b', control: { type: 'note', channel: 2, number: 15, name: 'Beat Sync B' }, action: 'beat_sync_b', deck: 'B' },
+
+  // ============================================================================
+  // Effects (Toggle On/Off)
+  // ============================================================================
+
+  // Deck A Effects
+  { id: 'fx_reverb_a', control: { type: 'note', channel: 1, number: 48, name: 'Reverb A' }, action: 'fx_reverb_a', deck: 'A' },
+  { id: 'fx_delay_a', control: { type: 'note', channel: 1, number: 49, name: 'Delay A' }, action: 'fx_delay_a', deck: 'A' },
+  { id: 'fx_echo_a', control: { type: 'note', channel: 1, number: 50, name: 'Echo A' }, action: 'fx_echo_a', deck: 'A' },
+  { id: 'fx_flanger_a', control: { type: 'note', channel: 1, number: 51, name: 'Flanger A' }, action: 'fx_flanger_a', deck: 'A' },
+
+  // Deck B Effects
+  { id: 'fx_reverb_b', control: { type: 'note', channel: 2, number: 48, name: 'Reverb B' }, action: 'fx_reverb_b', deck: 'B' },
+  { id: 'fx_delay_b', control: { type: 'note', channel: 2, number: 49, name: 'Delay B' }, action: 'fx_delay_b', deck: 'B' },
+  { id: 'fx_echo_b', control: { type: 'note', channel: 2, number: 50, name: 'Echo B' }, action: 'fx_echo_b', deck: 'B' },
+  { id: 'fx_flanger_b', control: { type: 'note', channel: 2, number: 51, name: 'Flanger B' }, action: 'fx_flanger_b', deck: 'B' },
 ];
 
 export class MIDIController {

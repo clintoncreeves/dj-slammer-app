@@ -157,18 +157,206 @@ export function MIDIProvider({ children, autoInit = false }: MIDIProviderProps) 
         break;
       }
 
-      // Filter controls (map to a filter parameter if available)
+      // Filter controls (bi-directional: -1 to +1)
       case 'filter_a':
+        // Convert 0-1 to -1 to +1 (center = no filter)
+        deck.setDeckFilter('A', (event.value * 2) - 1);
+        break;
       case 'filter_b':
-        // Future: Add filter support
-        console.log(`[MIDI] Filter ${event.action === 'filter_a' ? 'A' : 'B'}: ${event.value}`);
+        deck.setDeckFilter('B', (event.value * 2) - 1);
         break;
 
-      // Volume controls (currently not exposed in deck context)
+      // Volume controls (0 to 1)
       case 'volume_a':
+        deck.setVolume('A', event.value);
+        break;
       case 'volume_b':
-        // Future: Add per-deck volume control
-        console.log(`[MIDI] Volume ${event.action === 'volume_a' ? 'A' : 'B'}: ${event.value}`);
+        deck.setVolume('B', event.value);
+        break;
+
+      // Hot cues - Deck A (1-8)
+      case 'hotcue_1_a':
+        if (event.isNoteOn) {
+          if (deck.hotCuesA[0]) deck.jumpToHotCue('A', 1);
+          else deck.setHotCue('A', 1);
+        }
+        break;
+      case 'hotcue_2_a':
+        if (event.isNoteOn) {
+          if (deck.hotCuesA[1]) deck.jumpToHotCue('A', 2);
+          else deck.setHotCue('A', 2);
+        }
+        break;
+      case 'hotcue_3_a':
+        if (event.isNoteOn) {
+          if (deck.hotCuesA[2]) deck.jumpToHotCue('A', 3);
+          else deck.setHotCue('A', 3);
+        }
+        break;
+      case 'hotcue_4_a':
+        if (event.isNoteOn) {
+          if (deck.hotCuesA[3]) deck.jumpToHotCue('A', 4);
+          else deck.setHotCue('A', 4);
+        }
+        break;
+      case 'hotcue_5_a':
+        if (event.isNoteOn) {
+          if (deck.hotCuesA[4]) deck.jumpToHotCue('A', 5);
+          else deck.setHotCue('A', 5);
+        }
+        break;
+      case 'hotcue_6_a':
+        if (event.isNoteOn) {
+          if (deck.hotCuesA[5]) deck.jumpToHotCue('A', 6);
+          else deck.setHotCue('A', 6);
+        }
+        break;
+      case 'hotcue_7_a':
+        if (event.isNoteOn) {
+          if (deck.hotCuesA[6]) deck.jumpToHotCue('A', 7);
+          else deck.setHotCue('A', 7);
+        }
+        break;
+      case 'hotcue_8_a':
+        if (event.isNoteOn) {
+          if (deck.hotCuesA[7]) deck.jumpToHotCue('A', 8);
+          else deck.setHotCue('A', 8);
+        }
+        break;
+
+      // Hot cues - Deck B (1-8)
+      case 'hotcue_1_b':
+        if (event.isNoteOn) {
+          if (deck.hotCuesB[0]) deck.jumpToHotCue('B', 1);
+          else deck.setHotCue('B', 1);
+        }
+        break;
+      case 'hotcue_2_b':
+        if (event.isNoteOn) {
+          if (deck.hotCuesB[1]) deck.jumpToHotCue('B', 2);
+          else deck.setHotCue('B', 2);
+        }
+        break;
+      case 'hotcue_3_b':
+        if (event.isNoteOn) {
+          if (deck.hotCuesB[2]) deck.jumpToHotCue('B', 3);
+          else deck.setHotCue('B', 3);
+        }
+        break;
+      case 'hotcue_4_b':
+        if (event.isNoteOn) {
+          if (deck.hotCuesB[3]) deck.jumpToHotCue('B', 4);
+          else deck.setHotCue('B', 4);
+        }
+        break;
+      case 'hotcue_5_b':
+        if (event.isNoteOn) {
+          if (deck.hotCuesB[4]) deck.jumpToHotCue('B', 5);
+          else deck.setHotCue('B', 5);
+        }
+        break;
+      case 'hotcue_6_b':
+        if (event.isNoteOn) {
+          if (deck.hotCuesB[5]) deck.jumpToHotCue('B', 6);
+          else deck.setHotCue('B', 6);
+        }
+        break;
+      case 'hotcue_7_b':
+        if (event.isNoteOn) {
+          if (deck.hotCuesB[6]) deck.jumpToHotCue('B', 7);
+          else deck.setHotCue('B', 7);
+        }
+        break;
+      case 'hotcue_8_b':
+        if (event.isNoteOn) {
+          if (deck.hotCuesB[7]) deck.jumpToHotCue('B', 8);
+          else deck.setHotCue('B', 8);
+        }
+        break;
+
+      // Loop In/Out controls
+      case 'loop_in_a':
+        if (event.isNoteOn) deck.setLoopIn('A');
+        break;
+      case 'loop_in_b':
+        if (event.isNoteOn) deck.setLoopIn('B');
+        break;
+      case 'loop_out_a':
+        if (event.isNoteOn) deck.setLoopOut('A');
+        break;
+      case 'loop_out_b':
+        if (event.isNoteOn) deck.setLoopOut('B');
+        break;
+
+      // Loop toggle (activate/deactivate)
+      case 'loop_toggle_a':
+        if (event.isNoteOn) deck.toggleLoop('A');
+        break;
+      case 'loop_toggle_b':
+        if (event.isNoteOn) deck.toggleLoop('B');
+        break;
+
+      // Loop double/halve
+      case 'loop_double_a':
+        if (event.isNoteOn) deck.doubleLoop('A');
+        break;
+      case 'loop_double_b':
+        if (event.isNoteOn) deck.doubleLoop('B');
+        break;
+      case 'loop_halve_a':
+        if (event.isNoteOn) deck.halveLoop('A');
+        break;
+      case 'loop_halve_b':
+        if (event.isNoteOn) deck.halveLoop('B');
+        break;
+
+      // Auto-loop (1, 2, 4, 8 beats)
+      case 'loop_1_a':
+        if (event.isNoteOn) deck.setAutoLoop('A', 1);
+        break;
+      case 'loop_2_a':
+        if (event.isNoteOn) deck.setAutoLoop('A', 2);
+        break;
+      case 'loop_4_a':
+        if (event.isNoteOn) deck.setAutoLoop('A', 4);
+        break;
+      case 'loop_8_a':
+        if (event.isNoteOn) deck.setAutoLoop('A', 8);
+        break;
+      case 'loop_1_b':
+        if (event.isNoteOn) deck.setAutoLoop('B', 1);
+        break;
+      case 'loop_2_b':
+        if (event.isNoteOn) deck.setAutoLoop('B', 2);
+        break;
+      case 'loop_4_b':
+        if (event.isNoteOn) deck.setAutoLoop('B', 4);
+        break;
+      case 'loop_8_b':
+        if (event.isNoteOn) deck.setAutoLoop('B', 8);
+        break;
+
+      // Beat sync (phase alignment)
+      case 'beat_sync_a':
+        if (event.isNoteOn) deck.syncBeatPhase('A');
+        break;
+      case 'beat_sync_b':
+        if (event.isNoteOn) deck.syncBeatPhase('B');
+        break;
+
+      // Effects (toggle on/off) - placeholder for future implementation
+      case 'fx_reverb_a':
+      case 'fx_reverb_b':
+      case 'fx_delay_a':
+      case 'fx_delay_b':
+      case 'fx_echo_a':
+      case 'fx_echo_b':
+      case 'fx_flanger_a':
+      case 'fx_flanger_b':
+        if (event.isNoteOn) {
+          console.log(`[MIDI] Effect toggle: ${event.action}`);
+          // TODO: Wire up effects when EffectsEngine integration is complete
+        }
         break;
     }
   }, [deck]);
