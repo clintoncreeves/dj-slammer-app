@@ -425,6 +425,15 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
       mentor.recordAction('use_crossfader');
     }, [deck, createExpectedState, tutorial, mentor]);
 
+    const setDeckFilterWithTutorial = useCallback((deckId: DeckId, value: number) => {
+      deck.setDeckFilter(deckId, value);
+      const expectedState = createExpectedState({
+        [deckId === 'A' ? 'deckA' : 'deckB']: { filterPosition: value },
+      });
+      tutorial.validateStep(expectedState);
+      mentor.recordAction('adjust_filter');
+    }, [deck, createExpectedState, tutorial, mentor]);
+
     // EQ change handler with mentor tracking
     const setDeckEQWithMentor = useCallback((deckId: DeckId, band: 'low' | 'mid' | 'high', value: number) => {
       deck.setDeckEQ(deckId, band, value);
@@ -469,6 +478,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
     const handleEQA = useCallback((band: 'low' | 'mid' | 'high', value: number) => setDeckEQWithMentor('A', band, value), [setDeckEQWithMentor]);
     const handleToggleSpectralA = useCallback(() => deck.toggleSpectralColors('A'), [deck]);
     const handleAutoCueA = useCallback(() => handleAutoCue('A'), [handleAutoCue]);
+    const handleFilterA = useCallback((value: number) => setDeckFilterWithTutorial('A', value), [setDeckFilterWithTutorial]);
 
     // Memoized callbacks for Deck B
     const handlePlayB = useCallback(() => playDeckWithTutorial('B'), [playDeckWithTutorial]);
@@ -482,6 +492,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
     const handleEQB = useCallback((band: 'low' | 'mid' | 'high', value: number) => setDeckEQWithMentor('B', band, value), [setDeckEQWithMentor]);
     const handleToggleSpectralB = useCallback(() => deck.toggleSpectralColors('B'), [deck]);
     const handleAutoCueB = useCallback(() => handleAutoCue('B'), [handleAutoCue]);
+    const handleFilterB = useCallback((value: number) => setDeckFilterWithTutorial('B', value), [setDeckFilterWithTutorial]);
 
     // MIDI settings handlers
     const handleOpenMIDISettings = useCallback(() => setShowMIDISettings(true), []);
@@ -733,7 +744,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                   onLoopToggle={() => deck.toggleLoop('A')}
                   onSetAutoLoop={(beats) => deck.setAutoLoop('A', beats)}
                   filterValue={deck.deckAState.filterPosition}
-                  onFilterChange={(value) => deck.setDeckFilter('A', value)}
+                  onFilterChange={handleFilterA}
                 />
               </div>
             </div>
@@ -909,7 +920,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                   onLoopToggle={() => deck.toggleLoop('B')}
                   onSetAutoLoop={(beats) => deck.setAutoLoop('B', beats)}
                   filterValue={deck.deckBState.filterPosition}
-                  onFilterChange={(value) => deck.setDeckFilter('B', value)}
+                  onFilterChange={handleFilterB}
                 />
               </div>
             </div>

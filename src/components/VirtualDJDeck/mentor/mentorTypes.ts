@@ -127,6 +127,7 @@ export type UserAction =
   | 'adjust_eq_low'
   | 'adjust_eq_mid'
   | 'adjust_eq_high'
+  | 'adjust_filter'
   | 'seek_waveform'
   | 'load_track'
   | 'both_decks_playing';
