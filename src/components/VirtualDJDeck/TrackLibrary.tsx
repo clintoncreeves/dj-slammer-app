@@ -189,7 +189,7 @@ export function TrackLibrary({
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState('');
   const [showCompatibleOnly, setShowCompatibleOnly] = useState(false);
-  const [sortBy, setSortBy] = useState<'name' | 'bpm' | 'key' | 'compatibility'>('bpm');
+  const [sortBy, setSortBy] = useState<'name' | 'artist' | 'bpm' | 'key' | 'compatibility'>('artist');
 
   // Get current playlist filter from library context
   const activePlaylist = library.activePlaylistId
@@ -352,13 +352,33 @@ export function TrackLibrary({
       result = result.filter(track => compatibleIds.has(track.id));
     }
 
-    // Sort
+    // Helper to check if DJ SLAMMER artist (for priority sorting)
+    const isDJSlammer = (artist: string | undefined) =>
+      artist?.toLowerCase().includes('dj slammer') || artist?.toLowerCase() === 'dj slammer';
+
+    // Sort - DJ SLAMMER tracks always come first within each sort category
     switch (sortBy) {
       case 'bpm':
-        result.sort((a, b) => a.bpm - b.bpm);
+        result.sort((a, b) => {
+          // DJ SLAMMER first
+          const aSlammer = isDJSlammer(a.artist);
+          const bSlammer = isDJSlammer(b.artist);
+          if (aSlammer && !bSlammer) return -1;
+          if (!aSlammer && bSlammer) return 1;
+          // Then by BPM
+          return a.bpm - b.bpm;
+        });
         break;
       case 'key':
-        result.sort((a, b) => (a.camelotCode || 'ZZZ').localeCompare(b.camelotCode || 'ZZZ'));
+        result.sort((a, b) => {
+          // DJ SLAMMER first
+          const aSlammer = isDJSlammer(a.artist);
+          const bSlammer = isDJSlammer(b.artist);
+          if (aSlammer && !bSlammer) return -1;
+          if (!aSlammer && bSlammer) return 1;
+          // Then by key
+          return (a.camelotCode || 'ZZZ').localeCompare(b.camelotCode || 'ZZZ');
+        });
         break;
       case 'compatibility':
         result.sort((a, b) => {
@@ -367,9 +387,30 @@ export function TrackLibrary({
           return compatB - compatA;
         });
         break;
+      case 'artist':
+        result.sort((a, b) => {
+          // DJ SLAMMER first
+          const aSlammer = isDJSlammer(a.artist);
+          const bSlammer = isDJSlammer(b.artist);
+          if (aSlammer && !bSlammer) return -1;
+          if (!aSlammer && bSlammer) return 1;
+          // Then alphabetically by artist
+          const artistA = a.artist || 'Unknown';
+          const artistB = b.artist || 'Unknown';
+          return artistA.localeCompare(artistB);
+        });
+        break;
       case 'name':
       default:
-        result.sort((a, b) => a.name.localeCompare(b.name));
+        result.sort((a, b) => {
+          // DJ SLAMMER first
+          const aSlammer = isDJSlammer(a.artist);
+          const bSlammer = isDJSlammer(b.artist);
+          if (aSlammer && !bSlammer) return -1;
+          if (!aSlammer && bSlammer) return 1;
+          // Then alphabetically by name
+          return a.name.localeCompare(b.name);
+        });
         break;
     }
 
@@ -523,6 +564,7 @@ export function TrackLibrary({
                 className={styles.sortSelect}
                 aria-label="Sort by"
               >
+                <option value="artist">Artist</option>
                 <option value="name">Name</option>
                 <option value="bpm">BPM</option>
                 <option value="key">Key</option>
@@ -614,9 +656,10 @@ export function TrackLibrary({
                     onClick={() => handleTrackClick(track.id)}
                   >
                     <span className={styles.trackIcon}>
-                      {track.isUserUploaded ? '📤' : '🎶'}
+                      {track.isUserUploaded ? '📤' : track.artist?.toLowerCase().includes('dj slammer') ? '⭐' : '🎶'}
                     </span>
                     <span className={styles.trackName}>{track.name}</span>
+                    <span className={styles.trackArtist}>{track.artist || 'Unknown'}</span>
                     <span className={styles.trackBPM}>{track.bpm}</span>
                     {track.camelotCode && (
                       <span
