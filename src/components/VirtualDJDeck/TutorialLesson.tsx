@@ -27,9 +27,10 @@ const TRACK_METADATA: Record<string, TrackMetadata> = {
   '/audio/dance-until-dark-329026.mp3': { bpm: 123, camelotCode: '8B', trackName: 'Dance Until Dark', artist: 'Pixabay' },
   '/audio/ootd-upbeat-summer-house-242100.mp3': { bpm: 123, camelotCode: '8B', trackName: 'OOTD Upbeat Summer House', artist: 'Pixabay' },
   '/audio/happy-summer-145530.mp3': { bpm: 129, camelotCode: '8B', trackName: 'Happy Summer', artist: 'Pixabay' },
-  // DJ SLAMMER tracks
+  // DJ SLAMMER tracks - file names match actual files in public/audio/
+  '/audio/1AM Gridlock.mp3': { bpm: 129, camelotCode: '11A', trackName: '1AM Gridlock', artist: 'DJ SLAMMER' },
+  '/audio/Sunshine On The Floor.mp3': { bpm: 129, camelotCode: '11A', trackName: 'Sunshine On The Floor', artist: 'DJ SLAMMER' },
   '/audio/Heartburst.mp3': { bpm: 129, camelotCode: '10B', trackName: 'Heartburst', artist: 'DJ SLAMMER' },
-  '/audio/SunshineOnTheFloor.mp3': { bpm: 129, camelotCode: '11A', trackName: 'Sunshine On The Floor', artist: 'DJ SLAMMER' },
   '/audio/GetReadyToMove.mp3': { bpm: 129, camelotCode: '6A', trackName: 'Get Ready To Move', artist: 'DJ SLAMMER' },
   '/audio/ShakeItUp.mp3': { bpm: 123, camelotCode: '9A', trackName: 'Shake It Up', artist: 'DJ SLAMMER' },
 };
