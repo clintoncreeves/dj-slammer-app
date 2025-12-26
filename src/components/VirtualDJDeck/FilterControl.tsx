@@ -92,6 +92,9 @@ export function FilterControl({
     return `${Math.round(frequency)}`;
   };
 
+  // Snap threshold - if within this range of center, snap to 0
+  const SNAP_THRESHOLD = 0.08;
+
   const updatePosition = useCallback((clientX: number) => {
     if (!sliderRef.current) return;
 
@@ -101,7 +104,12 @@ export function FilterControl({
 
     // Calculate position (-1 to 1), where center is 0
     const rawPosition = (x / width) * 2 - 1;
-    const position = Math.max(-1, Math.min(1, rawPosition));
+    let position = Math.max(-1, Math.min(1, rawPosition));
+
+    // Snap to center (0) when close to middle
+    if (Math.abs(position) < SNAP_THRESHOLD) {
+      position = 0;
+    }
 
     onFilterChange(position, filterResonance);
   }, [onFilterChange, filterResonance]);

@@ -34,8 +34,6 @@ import { MentorPanel } from './MentorPanel';
 import { FreeplayTopBar } from './FreeplayTopBar';
 import { MentorHelpPanel } from './MentorHelpPanel';
 import { HighlightTarget } from './mentor/mentorTypes';
-import { useTransitionState } from './useTransitionState';
-import { TransitionGuidance } from './EQControl';
 import { LibraryProvider } from './library/LibraryContext';
 // import { PlaylistSidebar } from './library/PlaylistSidebar'; // DISABLED: Feature not working
 import { MIDIProvider, useMIDI } from './MIDIContext';
@@ -153,29 +151,6 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
 
     // State for mentor highlight (when user clicks a tip to highlight a control)
     const [mentorHighlight, setMentorHighlight] = useState<HighlightTarget | null>(null);
-
-    // Transition state for EQ guidance during mixing
-    const transition = useTransitionState({
-      isPlayingA: deck.deckAState.isPlaying,
-      isPlayingB: deck.deckBState.isPlaying,
-      crossfaderPosition: deck.crossfaderPosition,
-    });
-
-    // Determine EQ guidance for each deck based on transition state
-    // CORRECT DJ TECHNIQUE: Cut bass on INCOMING track to avoid two basslines!
-    // The incoming track should have bass cut BEFORE you fade it in.
-    // Only boost the incoming bass once the outgoing track's bass is cut.
-    const getEQGuidance = (deckId: DeckId): TransitionGuidance => {
-      if (!transition.isTransitioning) return null;
-
-      // Incoming deck should CUT bass (to avoid two basslines during blend)
-      if (transition.incomingDeck === deckId) {
-        return 'cut-bass';
-      }
-      // Outgoing deck keeps bass (it's the current dominant track)
-      // No guidance needed for outgoing - just let it play
-      return null;
-    };
 
     // Clear mentor highlight after a delay
     useEffect(() => {
@@ -724,7 +699,6 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                          highlightTarget?.control === 'eq-high' ? 'high' : undefined)
                       : undefined
                   }
-                  transitionGuidance={getEQGuidance('A')}
                 />
               </div>
 
@@ -900,7 +874,6 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                          highlightTarget?.control === 'eq-high' ? 'high' : undefined)
                       : undefined
                   }
-                  transitionGuidance={getEQGuidance('B')}
                 />
               </div>
 
