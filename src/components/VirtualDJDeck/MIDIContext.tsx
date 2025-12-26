@@ -5,7 +5,7 @@
  * Handles initialization, device management, and event routing.
  */
 
-import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo, ReactNode } from 'react';
 import {
   midiController,
   MIDIDevice,
@@ -66,6 +66,9 @@ export function MIDIProvider({ children, autoInit = false }: MIDIProviderProps) 
   const [isLearning, setIsLearning] = useState(false);
   const [lastEvent, setLastEvent] = useState<MIDIEvent | null>(null);
   const learnCallbackRef = useRef<((control: MIDIControl) => void) | null>(null);
+  // Store cleanup functions for event listeners to prevent memory leaks
+  const eventCleanupRef = useRef<(() => void) | null>(null);
+  const deviceCleanupRef = useRef<(() => void) | null>(null);
 
   // Handle MIDI events and route to deck actions
   const handleMIDIEvent = useCallback((event: MIDIEvent) => {
@@ -371,11 +374,11 @@ export function MIDIProvider({ children, autoInit = false }: MIDIProviderProps) 
       setIsEnabled(success);
 
       if (success) {
-        // Set up event listener
-        midiController.onEvent(handleMIDIEvent);
+        // Set up event listener and store cleanup function
+        eventCleanupRef.current = midiController.onEvent(handleMIDIEvent);
 
-        // Set up device change listener
-        midiController.onDeviceChange(setDevices);
+        // Set up device change listener and store cleanup function
+        deviceCleanupRef.current = midiController.onDeviceChange(setDevices);
 
         // Load saved mappings from localStorage
         const savedMappings = localStorage.getItem('djslammer-midi-mappings');
@@ -393,6 +396,15 @@ export function MIDIProvider({ children, autoInit = false }: MIDIProviderProps) 
 
   // Disable MIDI
   const disable = useCallback(async () => {
+    // Clean up event listeners to prevent memory leaks
+    if (eventCleanupRef.current) {
+      eventCleanupRef.current();
+      eventCleanupRef.current = null;
+    }
+    if (deviceCleanupRef.current) {
+      deviceCleanupRef.current();
+      deviceCleanupRef.current = null;
+    }
     await midiController.disable();
     setIsEnabled(false);
     setDevices([]);
@@ -477,13 +489,22 @@ export function MIDIProvider({ children, autoInit = false }: MIDIProviderProps) 
       initialize();
     }
 
-    // Cleanup on unmount
+    // Cleanup on unmount - remove event listeners to prevent memory leaks
     return () => {
+      if (eventCleanupRef.current) {
+        eventCleanupRef.current();
+        eventCleanupRef.current = null;
+      }
+      if (deviceCleanupRef.current) {
+        deviceCleanupRef.current();
+        deviceCleanupRef.current = null;
+      }
       midiController.disable();
     };
   }, [autoInit, initialize]);
 
-  const value: MIDIContextValue = {
+  // Memoize context value to prevent unnecessary re-renders
+  const value = useMemo<MIDIContextValue>(() => ({
     isEnabled,
     isInitializing,
     devices,
@@ -499,7 +520,23 @@ export function MIDIProvider({ children, autoInit = false }: MIDIProviderProps) 
     resetMappings,
     exportMappings,
     loadMappings,
-  };
+  }), [
+    isEnabled,
+    isInitializing,
+    devices,
+    mappings,
+    isLearning,
+    lastEvent,
+    initialize,
+    disable,
+    startLearn,
+    stopLearn,
+    setMapping,
+    removeMapping,
+    resetMappings,
+    exportMappings,
+    loadMappings,
+  ]);
 
   return <MIDIContext.Provider value={value}>{children}</MIDIContext.Provider>;
 }

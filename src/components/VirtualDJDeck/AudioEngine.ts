@@ -76,6 +76,7 @@ export class AudioEngine {
   private crossfaderGains: Map<DeckId, Tone.Gain>;
   private crossfader: Tone.CrossFade;
   private masterGain: Tone.Gain;
+  private masterLimiter: Tone.Limiter;
   private isInitialized = false;
   private loadingPromises: Map<DeckId, Promise<void>>;
   private initTimeout: number;
@@ -136,6 +137,10 @@ export class AudioEngine {
     // Initialize master gain
     this.masterGain = new Tone.Gain(config.masterVolume ?? 1);
 
+    // Initialize master limiter to prevent clipping (-1 dB threshold)
+    // This protects speakers and ears from sudden volume spikes
+    this.masterLimiter = new Tone.Limiter(-1);
+
     // Initialize crossfader (starts at center: 0.5)
     this.crossfader = new Tone.CrossFade(0.5);
 
@@ -170,7 +175,8 @@ export class AudioEngine {
           this.crossfaderGains.get('A')!.connect(this.crossfader.a);
           this.crossfaderGains.get('B')!.connect(this.crossfader.b);
           this.crossfader.connect(this.masterGain);
-          this.masterGain.toDestination();
+          this.masterGain.connect(this.masterLimiter);
+          this.masterLimiter.toDestination();
 
           this.isInitialized = true;
 
@@ -303,6 +309,9 @@ export class AudioEngine {
       grainPlayer.stop();
       console.log(`[AudioEngine] Stopped existing GrainPlayer for Deck ${deck}`);
     }
+
+    // Stop BPM analysis before loading new track to clean up MediaStream resources
+    this.stopBpmAnalysis(deck);
 
     // Clear loop state for new track
     this.clearLoop(deck);
@@ -1171,11 +1180,14 @@ export class AudioEngine {
     // Clean up any existing BPM nodes for this deck first
     this.stopBpmAnalysis(deck);
 
+    let streamDest: MediaStreamAudioDestinationNode | null = null;
+    let source: MediaStreamAudioSourceNode | null = null;
+
     try {
       const audioContext = Tone.getContext().rawContext as AudioContext;
 
       // Create a MediaStreamDestination to capture audio
-      const streamDest = audioContext.createMediaStreamDestination();
+      streamDest = audioContext.createMediaStreamDestination();
 
       // Connect player output to the stream destination (in parallel with normal output)
       const eq = this.eqs.get(deck);
@@ -1185,7 +1197,7 @@ export class AudioEngine {
       }
 
       // Create source from the stream
-      const source = audioContext.createMediaStreamSource(streamDest.stream);
+      source = audioContext.createMediaStreamSource(streamDest.stream);
 
       // Connect to the BPM analyzer's audio node
       source.connect(analyzer.node);
@@ -1195,6 +1207,18 @@ export class AudioEngine {
 
       console.log(`[AudioEngine] BPM analysis started for Deck ${deck}`);
     } catch (error) {
+      // Clean up any partially created resources to prevent memory leaks
+      if (source) {
+        try {
+          source.disconnect();
+        } catch {
+          // Ignore disconnect errors
+        }
+      }
+      if (streamDest) {
+        // Stop all tracks in the MediaStream to release resources
+        streamDest.stream.getTracks().forEach(track => track.stop());
+      }
       console.warn(`[AudioEngine] Failed to start BPM analysis for Deck ${deck}:`, error);
     }
   }
@@ -1593,6 +1617,11 @@ export class AudioEngine {
 
     this.masterGain.disconnect();
     this.masterGain.dispose();
+
+    // Dispose master limiter to prevent memory leak
+    this.masterLimiter.disconnect();
+    this.masterLimiter.dispose();
+    console.log('[AudioEngine] Disposed master limiter');
 
     // Clean up BPM analysis resources
     // First, stop BPM analysis for all decks (cleans up MediaStream resources)

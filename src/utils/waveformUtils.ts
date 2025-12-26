@@ -65,12 +65,13 @@ export function generateWaveformData(
     let sum = 0;
 
     // Calculate RMS (Root Mean Square) for this block
+    // RMS = sqrt(sum(x^2) / n) - more accurate than mean absolute deviation
     for (let j = start; j < end && j < rawData.length; j++) {
-      sum += Math.abs(rawData[j]);
+      sum += rawData[j] * rawData[j]; // Square the value
     }
 
-    const average = sum / blockSize;
-    waveformData.push(average);
+    const rms = Math.sqrt(sum / blockSize);
+    waveformData.push(rms);
   }
 
   // Normalize to 0-1 range
@@ -352,12 +353,12 @@ export function generateSpectralWaveformData(
     // Extract segment data
     const segmentData = rawData.slice(start, end);
 
-    // Calculate amplitude (RMS)
+    // Calculate amplitude (RMS) - Root Mean Square for accurate amplitude measurement
     let sum = 0;
     for (let j = 0; j < segmentData.length; j++) {
-      sum += Math.abs(segmentData[j]);
+      sum += segmentData[j] * segmentData[j]; // Square the value
     }
-    const amplitude = sum / segmentData.length;
+    const amplitude = Math.sqrt(sum / segmentData.length);
 
     // Analyze frequency spectrum
     const spectrum = analyzeFrequencySpectrum(segmentData, sampleRate);

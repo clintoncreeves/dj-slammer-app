@@ -12,7 +12,7 @@
  * - AudioEngine is controlled through this context, not directly by UI components
  */
 
-import { createContext, useContext, useState, useRef, useCallback, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useRef, useCallback, useEffect, useMemo, ReactNode } from 'react';
 import { AudioEngine } from './AudioEngine';
 import { DeckState, DeckId, VirtualDJDeckState, CrossfaderCurveType, calculateCrossfaderVolumes } from './types';
 import { generateWaveformData, generateSpectralWaveformData, spectralToAmplitudeArray } from '../../utils/waveformUtils';
@@ -1471,7 +1471,9 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
   // Update playback time periodically
   // This is handled by a useEffect in the component that uses the context
 
-  const value: DeckContextValue = {
+  // Memoize context value to prevent unnecessary re-renders of consumers
+  // All callbacks are already memoized with useCallback, so they're stable references
+  const value = useMemo<DeckContextValue>(() => ({
     deckAState,
     deckBState,
     crossfaderPosition,
@@ -1515,7 +1517,50 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     getDeckState,
     initializeAudioEngine,
     loadErrors,
-  };
+  }), [
+    deckAState,
+    deckBState,
+    crossfaderPosition,
+    crossfaderCurve,
+    isInitialized,
+    loadTrack,
+    playDeck,
+    pauseDeck,
+    cueDeck,
+    setCuePoint,
+    seekDeck,
+    setBPM,
+    syncBPM,
+    syncDeck,
+    setVolume,
+    setCrossfader,
+    setCrossfaderCurve,
+    updateCurrentTime,
+    setDeckEQ,
+    setDeckFilter,
+    setPlaybackRate,
+    syncBeatPhase,
+    autoCue,
+    toggleSpectralColors,
+    hotCuesA,
+    hotCuesB,
+    setHotCue,
+    jumpToHotCue,
+    deleteHotCue,
+    updateHotCueColor,
+    setLoopIn,
+    setLoopOut,
+    toggleLoop,
+    setAutoLoop,
+    doubleLoop,
+    halveLoop,
+    moveLoop,
+    exitLoop,
+    getState,
+    getDeckState,
+    initializeAudioEngine,
+    loadErrors,
+  ]);
 
   return <DeckContext.Provider value={value}>{children}</DeckContext.Provider>;
 }
