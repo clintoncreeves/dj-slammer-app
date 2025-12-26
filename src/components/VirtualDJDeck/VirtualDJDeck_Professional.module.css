@@ -92,7 +92,7 @@
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
-  overflow-y: auto; /* Allow deck to scroll if content overflows */
+  overflow: hidden; /* NO SCROLLING - content must shrink to fit */
   min-height: 0; /* Allow shrinking */
 }
 
@@ -234,7 +234,9 @@
 
 .trackLibrary {
   margin: 0.5rem 1rem 1rem;
-  flex-shrink: 0;
+  flex: 0 1 auto; /* Can shrink but won't grow beyond content */
+  min-height: 0; /* Allow shrinking below content size */
+  overflow: hidden; /* NO SCROLLING */
 }
 
 /* Loading state */

@@ -320,7 +320,9 @@ export class AudioEngine {
     }
 
     // Encode URL to handle special characters (spaces, !, etc.)
-    const encodedUrl = encodeURI(url);
+    // encodeURI handles most characters but does NOT encode ! (exclamation mark)
+    // which can cause issues on some CDNs like Vercel. Manually encode ! to %21.
+    const encodedUrl = encodeURI(url).replace(/!/g, '%21');
     console.log(`[AudioEngine] Loading track for Deck ${deck}: ${encodedUrl}`);
 
     // Stop any existing playback before loading new track

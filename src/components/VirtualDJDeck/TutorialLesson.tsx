@@ -28,10 +28,10 @@ const TRACK_METADATA: Record<string, TrackMetadata> = {
   '/audio/ootd-upbeat-summer-house-242100.mp3': { bpm: 123, camelotCode: '8B', trackName: 'OOTD Upbeat Summer House', artist: 'Pixabay' },
   '/audio/happy-summer-145530.mp3': { bpm: 129, camelotCode: '8B', trackName: 'Happy Summer', artist: 'Pixabay' },
   // DJ SLAMMER tracks
-  '/audio/Heartburst!.mp3': { bpm: 129, camelotCode: '10B', trackName: 'Heartburst!', artist: 'DJ SLAMMER' },
-  '/audio/Sunshine On The Floor!.mp3': { bpm: 129, camelotCode: '11A', trackName: 'Sunshine On The Floor!', artist: 'DJ SLAMMER' },
-  '/audio/Get ready to move, feel the groove!.mp3': { bpm: 129, camelotCode: '6A', trackName: 'Get ready to move, feel the groove!', artist: 'DJ SLAMMER' },
-  '/audio/Shake It Up!.mp3': { bpm: 123, camelotCode: '9A', trackName: 'Shake It Up!', artist: 'DJ SLAMMER' },
+  '/audio/Heartburst.mp3': { bpm: 129, camelotCode: '10B', trackName: 'Heartburst', artist: 'DJ SLAMMER' },
+  '/audio/Sunshine On The Floor.mp3': { bpm: 129, camelotCode: '11A', trackName: 'Sunshine On The Floor', artist: 'DJ SLAMMER' },
+  '/audio/Get ready to move, feel the groove.mp3': { bpm: 129, camelotCode: '6A', trackName: 'Get ready to move, feel the groove', artist: 'DJ SLAMMER' },
+  '/audio/Shake It Up.mp3': { bpm: 123, camelotCode: '9A', trackName: 'Shake It Up', artist: 'DJ SLAMMER' },
 };
 
 // Get initial lesson from URL or default to first lesson
