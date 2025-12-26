@@ -504,6 +504,10 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     }
 
     try {
+      // Log the current state before playing for debugging
+      const currentSeekPos = audioEngineRef.current.getCurrentTime(deck);
+      console.log(`[DeckContext] Deck ${deck} play requested, current position: ${currentSeekPos.toFixed(2)}s`);
+
       audioEngineRef.current.play(deck);
 
       const updateState = deck === 'A' ? setDeckAState : setDeckBState;

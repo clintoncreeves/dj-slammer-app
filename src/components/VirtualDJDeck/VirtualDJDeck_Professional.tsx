@@ -274,21 +274,42 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
           return;
         }
 
-        const aPlaying = currentDeck.deckAState.isPlaying;
-        const bPlaying = currentDeck.deckBState.isPlaying;
+        // Check both React state AND actual audio engine state
+        // React state may think it's playing, but track may have finished naturally
+        const aReactPlaying = currentDeck.deckAState.isPlaying;
+        const bReactPlaying = currentDeck.deckBState.isPlaying;
+        const aActuallyPlaying = currentDeck.audioEngine.isPlaying('A');
+        const bActuallyPlaying = currentDeck.audioEngine.isPlaying('B');
 
-        if (aPlaying) {
+        // Sync React state with audio engine state if track finished naturally
+        if (aReactPlaying && !aActuallyPlaying) {
+          // Track A finished naturally - update React state
+          console.log('[VirtualDJDeck] Deck A finished naturally, syncing state');
+          currentDeck.pauseDeck('A');
+          // Reset to beginning after natural end
+          currentDeck.seekDeck('A', 0);
+        }
+        if (bReactPlaying && !bActuallyPlaying) {
+          // Track B finished naturally - update React state
+          console.log('[VirtualDJDeck] Deck B finished naturally, syncing state');
+          currentDeck.pauseDeck('B');
+          // Reset to beginning after natural end
+          currentDeck.seekDeck('B', 0);
+        }
+
+        // Update times for actually playing decks
+        if (aActuallyPlaying) {
           const currentTime = currentDeck.audioEngine.getCurrentTime('A');
           currentDeck.updateCurrentTime('A', currentTime);
         }
 
-        if (bPlaying) {
+        if (bActuallyPlaying) {
           const currentTime = currentDeck.audioEngine.getCurrentTime('B');
           currentDeck.updateCurrentTime('B', currentTime);
         }
 
-        // Only continue animation loop if at least one deck is playing
-        if (aPlaying || bPlaying) {
+        // Only continue animation loop if at least one deck is actually playing
+        if (aActuallyPlaying || bActuallyPlaying) {
           animationFrameId = requestAnimationFrame(updateTime);
         } else {
           isRunning = false;
@@ -586,6 +607,8 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
               currentBPM={deck.deckAState.currentBPM}
               color={config.deckA.waveformColor}
               className={styles.bpmDisplay}
+              camelotCode={deck.deckAState.camelotCode}
+              musicalKey={deck.deckAState.detectedKey ? `${deck.deckAState.detectedKey} ${deck.deckAState.detectedKeyMode}` : undefined}
             />
 
             <div className={styles.controlsRow}>
@@ -758,6 +781,8 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
               currentBPM={deck.deckBState.currentBPM}
               color={config.deckB.waveformColor}
               className={styles.bpmDisplay}
+              camelotCode={deck.deckBState.camelotCode}
+              musicalKey={deck.deckBState.detectedKey ? `${deck.deckBState.detectedKey} ${deck.deckBState.detectedKeyMode}` : undefined}
             />
 
             <div className={styles.controlsRow}>

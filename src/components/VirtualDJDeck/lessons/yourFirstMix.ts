@@ -8,7 +8,7 @@
  * 1. Start with crossfader full left on Deck A (only Deck A audible)
  * 2. Play Deck A to get the beat going
  * 3. Start Deck B (playing but not audible yet because crossfader is on A)
- * 4. Cut the bass on Deck B (pro technique to avoid muddy mixes)
+ * 4. Use high-pass filter on Deck B to cut bass (avoids muddy mixes)
  * 5. Bring crossfader to center to blend both tracks
  * 6. Complete the transition by moving crossfader to Deck B
  * 7. Stop Deck A for a clean finish
@@ -71,19 +71,20 @@ export const yourFirstMixLesson: TutorialLesson = {
     },
 
     {
-      id: 'cut-bass-b',
-      instruction: 'Cut the BASS on Deck B! Drag the LOW slider down to avoid two basslines clashing.',
+      id: 'filter-sweep-b',
+      instruction: 'Move Deck B\'s FILTER to the RIGHT to cut the bass with a high-pass filter!',
       highlightTarget: {
         type: 'slider',
         deck: 'B',
-        control: 'eq-low',
+        control: 'filter',
       },
       validate: (currentState) => {
-        // Check if Deck B's low EQ is cut (below -6dB)
-        return currentState.deckB.eqLow < -6;
+        // High-pass filter (right side, positive value) cuts bass frequencies
+        // This prevents two basslines from clashing during the blend
+        return currentState.deckB.filterPosition > 0.3;
       },
-      hint: 'Pull the LOW (bass) slider down on Deck B - this is a pro DJ technique!',
-      celebrationMessage: 'PRO MOVE! Cutting bass prevents muddy mixes - real DJs do this!',
+      hint: 'Slide the FILTER to the RIGHT - high-pass mode removes the bass to avoid muddy mixes!',
+      celebrationMessage: 'NICE FILTER WORK! The high-pass filter cuts the bass - a clean DJ technique!',
     },
 
     {
@@ -132,7 +133,7 @@ export const yourFirstMixLesson: TutorialLesson = {
   ],
 
   completionMessage:
-    'SKILLS UNLOCKED! You just completed your first DJ transition!\n\nYou learned:\n- Basic playback control\n- Bass cutting technique (pro move!)\n- Crossfader blending technique\n- Smooth track transitions\n- Professional deck control\n\nYou\'re ready for real DJ equipment!',
+    'SKILLS UNLOCKED! You just completed your first DJ transition!\n\nYou learned:\n- Basic playback control\n- High-pass filter technique (pro move!)\n- Crossfader blending technique\n- Smooth track transitions\n- Professional deck control\n\nYou\'re ready for real DJ equipment!',
 
   badge: {
     icon: '🏆',

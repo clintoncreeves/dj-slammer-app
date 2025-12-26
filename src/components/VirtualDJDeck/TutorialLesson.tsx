@@ -49,18 +49,19 @@ export const TutorialLesson: React.FC = () => {
   }, [currentLessonId]);
 
   // Configuration for both decks based on current lesson
+  // Colors match the spectral waveform's prominent frequencies (blue/green)
   const config: VirtualDJDeckConfig = useMemo(() => ({
     deckA: {
       trackUrl: currentLesson.tracks.deckA,
       initialBPM: TRACK_BPM[currentLesson.tracks.deckA] || 120,
       cuePoint: currentLesson.tracks.deckACuePoint || 0,
-      waveformColor: '#00F0FF', // Cyan for Deck A
+      waveformColor: '#4A90D9', // Blue for Deck A (matches low/mid frequencies)
     },
     deckB: {
       trackUrl: currentLesson.tracks.deckB,
       initialBPM: TRACK_BPM[currentLesson.tracks.deckB] || 120,
       cuePoint: currentLesson.tracks.deckBCuePoint || 0,
-      waveformColor: '#FF006E', // Magenta for Deck B
+      waveformColor: '#7ED321', // Green for Deck B (matches mid/high frequencies)
     },
   }), [currentLesson]);
 

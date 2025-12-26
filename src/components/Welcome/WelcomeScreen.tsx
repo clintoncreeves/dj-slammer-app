@@ -43,8 +43,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStart, isLoading
               <circle cx="78" cy="22" r="5" fill="url(#gradient)" opacity="0.8" />
               <defs>
                 <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#00F0FF" />
-                  <stop offset="100%" stopColor="#FF006E" />
+                  <stop offset="0%" stopColor="#4A90D9" />
+                  <stop offset="100%" stopColor="#7ED321" />
                 </linearGradient>
               </defs>
             </svg>

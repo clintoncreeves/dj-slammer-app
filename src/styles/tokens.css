@@ -10,9 +10,9 @@
      COLOR PALETTE
      ========================================== */
 
-  /* Primary Colors */
-  --color-primary: #00F0FF;           /* Cyan - Deck A, primary actions */
-  --color-secondary: #FF006E;         /* Magenta - Deck B, active states */
+  /* Primary Colors - Blue/Green theme matching spectral waveforms */
+  --color-primary: #4A90D9;           /* Blue - Deck A, primary actions */
+  --color-secondary: #7ED321;         /* Green - Deck B, active states */
   --color-accent: #FF8C42;            /* Orange - highlights, warnings */
 
   /* Character Colors */
@@ -24,7 +24,7 @@
   --color-success-alt: #00FF88;       /* Alternate neon green - sync button */
   --color-warning: #FFD60A;           /* Yellow - warnings */
   --color-error: #FF4444;             /* Red - errors */
-  --color-info: #00F0FF;              /* Cyan - info messages */
+  --color-info: #4A90D9;              /* Blue - info messages */
 
   /* Accent Colors */
   --color-purple: #B537F2;            /* Purple - gradients, special effects */
@@ -114,14 +114,14 @@
   --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.6);
 
   /* Glow Shadows */
-  --glow-cyan: 0 0 20px rgba(0, 240, 255, 0.5);
-  --glow-magenta: 0 0 20px rgba(255, 0, 110, 0.5);
+  --glow-blue: 0 0 20px rgba(74, 144, 217, 0.5);
+  --glow-green: 0 0 20px rgba(126, 211, 33, 0.5);
   --glow-success: 0 0 20px rgba(57, 255, 20, 0.5);
   --glow-warning: 0 0 20px rgba(255, 214, 10, 0.5);
 
   /* Text Shadows */
-  --text-glow-cyan: 0 0 10px rgba(0, 240, 255, 0.5);
-  --text-glow-magenta: 0 0 10px rgba(255, 0, 110, 0.5);
+  --text-glow-blue: 0 0 10px rgba(74, 144, 217, 0.5);
+  --text-glow-green: 0 0 10px rgba(126, 211, 33, 0.5);
 
   /* ==========================================
      ANIMATIONS

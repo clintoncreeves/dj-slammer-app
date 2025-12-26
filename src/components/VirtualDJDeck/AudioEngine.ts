@@ -216,6 +216,27 @@ export class AudioEngine {
       fadeIn: 0, // No fade in for instant response
       fadeOut: 0, // No fade out for instant response
       loop: false,
+      onstop: () => {
+        // When playback stops naturally (track reached end), reset position to 0
+        // For manual pauses, the pause() function saves the position before calling stop()
+        // so this callback only needs to handle natural track endings
+        try {
+          const duration = player.buffer?.duration ?? 0;
+          if (duration > 0) {
+            // Use a small tolerance for end detection
+            const currentSeekPos = this.seekPositions.get(deck) ?? 0;
+            // If stored position is near the end, track finished naturally - reset to 0
+            // This check uses the stored position because player.immediate() behavior
+            // varies after stop() is called
+            if (currentSeekPos >= duration - 0.5) {
+              this.seekPositions.set(deck, 0);
+              console.log(`[AudioEngine] Deck ${deck} reached end, reset to 0`);
+            }
+          }
+        } catch {
+          // Ignore errors - buffer may be disposed
+        }
+      },
     });
 
     // Create Tone.GrainPlayer for keylock mode (pitch-independent tempo control)
