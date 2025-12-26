@@ -319,11 +319,9 @@ export class AudioEngine {
       throw new Error(`Player not found for deck ${deck}`);
     }
 
-    // Encode URL to handle special characters (spaces, !, etc.)
-    // encodeURI handles most characters but does NOT encode ! (exclamation mark)
-    // which can cause issues on some CDNs like Vercel. Manually encode ! to %21.
-    const encodedUrl = encodeURI(url).replace(/!/g, '%21');
-    console.log(`[AudioEngine] Loading track for Deck ${deck}: ${encodedUrl}`);
+    // Don't pre-encode URL - Tone.js handles encoding internally via fetch()
+    // Pre-encoding causes double-encoding: space -> %20 -> %2520 (404 error)
+    console.log(`[AudioEngine] Loading track for Deck ${deck}: ${url}`);
 
     // Stop any existing playback before loading new track
     if (player.state === 'started') {
@@ -354,8 +352,8 @@ export class AudioEngine {
         // Load the audio buffer first, then assign to both players
         const buffer = await this.withTimeout(
           new Promise<Tone.ToneAudioBuffer>((resolve, reject) => {
-            console.log(`[AudioEngine] Starting ToneAudioBuffer load for: ${encodedUrl}`);
-            const toneBuffer = new Tone.ToneAudioBuffer(encodedUrl, () => {
+            console.log(`[AudioEngine] Starting ToneAudioBuffer load for: ${url}`);
+            const toneBuffer = new Tone.ToneAudioBuffer(url, () => {
               console.log(`[AudioEngine] ToneAudioBuffer loaded successfully for Deck ${deck}`);
               resolve(toneBuffer);
             }, (error) => {
