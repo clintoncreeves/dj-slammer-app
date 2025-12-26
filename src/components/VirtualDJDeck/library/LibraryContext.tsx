@@ -92,40 +92,87 @@ const DEFAULT_FAVORITE_BANKS: FavoriteBank[] = Array.from({ length: 9 }, (_, i) 
 }));
 
 /**
- * Default playlists with harmonically compatible track pairs
- * All tracks in each playlist share the same BPM and Camelot key
+ * Default playlists with harmonically compatible tracks
+ * Tracks in each playlist share compatible BPM (within ±5) and Camelot keys
+ * This allows smooth mixing between any tracks in the playlist
  */
 const DEFAULT_PLAYLISTS: Playlist[] = [
   {
     id: 'playlist-default-1',
-    name: '🎯 Mix Ready: 129 BPM / 11A',
-    trackIds: ['1am-gridlock', 'sunshine-on-the-floor'],
+    name: '🔥 Energy Mix (129 BPM, 7A-9A)',
+    trackIds: [
+      'dance-until-dark-329026',
+      'davik-x-zyroz-fire-royalty-free-music-166955',
+      'remix-453493',
+      'alfarex-need-your-love-royalty-free-music-166731',
+      'get-ready-to-move,-feel-the-groove',
+      'ryva-deja-vu-royalty-free-music-166957',
+      'trance-no-copyright-dj-music-440685',
+      'kawaii-dance-upbeat-japan-anime-edm-242104',
+      'luthfi-syach-amp-shirina-biswas-without-you-royalty-free-music-176255',
+      'party-music-348444',
+      'back-base-455019',
+      'electric-hoedown-full-version-455917',
+      'happy-summer-145530',
+    ],
     createdAt: Date.now(),
-    color: '#9C36B5', // Purple for 11A
+    color: '#45B7D1', // Teal for 7A-9A range
     order: 0,
   },
   {
     id: 'playlist-default-2',
-    name: '🎯 Mix Ready: 123 BPM / 3A',
-    trackIds: ['2am-shuffle', 'aye'],
+    name: '✨ Uplifting Vibes (129 BPM, 9B-11B)',
+    trackIds: [
+      'heartburst',
+      'ultra-line-love-you-forever-royalty-free-music-177694',
+      'anthony-love-me-royalty-free-music-177759',
+      'lukz-amp-wily-amp-edward-jason-deserve-better-feat-mairy-164891',
+      'santa-banta-compliments-of-the-season-merry-xmas-454954',
+      'phanhung-amp-flamez-nguyen-closer-royalty-free-music-176250',
+      'dj-slammer-tag-2',
+      '1am-gridlock',
+      'sunshine-on-the-floor',
+    ],
     createdAt: Date.now(),
-    color: '#FFB347', // Orange for 3A
+    color: '#9C36B5', // Purple for 10B-11B range
     order: 1,
   },
   {
     id: 'playlist-default-3',
-    name: '🎯 Mix Ready: 129 BPM / 7A',
-    trackIds: ['dance-until-dark-329026', 'davik-x-zyroz-fire-royalty-free-music-166955', 'remix-453493'],
+    name: '🎉 Party Starters (129 BPM, 1A-4B)',
+    trackIds: [
+      'rooftop-at-sunset',
+      'dxyll-we-made-it-royalty-free-music-166954',
+      'ozee-not-what-i-need-royalty-free-music-164888',
+      'pulse-456174',
+      'get-ready-to-move,-feel-the-groove-2',
+      'rayz-amp-musicbyritchie7ta-sweet-candy-royalty-free-music-164890',
+      'midnight-gridlock',
+      'dj-slammer-tag',
+    ],
     createdAt: Date.now(),
-    color: '#45B7D1', // Blue for 7A
+    color: '#FF6B6B', // Red-pink for 1A-4B range
     order: 2,
   },
   {
     id: 'playlist-default-4',
-    name: '🎯 Mix Ready: 129 BPM / 8B',
-    trackIds: ['kawaii-dance-upbeat-japan-anime-edm-242104', 'luthfi-syach-amp-shirina-biswas-without-you-royalty-free-music-176255', 'party-music-348444'],
+    name: '🌙 Late Night Grooves (118-123 BPM)',
+    trackIds: [
+      '2am-shuffle',
+      'aye',
+      'good-day',
+      'zoom',
+      'underground-time-circuit',
+      'get-yo-self-on-the-dancefloor',
+      'shake-it-up',
+      'darkwave-454934',
+      'legacy-of-tchaikovsky-swan-lake-house-background-music-for-video-vlog-398013',
+      'legendary-bach-badinerie-house-background-music-for-video-short-ver-394172',
+      'bl-official-you-royalty-free-music-177852',
+      'i-will-be-here-upbeat-vlog-vocal-pop-edm-140857',
+    ],
     createdAt: Date.now(),
-    color: '#4EA8DE', // Light blue for 8B
+    color: '#FFB347', // Orange for slower vibes
     order: 3,
   },
 ];
