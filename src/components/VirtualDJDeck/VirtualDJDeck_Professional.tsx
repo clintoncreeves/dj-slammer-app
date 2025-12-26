@@ -37,7 +37,7 @@ import { HighlightTarget } from './mentor/mentorTypes';
 import { useTransitionState } from './useTransitionState';
 import { TransitionGuidance } from './EQControl';
 import { LibraryProvider } from './library/LibraryContext';
-import { PlaylistSidebar } from './library/PlaylistSidebar';
+// import { PlaylistSidebar } from './library/PlaylistSidebar'; // DISABLED: Feature not working
 import { MIDIProvider, useMIDI } from './MIDIContext';
 import { MIDISettings } from './MIDISettings';
 import { PerformanceControls } from './PerformanceControls';
@@ -528,7 +528,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
 
     // Render main professional UI
     return (
-      <div className={`${styles.container} ${!showTutorialBanner && mode !== 'freeplay' ? styles.noTutorial : ''} ${showMentorBanner ? styles.withMentorPanel : ''} ${mode === 'freeplay' ? styles.withFreeplayBar : ''} ${className || ''}`}>
+      <div className={`${styles.container} ${!showTutorialBanner ? styles.noTutorial : ''} ${showMentorBanner ? styles.withMentorPanel : ''} ${mode === 'freeplay' ? styles.withFreeplayBar : ''} ${className || ''}`}>
         {/* Tutorial Instruction Panel - Fixed at top, Guitar Hero style */}
         {showTutorialBanner && tutorial.currentStep && (
           <TutorialInstructionPanel
@@ -552,7 +552,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
           />
         )}
 
-        {/* Playlist Sidebar */}
+        {/* Playlist Sidebar - DISABLED: Feature not working
         {mode === 'freeplay' && (
           <PlaylistSidebar
             className={styles.playlistSidebar}
@@ -560,6 +560,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
             onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
           />
         )}
+        */}
 
         <div className={styles.decksContainer}>
           {/* Deck A */}

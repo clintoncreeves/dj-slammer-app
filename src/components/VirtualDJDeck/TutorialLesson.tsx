@@ -30,9 +30,9 @@ const TRACK_METADATA: Record<string, TrackMetadata> = {
   // DJ SLAMMER tracks - file names use lowercase with hyphens (no spaces for URL safety)
   '/audio/1am-gridlock.mp3': { bpm: 129, camelotCode: '11A', trackName: '1AM Gridlock', artist: 'DJ SLAMMER' },
   '/audio/sunshine-on-the-floor.mp3': { bpm: 129, camelotCode: '11A', trackName: 'Sunshine On The Floor', artist: 'DJ SLAMMER' },
-  '/audio/Heartburst.mp3': { bpm: 129, camelotCode: '10B', trackName: 'Heartburst', artist: 'DJ SLAMMER' },
-  '/audio/GetReadyToMove.mp3': { bpm: 129, camelotCode: '6A', trackName: 'Get Ready To Move', artist: 'DJ SLAMMER' },
-  '/audio/ShakeItUp.mp3': { bpm: 123, camelotCode: '9A', trackName: 'Shake It Up', artist: 'DJ SLAMMER' },
+  '/audio/heartburst.mp3': { bpm: 129, camelotCode: '10B', trackName: 'Heartburst', artist: 'DJ SLAMMER' },
+  '/audio/get-ready-to-move.mp3': { bpm: 129, camelotCode: '6A', trackName: 'Get Ready To Move', artist: 'DJ SLAMMER' },
+  '/audio/shake-it-up.mp3': { bpm: 123, camelotCode: '9A', trackName: 'Shake It Up', artist: 'DJ SLAMMER' },
 };
 
 // Get initial lesson from URL or default to first lesson

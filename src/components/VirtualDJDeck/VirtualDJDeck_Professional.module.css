@@ -3,7 +3,7 @@
   max-width: 100%; /* Full width - no max */
   margin: 0 auto;
   padding: 0;
-  padding-top: 50px; /* Reduced space for fixed tutorial instruction panel */
+  padding-top: 70px; /* Increased space for fixed tutorial instruction panel to not cover deck titles */
   background: #0D0D0D; /* Darker, more professional */
   color: #ffffff;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;

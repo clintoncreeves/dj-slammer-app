@@ -30,30 +30,21 @@ interface FreeplayTopBarProps {
 export function FreeplayTopBar({
   mentorEnabled,
   onRequestHelp,
-  sidebarCollapsed,
-  onToggleSidebar,
+  // Playlist feature disabled - these props are ignored
+  sidebarCollapsed: _sidebarCollapsed,
+  onToggleSidebar: _onToggleSidebar,
   onOpenMIDISettings,
   midiConnected = false,
   className,
 }: FreeplayTopBarProps) {
+  // Suppress unused variable warnings for disabled playlist feature
+  void _sidebarCollapsed;
+  void _onToggleSidebar;
+
   return (
     <div className={`${styles.topBar} ${className || ''}`}>
-      {/* Left side - Sidebar toggle and mode */}
+      {/* Left side - Mode indicator (playlist feature disabled) */}
       <div className={styles.leftSection}>
-        <button
-          className={styles.sidebarToggle}
-          onClick={onToggleSidebar}
-          aria-label={sidebarCollapsed ? 'Show playlists' : 'Hide playlists'}
-          title={sidebarCollapsed ? 'Show Playlists' : 'Hide Playlists'}
-        >
-          <span className={styles.sidebarIcon}>
-            {sidebarCollapsed ? '📋' : '◀'}
-          </span>
-          <span className={styles.sidebarLabel}>
-            {sidebarCollapsed ? 'Playlists' : 'Hide'}
-          </span>
-        </button>
-
         <div className={styles.modeIndicator}>
           <span className={styles.modeIcon}>🎧</span>
           <span className={styles.modeLabel}>Free Play</span>
