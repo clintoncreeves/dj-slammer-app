@@ -1,6 +1,9 @@
+import { lazy, Suspense } from 'react';
 import { TutorialLesson } from './components/VirtualDJDeck/TutorialLesson';
 import { AudioErrorBoundary } from './components/ErrorBoundary';
-import { LibraryAnalyzer } from './components/VirtualDJDeck/library/LibraryAnalyzer';
+
+// Lazy load LibraryAnalyzer to avoid loading essentia.js in main bundle
+const LibraryAnalyzer = lazy(() => import('./components/VirtualDJDeck/library/LibraryAnalyzer'));
 
 /**
  * DJ Slammer - Main Application
@@ -14,7 +17,11 @@ function App() {
 
   // Show analyzer tool for library metadata generation
   if (isAnalyzerMode) {
-    return <LibraryAnalyzer />;
+    return (
+      <Suspense fallback={<div style={{ padding: 20, color: '#fff', background: '#1a1a2e' }}>Loading analyzer...</div>}>
+        <LibraryAnalyzer />
+      </Suspense>
+    );
   }
 
   return (
