@@ -271,11 +271,20 @@ export function Waveform({
     };
   }, [isPlaying]);
 
-  // Handle click to seek
-  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!onSeek || !canvasRef.current || duration <= 0) return;
+  // Redraw when props change while paused (e.g., after seeking)
+  // This ensures the canvas stays in sync even when animation loop isn't running
+  useEffect(() => {
+    if (!isPlaying) {
+      drawWaveformRef.current();
+    }
+  }, [currentTime, duration, cuePoint, isPlaying, hoverPosition]);
 
-    const rect = canvasRef.current.getBoundingClientRect();
+  // Handle click to seek - use containerRef for accurate click position
+  // since the click event is attached to the container div
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!onSeek || !containerRef.current || duration <= 0) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const position = Math.max(0, Math.min(1, x / rect.width));
     const seekTime = position * duration;
@@ -284,9 +293,9 @@ export function Waveform({
 
   // Handle mouse move for hover preview
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!canvasRef.current) return;
+    if (!containerRef.current) return;
 
-    const rect = canvasRef.current.getBoundingClientRect();
+    const rect = containerRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const position = Math.max(0, Math.min(1, x / rect.width));
     setHoverPosition(position);

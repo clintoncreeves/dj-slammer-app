@@ -575,26 +575,34 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     }
   }, [isInitialized, deckAState, deckBState, notifyStateChange, onError]);
 
-  // Seek to a position in a deck
+  // Seek to a position in a deck with bounds validation
   const seekDeck = useCallback((deck: DeckId, time: number) => {
     if (!audioEngineRef.current || !isInitialized) {
       console.warn('[DeckContext] Cannot seek: AudioEngine not initialized');
       return;
     }
 
+    const deckState = deck === 'A' ? deckAState : deckBState;
+
+    // Validate and clamp time to valid bounds [0, duration]
+    const validTime = Math.max(0, Math.min(time, deckState.duration));
+    if (validTime !== time) {
+      console.warn(`[DeckContext] Seek time ${time.toFixed(2)}s clamped to ${validTime.toFixed(2)}s (duration: ${deckState.duration.toFixed(2)}s)`);
+    }
+
     try {
-      audioEngineRef.current.seek(deck, time);
+      audioEngineRef.current.seek(deck, validTime);
 
       const updateState = deck === 'A' ? setDeckAState : setDeckBState;
-      updateState((prev) => ({ ...prev, currentTime: time }));
+      updateState((prev) => ({ ...prev, currentTime: validTime }));
 
       notifyStateChange();
-      console.log(`[DeckContext] Deck ${deck} seeked to ${time}s`);
+      console.log(`[DeckContext] Deck ${deck} seeked to ${validTime.toFixed(2)}s`);
     } catch (err) {
       console.error(`[DeckContext] Failed to seek Deck ${deck}:`, err);
       onError?.(err as Error);
     }
-  }, [isInitialized, notifyStateChange, onError]);
+  }, [isInitialized, deckAState.duration, deckBState.duration, notifyStateChange, onError]);
 
   // Set BPM for a deck
   const setBPM = useCallback((deck: DeckId, bpm: number) => {

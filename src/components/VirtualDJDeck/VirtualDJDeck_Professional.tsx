@@ -259,27 +259,56 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
       deckRef.current = deck;
     }, [deck]);
 
-    // Update playback time periodically
+    // Update playback time using requestAnimationFrame for smooth, synchronized updates
+    // This replaces setInterval to avoid timing drift and sync with browser paint cycles
     useEffect(() => {
       if (!deck.isInitialized || !deck.audioEngine) return;
 
-      const interval = setInterval(() => {
-        const currentDeck = deckRef.current;
-        if (!currentDeck.audioEngine) return;
+      let animationFrameId: number | null = null;
+      let isRunning = false;
 
-        if (currentDeck.deckAState.isPlaying) {
+      const updateTime = () => {
+        const currentDeck = deckRef.current;
+        if (!currentDeck.audioEngine) {
+          isRunning = false;
+          return;
+        }
+
+        const aPlaying = currentDeck.deckAState.isPlaying;
+        const bPlaying = currentDeck.deckBState.isPlaying;
+
+        if (aPlaying) {
           const currentTime = currentDeck.audioEngine.getCurrentTime('A');
           currentDeck.updateCurrentTime('A', currentTime);
         }
 
-        if (currentDeck.deckBState.isPlaying) {
+        if (bPlaying) {
           const currentTime = currentDeck.audioEngine.getCurrentTime('B');
           currentDeck.updateCurrentTime('B', currentTime);
         }
-      }, 16); // 60fps updates
 
-      return () => clearInterval(interval);
-    }, [deck.isInitialized, deck.audioEngine]);
+        // Only continue animation loop if at least one deck is playing
+        if (aPlaying || bPlaying) {
+          animationFrameId = requestAnimationFrame(updateTime);
+        } else {
+          isRunning = false;
+        }
+      };
+
+      // Start the animation loop if any deck is playing
+      const shouldRun = deck.deckAState.isPlaying || deck.deckBState.isPlaying;
+      if (shouldRun && !isRunning) {
+        isRunning = true;
+        animationFrameId = requestAnimationFrame(updateTime);
+      }
+
+      return () => {
+        if (animationFrameId !== null) {
+          cancelAnimationFrame(animationFrameId);
+        }
+        isRunning = false;
+      };
+    }, [deck.isInitialized, deck.audioEngine, deck.deckAState.isPlaying, deck.deckBState.isPlaying]);
 
     // Helper to create expected state after an action (since React state updates are async)
     const createExpectedState = (overrides: {

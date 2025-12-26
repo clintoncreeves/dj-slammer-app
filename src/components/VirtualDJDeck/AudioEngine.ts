@@ -579,10 +579,22 @@ export class AudioEngine {
 
     // Store cue point as seek position
     this.seekPositions.set(deck, cuePoint);
+    // Clear any existing tracking
+    this.grainPlaybackTracking.delete(deck);
 
     // Seek to cue point and start on the active player
+    const keylockState = this.keylockStates.get(deck);
     const activePlayer = this.getActivePlayer(deck);
     activePlayer.start(undefined, cuePoint);
+
+    // Initialize tracking if using GrainPlayer (keylock mode)
+    if (keylockState?.enabled) {
+      this.grainPlaybackTracking.set(deck, {
+        startWallTime: performance.now(),
+        startOffset: cuePoint,
+        playbackRate: grainPlayer.playbackRate ?? 1,
+      });
+    }
 
     const latency = performance.now() - startTime;
     console.log(`[AudioEngine] Deck ${deck} cue latency: ${latency.toFixed(2)}ms`);
@@ -603,12 +615,24 @@ export class AudioEngine {
     this.assertInitialized();
 
     const player = this.players.get(deck);
+    const grainPlayer = this.grainPlayers.get(deck);
     if (!player) {
       throw new Error(`Player not found for deck ${deck}`);
     }
 
     if (!player.loaded) {
       return 0;
+    }
+
+    // If GrainPlayer is active (keylock mode), calculate from tracking data
+    if (grainPlayer?.state === 'started') {
+      const tracking = this.grainPlaybackTracking.get(deck);
+      if (tracking) {
+        const elapsedMs = performance.now() - tracking.startWallTime;
+        const elapsedSec = (elapsedMs / 1000) * tracking.playbackRate;
+        return tracking.startOffset + elapsedSec;
+      }
+      return this.seekPositions.get(deck) ?? 0;
     }
 
     // Get current position from Tone.js Player
@@ -626,6 +650,7 @@ export class AudioEngine {
     this.assertInitialized();
 
     const player = this.players.get(deck);
+    const grainPlayer = this.grainPlayers.get(deck);
     if (!player) {
       throw new Error(`Player not found for deck ${deck}`);
     }
@@ -640,8 +665,33 @@ export class AudioEngine {
       );
     }
 
-    // Set playback rate (Tone.js handles pitch preservation automatically)
+    // Set playback rate on both players
     player.playbackRate = clampedRate;
+
+    if (grainPlayer) {
+      // CRITICAL: Update tracking before changing rate to prevent time drift
+      const tracking = this.grainPlaybackTracking.get(deck);
+      if (tracking && grainPlayer.state === 'started') {
+        // Calculate current position with old rate
+        const elapsedMs = performance.now() - tracking.startWallTime;
+        const elapsedSec = (elapsedMs / 1000) * tracking.playbackRate;
+        const currentOffset = tracking.startOffset + elapsedSec;
+
+        // Update tracking with new rate from current position
+        this.grainPlaybackTracking.set(deck, {
+          startWallTime: performance.now(),
+          startOffset: currentOffset,
+          playbackRate: clampedRate,
+        });
+      }
+      grainPlayer.playbackRate = clampedRate;
+    }
+
+    // Update keylock state
+    const keylockState = this.keylockStates.get(deck);
+    if (keylockState) {
+      keylockState.playbackRate = clampedRate;
+    }
 
     console.log(`[AudioEngine] Deck ${deck} playback rate set to ${clampedRate.toFixed(3)}`);
   }
@@ -774,16 +824,18 @@ export class AudioEngine {
 
   /**
    * Check if a deck is currently playing
+   * Checks both regular Player and GrainPlayer (for keylock mode)
    *
    * @param deck - Deck identifier ('A' or 'B')
    * @returns True if playing, false otherwise
    */
   isPlaying(deck: DeckId): boolean {
     const player = this.players.get(deck);
+    const grainPlayer = this.grainPlayers.get(deck);
     if (!player) {
       return false;
     }
-    return player.state === 'started';
+    return player.state === 'started' || grainPlayer?.state === 'started';
   }
 
   /**
@@ -1379,8 +1431,15 @@ export class AudioEngine {
         currentTime = regularPlayer.immediate();
         isPlaying = true;
       } else if (grainPlayer && grainPlayer.state === 'started') {
-        // GrainPlayer doesn't have immediate(), use stored seek position as approximation
-        currentTime = this.seekPositions.get(deck) ?? 0;
+        // GrainPlayer: calculate current time from tracking data
+        const tracking = this.grainPlaybackTracking.get(deck);
+        if (tracking) {
+          const elapsedMs = performance.now() - tracking.startWallTime;
+          const elapsedSec = (elapsedMs / 1000) * tracking.playbackRate;
+          currentTime = tracking.startOffset + elapsedSec;
+        } else {
+          currentTime = this.seekPositions.get(deck) ?? 0;
+        }
         isPlaying = true;
       }
 
@@ -1400,6 +1459,12 @@ export class AudioEngine {
         if (grainPlayer && grainPlayer.state === 'started') {
           grainPlayer.stop();
           grainPlayer.start(undefined, currentLoopState.loopIn);
+          // Update tracking for correct time calculation after loop
+          this.grainPlaybackTracking.set(deck, {
+            startWallTime: performance.now(),
+            startOffset: currentLoopState.loopIn,
+            playbackRate: grainPlayer.playbackRate ?? 1,
+          });
         }
 
         // Update stored seek position
