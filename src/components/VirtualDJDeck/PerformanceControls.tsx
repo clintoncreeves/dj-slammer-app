@@ -5,6 +5,7 @@
  * Designed to fit in a single row without scrolling.
  */
 
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { DeckId } from './types';
 import styles from './PerformanceControls.module.css';
 
@@ -44,6 +45,82 @@ export function PerformanceControls({
   filterValue,
   onFilterChange,
 }: PerformanceControlsProps) {
+  const [isDragging, setIsDragging] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  // Large snap threshold - 15% of range snaps to center
+  const SNAP_THRESHOLD = 0.15;
+
+  const updateFilterPosition = useCallback((clientX: number) => {
+    if (!filterRef.current || !isLoaded) return;
+
+    const rect = filterRef.current.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const width = rect.width;
+
+    // Calculate position (-1 to 1), where center is 0
+    const rawPosition = (x / width) * 2 - 1;
+    let position = Math.max(-1, Math.min(1, rawPosition));
+
+    // Snap to center (0) when close to middle - larger threshold
+    if (Math.abs(position) < SNAP_THRESHOLD) {
+      position = 0;
+    }
+
+    onFilterChange(position);
+  }, [onFilterChange, isLoaded]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!isLoaded) return;
+    setIsDragging(true);
+    updateFilterPosition(e.clientX);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!isLoaded) return;
+    setIsDragging(true);
+    updateFilterPosition(e.touches[0].clientX);
+  };
+
+  // Double-click resets to center (OFF)
+  const handleDoubleClick = () => {
+    if (!isLoaded) return;
+    onFilterChange(0);
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging) {
+        updateFilterPosition(e.clientX);
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (isDragging) {
+        e.preventDefault();
+        updateFilterPosition(e.touches[0].clientX);
+      }
+    };
+
+    const handleEnd = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleEnd);
+      window.addEventListener('touchmove', handleTouchMove, { passive: false });
+      window.addEventListener('touchend', handleEnd);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleEnd);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleEnd);
+    };
+  }, [isDragging, updateFilterPosition]);
+
   const handleHotCueClick = (slot: number) => {
     if (hotCues[slot] !== null) {
       onJumpToHotCue(slot + 1);
@@ -58,6 +135,12 @@ export function PerformanceControls({
       onClearHotCue(slot + 1);
     }
   };
+
+  // Calculate visual positions for filter
+  const sliderPercent = ((filterValue + 1) / 2) * 100;
+  const isLowpass = filterValue < -0.02;
+  const isHighpass = filterValue > 0.02;
+  const isBypassed = !isLowpass && !isHighpass;
 
   return (
     <div
@@ -117,25 +200,60 @@ export function PerformanceControls({
         </div>
       </div>
 
-      {/* Filter Control */}
-      <div className={styles.section}>
+      {/* Filter Control - Redesigned for easier use */}
+      <div className={styles.filterSection}>
         <span className={styles.sectionLabel}>FILTER</span>
-        <div className={styles.filterControl}>
-          <input
-            type="range"
-            min="-1"
-            max="1"
-            step="0.01"
-            value={filterValue}
-            onChange={(e) => onFilterChange(parseFloat(e.target.value))}
-            disabled={!isLoaded}
-            className={styles.filterSlider}
-            title="Filter: Low Pass (left) / High Pass (right)"
+        <div
+          ref={filterRef}
+          className={`${styles.filterTrack} ${isDragging ? styles.dragging : ''} ${!isLoaded ? styles.disabled : ''}`}
+          onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
+          onDoubleClick={handleDoubleClick}
+          title="Filter: LP (left) / OFF (center) / HP (right) - Double-click to reset"
+        >
+          {/* Track background with gradient */}
+          <div className={styles.filterTrackBg}>
+            {/* Low-pass fill (left side) */}
+            {isLowpass && (
+              <div
+                className={styles.filterFill}
+                style={{
+                  width: `${50 - sliderPercent}%`,
+                  right: '50%',
+                  background: `linear-gradient(to left, ${color}, transparent)`,
+                }}
+              />
+            )}
+
+            {/* High-pass fill (right side) */}
+            {isHighpass && (
+              <div
+                className={styles.filterFill}
+                style={{
+                  width: `${sliderPercent - 50}%`,
+                  left: '50%',
+                  background: `linear-gradient(to right, ${color}, transparent)`,
+                }}
+              />
+            )}
+
+            {/* Center notch */}
+            <div className={styles.filterCenterNotch} />
+          </div>
+
+          {/* Thumb */}
+          <div
+            className={`${styles.filterThumb} ${isBypassed ? styles.bypassed : ''}`}
+            style={{
+              left: `${sliderPercent}%`,
+              borderColor: isBypassed ? '#555' : color,
+              boxShadow: isBypassed ? 'none' : `0 0 8px ${color}`,
+            }}
           />
-          <span className={styles.filterValue}>
-            {filterValue === 0 ? 'OFF' : filterValue < 0 ? 'LP' : 'HP'}
-          </span>
         </div>
+        <span className={`${styles.filterLabel} ${isBypassed ? styles.off : ''}`} style={{ color: isBypassed ? '#666' : color }}>
+          {isBypassed ? 'OFF' : isLowpass ? 'LP' : 'HP'}
+        </span>
       </div>
     </div>
   );

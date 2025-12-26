@@ -93,7 +93,8 @@ export function FilterControl({
   };
 
   // Snap threshold - if within this range of center, snap to 0
-  const SNAP_THRESHOLD = 0.08;
+  // 15% of range for easier centering
+  const SNAP_THRESHOLD = 0.15;
 
   const updatePosition = useCallback((clientX: number) => {
     if (!sliderRef.current) return;
