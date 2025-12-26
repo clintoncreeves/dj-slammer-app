@@ -600,17 +600,15 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 showSpectralColors={deck.deckAState.showSpectralColors}
                 onToggleSpectralColors={handleToggleSpectralA}
               />
-              {mode === 'freeplay' && (
-                <button
-                  className={styles.autoCueButton}
-                  onClick={handleAutoCueA}
-                  disabled={!deck.deckAState.isLoaded}
-                  style={{ '--button-color': config.deckA.waveformColor } as React.CSSProperties}
-                  aria-label="Auto-select cue point for Deck A"
-                >
-                  Auto Cue
-                </button>
-              )}
+              <button
+                className={styles.autoCueButton}
+                onClick={handleAutoCueA}
+                disabled={!deck.deckAState.isLoaded}
+                style={{ '--button-color': config.deckA.waveformColor } as React.CSSProperties}
+                aria-label="Auto-select cue point for Deck A"
+              >
+                Auto Cue
+              </button>
             </div>
 
             <BPMDisplay
@@ -682,8 +680,8 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 onPause={handlePauseA}
                 onCue={handleCueA}
                 onSetCue={handleSetCueA}
-                onSync={mode === 'freeplay' ? handleSyncA : undefined}
-                hideCueButtons={mode === 'tutorial'}
+                onSync={handleSyncA}
+                hideCueButtons={false}
                 highlightPlay={
                   mode === 'tutorial' &&
                   highlightTarget?.type === 'button' &&
@@ -710,25 +708,23 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 }
               />
 
-              {/* Performance Controls - Hot Cues, Loops, Filter (freeplay only) */}
-              {mode === 'freeplay' && (
-                <PerformanceControls
-                  deck="A"
-                  color={config.deckA.waveformColor}
-                  isLoaded={deck.deckAState.isLoaded}
-                  isPlaying={deck.deckAState.isPlaying}
-                  hotCues={deck.hotCuesA.map(hc => hc?.position ?? null)}
-                  onSetHotCue={(slot) => deck.setHotCue('A', slot)}
-                  onJumpToHotCue={(slot) => deck.jumpToHotCue('A', slot)}
-                  onClearHotCue={(slot) => deck.deleteHotCue('A', slot)}
-                  onClearAllHotCues={() => deck.clearAllHotCues('A')}
-                  loopActive={deck.deckAState.loopActive}
-                  onLoopToggle={() => deck.toggleLoop('A')}
-                  onSetAutoLoop={(beats) => deck.setAutoLoop('A', beats)}
-                  filterValue={deck.deckAState.filterPosition}
-                  onFilterChange={(value) => deck.setDeckFilter('A', value)}
-                />
-              )}
+              {/* Performance Controls - Hot Cues, Loops, Filter */}
+              <PerformanceControls
+                deck="A"
+                color={config.deckA.waveformColor}
+                isLoaded={deck.deckAState.isLoaded}
+                isPlaying={deck.deckAState.isPlaying}
+                hotCues={deck.hotCuesA.map(hc => hc?.position ?? null)}
+                onSetHotCue={(slot) => deck.setHotCue('A', slot)}
+                onJumpToHotCue={(slot) => deck.jumpToHotCue('A', slot)}
+                onClearHotCue={(slot) => deck.deleteHotCue('A', slot)}
+                onClearAllHotCues={() => deck.clearAllHotCues('A')}
+                loopActive={deck.deckAState.loopActive}
+                onLoopToggle={() => deck.toggleLoop('A')}
+                onSetAutoLoop={(beats) => deck.setAutoLoop('A', beats)}
+                filterValue={deck.deckAState.filterPosition}
+                onFilterChange={(value) => deck.setDeckFilter('A', value)}
+              />
             </div>
           </div>
 
@@ -775,17 +771,15 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 showSpectralColors={deck.deckBState.showSpectralColors}
                 onToggleSpectralColors={handleToggleSpectralB}
               />
-              {mode === 'freeplay' && (
-                <button
-                  className={styles.autoCueButton}
-                  onClick={handleAutoCueB}
-                  disabled={!deck.deckBState.isLoaded}
-                  style={{ '--button-color': config.deckB.waveformColor } as React.CSSProperties}
-                  aria-label="Auto-select cue point for Deck B"
-                >
-                  Auto Cue
-                </button>
-              )}
+              <button
+                className={styles.autoCueButton}
+                onClick={handleAutoCueB}
+                disabled={!deck.deckBState.isLoaded}
+                style={{ '--button-color': config.deckB.waveformColor } as React.CSSProperties}
+                aria-label="Auto-select cue point for Deck B"
+              >
+                Auto Cue
+              </button>
             </div>
 
             <BPMDisplay
@@ -857,8 +851,8 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 onPause={handlePauseB}
                 onCue={handleCueB}
                 onSetCue={handleSetCueB}
-                onSync={mode === 'freeplay' ? handleSyncB : undefined}
-                hideCueButtons={mode === 'tutorial'}
+                onSync={handleSyncB}
+                hideCueButtons={false}
                 highlightPlay={
                   mode === 'tutorial' &&
                   highlightTarget?.type === 'button' &&
@@ -885,25 +879,23 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 }
               />
 
-              {/* Performance Controls - Hot Cues, Loops, Filter (freeplay only) */}
-              {mode === 'freeplay' && (
-                <PerformanceControls
-                  deck="B"
-                  color={config.deckB.waveformColor}
-                  isLoaded={deck.deckBState.isLoaded}
-                  isPlaying={deck.deckBState.isPlaying}
-                  hotCues={deck.hotCuesB.map(hc => hc?.position ?? null)}
-                  onSetHotCue={(slot) => deck.setHotCue('B', slot)}
-                  onJumpToHotCue={(slot) => deck.jumpToHotCue('B', slot)}
-                  onClearHotCue={(slot) => deck.deleteHotCue('B', slot)}
-                  onClearAllHotCues={() => deck.clearAllHotCues('B')}
-                  loopActive={deck.deckBState.loopActive}
-                  onLoopToggle={() => deck.toggleLoop('B')}
-                  onSetAutoLoop={(beats) => deck.setAutoLoop('B', beats)}
-                  filterValue={deck.deckBState.filterPosition}
-                  onFilterChange={(value) => deck.setDeckFilter('B', value)}
-                />
-              )}
+              {/* Performance Controls - Hot Cues, Loops, Filter */}
+              <PerformanceControls
+                deck="B"
+                color={config.deckB.waveformColor}
+                isLoaded={deck.deckBState.isLoaded}
+                isPlaying={deck.deckBState.isPlaying}
+                hotCues={deck.hotCuesB.map(hc => hc?.position ?? null)}
+                onSetHotCue={(slot) => deck.setHotCue('B', slot)}
+                onJumpToHotCue={(slot) => deck.jumpToHotCue('B', slot)}
+                onClearHotCue={(slot) => deck.deleteHotCue('B', slot)}
+                onClearAllHotCues={() => deck.clearAllHotCues('B')}
+                loopActive={deck.deckBState.loopActive}
+                onLoopToggle={() => deck.toggleLoop('B')}
+                onSetAutoLoop={(beats) => deck.setAutoLoop('B', beats)}
+                filterValue={deck.deckBState.filterPosition}
+                onFilterChange={(value) => deck.setDeckFilter('B', value)}
+              />
             </div>
           </div>
         </div>

@@ -22,12 +22,12 @@ export const yourFirstMixLesson: TutorialLesson = {
   description: 'Learn how to blend two tracks and create a smooth DJ transition!',
   difficulty: 'beginner',
 
-  // Using two tracks at 123 BPM for easy mixing
+  // Using two DJ SLAMMER tracks at 129 BPM for easy mixing
   // IMPORTANT: Both tracks start at position 0 to ensure beat phase alignment
   // This means when both play, their beats hit at the SAME time
   tracks: {
-    deckA: '/audio/dance-until-dark-329026.mp3',
-    deckB: '/audio/ootd-upbeat-summer-house-242100.mp3',
+    deckA: '/audio/Heartburst!.mp3',
+    deckB: '/audio/Sunshine On The Floor!.mp3',
     // Both start from the beginning to ensure beats are phase-aligned
     deckACuePoint: 0,
     deckBCuePoint: 0,
@@ -47,7 +47,7 @@ export const yourFirstMixLesson: TutorialLesson = {
         return currentState.deckA.isPlaying && !previousState.deckA.isPlaying;
       },
       hint: 'Hit the PLAY button on Deck A - the crossfader is already set so you only hear Deck A',
-      celebrationMessage: 'NICE! The beat is live at 123 BPM! The track is starting from the first beat.',
+      celebrationMessage: 'NICE! The beat is live at 129 BPM! The track is starting from the first beat.',
     },
 
     {
@@ -67,7 +67,7 @@ export const yourFirstMixLesson: TutorialLesson = {
         );
       },
       hint: "Hit PLAY on Deck B - you won't hear it yet because the crossfader is on Deck A",
-      celebrationMessage: "PERFECT! Both tracks at 123 BPM and starting from beat 1 - they're perfectly in sync!",
+      celebrationMessage: "PERFECT! Both tracks at 129 BPM and starting from beat 1 - they're perfectly in sync!",
     },
 
     {

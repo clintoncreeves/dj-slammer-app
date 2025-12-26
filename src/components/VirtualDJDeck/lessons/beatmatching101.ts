@@ -25,12 +25,12 @@ export const beatmatching101Lesson: TutorialLesson = {
   description: 'Learn to match BPMs and sync tracks like a pro DJ!',
   difficulty: 'intermediate',
 
-  // Using two tracks with different BPMs
-  // Happy Summer: 129 BPM
-  // Dance Until Dark: 123 BPM (6 BPM difference)
+  // Using two DJ SLAMMER tracks with different BPMs
+  // Get ready to move, feel the groove!: 129 BPM
+  // Shake It Up!: 123 BPM (6 BPM difference)
   tracks: {
-    deckA: '/audio/happy-summer-145530.mp3',
-    deckB: '/audio/dance-until-dark-329026.mp3',
+    deckA: '/audio/Get ready to move, feel the groove!.mp3',
+    deckB: '/audio/Shake It Up!.mp3',
   },
 
   steps: [

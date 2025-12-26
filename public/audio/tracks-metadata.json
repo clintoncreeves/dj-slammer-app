@@ -1538,6 +1538,512 @@
       "bpmConfidence": 92,
       "keyConfidence": 92,
       "analyzedAt": "2025-12-25T23:48:50.547Z"
+    },
+    {
+      "id": "1am-gridlock",
+      "title": "1AM Gridlock!",
+      "artist": "DJ SLAMMER",
+      "bpm": 129,
+      "duration": 309,
+      "filename": "1AM Gridlock!.mp3",
+      "cuePoints": [
+        0
+      ],
+      "waveformColor": "#00F0FF",
+      "key": "F#",
+      "keyMode": "minor",
+      "camelotCode": "11A",
+      "keyColor": "#9C36B5",
+      "tempoCategory": "medium",
+      "compatibleKeys": [
+        "11A"
+      ],
+      "bpmConfidence": 85,
+      "keyConfidence": 49,
+      "analyzedAt": "2025-12-26T00:05:13.769566Z"
+    },
+    {
+      "id": "2am-shuffle",
+      "title": "2AM Shuffle!",
+      "artist": "DJ SLAMMER",
+      "bpm": 123,
+      "duration": 168,
+      "filename": "2AM Shuffle!.mp3",
+      "cuePoints": [
+        0
+      ],
+      "waveformColor": "#FF006E",
+      "key": "A#",
+      "keyMode": "minor",
+      "camelotCode": "3A",
+      "keyColor": "#FFB347",
+      "tempoCategory": "medium",
+      "compatibleKeys": [
+        "3A"
+      ],
+      "bpmConfidence": 85,
+      "keyConfidence": 64,
+      "analyzedAt": "2025-12-26T00:05:14.066222Z"
+    },
+    {
+      "id": "3am-clarity",
+      "title": "3AM Clarity!",
+      "artist": "DJ SLAMMER",
+      "bpm": 83,
+      "duration": 259,
+      "filename": "3AM Clarity!.mp3",
+      "cuePoints": [
+        0
+      ],
+      "waveformColor": "#00FF00",
+      "key": "D#",
+      "keyMode": "major",
+      "camelotCode": "5B",
+      "keyColor": "#6BCB77",
+      "tempoCategory": "slow",
+      "compatibleKeys": [
+        "5B"
+      ],
+      "bpmConfidence": 85,
+      "keyConfidence": 75,
+      "analyzedAt": "2025-12-26T00:05:14.361856Z"
+    },
+    {
+      "id": "aye",
+      "title": "AYE!",
+      "artist": "DJ SLAMMER",
+      "bpm": 123,
+      "duration": 234,
+      "filename": "AYE!.mp3",
+      "cuePoints": [
+        0
+      ],
+      "waveformColor": "#FF00FF",
+      "key": "A#",
+      "keyMode": "minor",
+      "camelotCode": "3A",
+      "keyColor": "#FFB347",
+      "tempoCategory": "medium",
+      "compatibleKeys": [
+        "3A"
+      ],
+      "bpmConfidence": 85,
+      "keyConfidence": 44,
+      "analyzedAt": "2025-12-26T00:05:14.965928Z"
+    },
+    {
+      "id": "dj-slammer-tag-2",
+      "title": "DJ Slammer Tag 2!",
+      "artist": "DJ SLAMMER",
+      "bpm": 129,
+      "duration": 108,
+      "filename": "DJ Slammer Tag 2!.mp3",
+      "cuePoints": [
+        0
+      ],
+      "waveformColor": "#00FFFF",
+      "key": "G",
+      "keyMode": "major",
+      "camelotCode": "9B",
+      "keyColor": "#5E60CE",
+      "tempoCategory": "medium",
+      "compatibleKeys": [
+        "9B"
+      ],
+      "bpmConfidence": 85,
+      "keyConfidence": 79,
+      "analyzedAt": "2025-12-26T00:05:15.254916Z"
+    },
+    {
+      "id": "dj-slammer-tag",
+      "title": "DJ Slammer Tag!",
+      "artist": "DJ SLAMMER",
+      "bpm": 129,
+      "duration": 208,
+      "filename": "DJ Slammer Tag!.mp3",
+      "cuePoints": [
+        0
+      ],
+      "waveformColor": "#FF8800",
+      "key": "G#",
+      "keyMode": "major",
+      "camelotCode": "4B",
+      "keyColor": "#FFD93D",
+      "tempoCategory": "medium",
+      "compatibleKeys": [
+        "4B"
+      ],
+      "bpmConfidence": 85,
+      "keyConfidence": 75,
+      "analyzedAt": "2025-12-26T00:05:15.568451Z"
+    },
+    {
+      "id": "first-light",
+      "title": "First Light!",
+      "artist": "DJ SLAMMER",
+      "bpm": 83,
+      "duration": 187,
+      "filename": "First Light!.mp3",
+      "cuePoints": [
+        0
+      ],
+      "waveformColor": "#8800FF",
+      "key": "G#",
+      "keyMode": "minor",
+      "camelotCode": "1A",
+      "keyColor": "#FF6B6B",
+      "tempoCategory": "slow",
+      "compatibleKeys": [
+        "1A"
+      ],
+      "bpmConfidence": 85,
+      "keyConfidence": 54,
+      "analyzedAt": "2025-12-26T00:05:15.875295Z"
+    },
+    {
+      "id": "get-yo-self-on-the-dancefloor",
+      "title": "Get Yo Self on the Dancefloor!",
+      "artist": "DJ SLAMMER",
+      "bpm": 123,
+      "duration": 298,
+      "filename": "Get Yo Self on the Dancefloor!.mp3",
+      "cuePoints": [
+        0
+      ],
+      "waveformColor": "#00F0FF",
+      "key": "C",
+      "keyMode": "major",
+      "camelotCode": "8B",
+      "keyColor": "#4EA8DE",
+      "tempoCategory": "medium",
+      "compatibleKeys": [
+        "8B"
+      ],
+      "bpmConfidence": 85,
+      "keyConfidence": 74,
+      "analyzedAt": "2025-12-26T00:05:16.212394Z"
+    },
+    {
+      "id": "get-ready-to-move,-feel-the-groove-2",
+      "title": "Get ready to move, feel the groove 2!",
+      "artist": "DJ SLAMMER",
+      "bpm": 129,
+      "duration": 253,
+      "filename": "Get ready to move, feel the groove 2!.mp3",
+      "cuePoints": [
+        0
+      ],
+      "waveformColor": "#FF006E",
+      "key": "C#",
+      "keyMode": "major",
+      "camelotCode": "3B",
+      "keyColor": "#FFB347",
+      "tempoCategory": "medium",
+      "compatibleKeys": [
+        "3B"
+      ],
+      "bpmConfidence": 85,
+      "keyConfidence": 61,
+      "analyzedAt": "2025-12-26T00:05:16.540473Z"
+    },
+    {
+      "id": "get-ready-to-move,-feel-the-groove",
+      "title": "Get ready to move, feel the groove!",
+      "artist": "DJ SLAMMER",
+      "bpm": 129,
+      "duration": 128,
+      "filename": "Get ready to move, feel the groove!.mp3",
+      "cuePoints": [
+        0
+      ],
+      "waveformColor": "#00FF00",
+      "key": "G",
+      "keyMode": "minor",
+      "camelotCode": "6A",
+      "keyColor": "#4ECDC4",
+      "tempoCategory": "medium",
+      "compatibleKeys": [
+        "6A"
+      ],
+      "bpmConfidence": 85,
+      "keyConfidence": 66,
+      "analyzedAt": "2025-12-26T00:05:16.851147Z"
+    },
+    {
+      "id": "good-day",
+      "title": "Good Day!",
+      "artist": "DJ SLAMMER",
+      "bpm": 123,
+      "duration": 218,
+      "filename": "Good Day!.mp3",
+      "cuePoints": [
+        0
+      ],
+      "waveformColor": "#FFFF00",
+      "key": "G#",
+      "keyMode": "major",
+      "camelotCode": "4B",
+      "keyColor": "#FFD93D",
+      "tempoCategory": "medium",
+      "compatibleKeys": [
+        "4B"
+      ],
+      "bpmConfidence": 85,
+      "keyConfidence": 55,
+      "analyzedAt": "2025-12-26T00:05:17.155997Z"
+    },
+    {
+      "id": "heartburst",
+      "title": "Heartburst!",
+      "artist": "DJ SLAMMER",
+      "bpm": 129,
+      "duration": 182,
+      "filename": "Heartburst!.mp3",
+      "cuePoints": [
+        0
+      ],
+      "waveformColor": "#FF00FF",
+      "key": "D",
+      "keyMode": "major",
+      "camelotCode": "10B",
+      "keyColor": "#7950F2",
+      "tempoCategory": "medium",
+      "compatibleKeys": [
+        "10B"
+      ],
+      "bpmConfidence": 85,
+      "keyConfidence": 77,
+      "analyzedAt": "2025-12-26T00:05:17.458618Z"
+    },
+    {
+      "id": "midnight-gridlock",
+      "title": "Midnight Gridlock!",
+      "artist": "DJ SLAMMER",
+      "bpm": 129,
+      "duration": 181,
+      "filename": "Midnight Gridlock!.mp3",
+      "cuePoints": [
+        0
+      ],
+      "waveformColor": "#00FFFF",
+      "key": "F",
+      "keyMode": "minor",
+      "camelotCode": "4A",
+      "keyColor": "#FFD93D",
+      "tempoCategory": "medium",
+      "compatibleKeys": [
+        "4A"
+      ],
+      "bpmConfidence": 85,
+      "keyConfidence": 60,
+      "analyzedAt": "2025-12-26T00:05:17.757890Z"
+    },
+    {
+      "id": "peak-time-circuit",
+      "title": "Peak Time Circuit",
+      "artist": "DJ SLAMMER",
+      "bpm": 83,
+      "duration": 179,
+      "filename": "Peak Time Circuit.mp3",
+      "cuePoints": [
+        0
+      ],
+      "waveformColor": "#FF8800",
+      "key": "F",
+      "keyMode": "minor",
+      "camelotCode": "4A",
+      "keyColor": "#FFD93D",
+      "tempoCategory": "slow",
+      "compatibleKeys": [
+        "4A"
+      ],
+      "bpmConfidence": 85,
+      "keyConfidence": 42,
+      "analyzedAt": "2025-12-26T00:05:18.062586Z"
+    },
+    {
+      "id": "rooftop-at-sunset",
+      "title": "Rooftop At Sunset!",
+      "artist": "DJ SLAMMER",
+      "bpm": 129,
+      "duration": 159,
+      "filename": "Rooftop At Sunset!.mp3",
+      "cuePoints": [
+        0
+      ],
+      "waveformColor": "#8800FF",
+      "key": "G#",
+      "keyMode": "minor",
+      "camelotCode": "1A",
+      "keyColor": "#FF6B6B",
+      "tempoCategory": "medium",
+      "compatibleKeys": [
+        "1A"
+      ],
+      "bpmConfidence": 85,
+      "keyConfidence": 79,
+      "analyzedAt": "2025-12-26T00:05:18.362887Z"
+    },
+    {
+      "id": "rooftop-fuego",
+      "title": "Rooftop Fuego!",
+      "artist": "DJ SLAMMER",
+      "bpm": 63,
+      "duration": 189,
+      "filename": "Rooftop Fuego!.mp3",
+      "cuePoints": [
+        0
+      ],
+      "waveformColor": "#00F0FF",
+      "key": "C",
+      "keyMode": "major",
+      "camelotCode": "8B",
+      "keyColor": "#4EA8DE",
+      "tempoCategory": "slow",
+      "compatibleKeys": [
+        "8B"
+      ],
+      "bpmConfidence": 85,
+      "keyConfidence": 67,
+      "analyzedAt": "2025-12-26T00:05:18.666526Z"
+    },
+    {
+      "id": "shake-it-up",
+      "title": "Shake It Up!",
+      "artist": "DJ SLAMMER",
+      "bpm": 123,
+      "duration": 207,
+      "filename": "Shake It Up!.mp3",
+      "cuePoints": [
+        0
+      ],
+      "waveformColor": "#00FF00",
+      "key": "E",
+      "keyMode": "minor",
+      "camelotCode": "9A",
+      "keyColor": "#5E60CE",
+      "tempoCategory": "medium",
+      "compatibleKeys": [
+        "9A"
+      ],
+      "bpmConfidence": 85,
+      "keyConfidence": 89,
+      "analyzedAt": "2025-12-26T00:05:19.299189Z"
+    },
+    {
+      "id": "sunset-out-the-speakers",
+      "title": "Sunset Out the Speakers!",
+      "artist": "DJ SLAMMER",
+      "bpm": 83,
+      "duration": 227,
+      "filename": "Sunset Out the Speakers!.mp3",
+      "cuePoints": [
+        0
+      ],
+      "waveformColor": "#FFFF00",
+      "key": "A#",
+      "keyMode": "major",
+      "camelotCode": "6B",
+      "keyColor": "#4ECDC4",
+      "tempoCategory": "slow",
+      "compatibleKeys": [
+        "6B"
+      ],
+      "bpmConfidence": 85,
+      "keyConfidence": 89,
+      "analyzedAt": "2025-12-26T00:05:19.617269Z"
+    },
+    {
+      "id": "sunset-swim",
+      "title": "Sunset Swim!",
+      "artist": "DJ SLAMMER",
+      "bpm": 63,
+      "duration": 137,
+      "filename": "Sunset Swim!.mp3",
+      "cuePoints": [
+        0
+      ],
+      "waveformColor": "#FF00FF",
+      "key": "G",
+      "keyMode": "minor",
+      "camelotCode": "6A",
+      "keyColor": "#4ECDC4",
+      "tempoCategory": "slow",
+      "compatibleKeys": [
+        "6A"
+      ],
+      "bpmConfidence": 85,
+      "keyConfidence": 70,
+      "analyzedAt": "2025-12-26T00:05:19.923096Z"
+    },
+    {
+      "id": "sunshine-on-the-floor",
+      "title": "Sunshine On The Floor!",
+      "artist": "DJ SLAMMER",
+      "bpm": 129,
+      "duration": 165,
+      "filename": "Sunshine On The Floor!.mp3",
+      "cuePoints": [
+        0
+      ],
+      "waveformColor": "#00FFFF",
+      "key": "F#",
+      "keyMode": "minor",
+      "camelotCode": "11A",
+      "keyColor": "#9C36B5",
+      "tempoCategory": "medium",
+      "compatibleKeys": [
+        "11A"
+      ],
+      "bpmConfidence": 85,
+      "keyConfidence": 63,
+      "analyzedAt": "2025-12-26T00:05:20.227302Z"
+    },
+    {
+      "id": "underground-time-circuit",
+      "title": "Underground Time Circuit!",
+      "artist": "DJ SLAMMER",
+      "bpm": 123,
+      "duration": 230,
+      "filename": "Underground Time Circuit!.mp3",
+      "cuePoints": [
+        0
+      ],
+      "waveformColor": "#FF8800",
+      "key": "F",
+      "keyMode": "major",
+      "camelotCode": "7B",
+      "keyColor": "#45B7D1",
+      "tempoCategory": "medium",
+      "compatibleKeys": [
+        "7B"
+      ],
+      "bpmConfidence": 85,
+      "keyConfidence": 60,
+      "analyzedAt": "2025-12-26T00:05:20.554470Z"
+    },
+    {
+      "id": "zoom",
+      "title": "ZOOM!",
+      "artist": "DJ SLAMMER",
+      "bpm": 123,
+      "duration": 203,
+      "filename": "ZOOM!.mp3",
+      "cuePoints": [
+        0
+      ],
+      "waveformColor": "#8800FF",
+      "key": "G",
+      "keyMode": "minor",
+      "camelotCode": "6A",
+      "keyColor": "#4ECDC4",
+      "tempoCategory": "medium",
+      "compatibleKeys": [
+        "6A"
+      ],
+      "bpmConfidence": 85,
+      "keyConfidence": 34,
+      "analyzedAt": "2025-12-26T00:05:20.885137Z"
     }
   ]
 }

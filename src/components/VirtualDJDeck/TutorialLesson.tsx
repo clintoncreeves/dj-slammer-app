@@ -16,9 +16,15 @@ type AppMode = 'tutorial' | 'freeplay';
 
 // Track metadata for BPM configuration
 const TRACK_BPM: Record<string, number> = {
+  // Legacy Pixabay tracks (kept for compatibility)
   '/audio/dance-until-dark-329026.mp3': 123,
   '/audio/ootd-upbeat-summer-house-242100.mp3': 123,
   '/audio/happy-summer-145530.mp3': 129,
+  // DJ SLAMMER tracks
+  '/audio/Heartburst!.mp3': 129,
+  '/audio/Sunshine On The Floor!.mp3': 129,
+  '/audio/Get ready to move, feel the groove!.mp3': 129,
+  '/audio/Shake It Up!.mp3': 123,
 };
 
 // Get initial lesson from URL or default to first lesson
