@@ -354,9 +354,15 @@ export class AudioEngine {
         // Load the audio buffer first, then assign to both players
         const buffer = await this.withTimeout(
           new Promise<Tone.ToneAudioBuffer>((resolve, reject) => {
+            console.log(`[AudioEngine] Starting ToneAudioBuffer load for: ${encodedUrl}`);
             const toneBuffer = new Tone.ToneAudioBuffer(encodedUrl, () => {
+              console.log(`[AudioEngine] ToneAudioBuffer loaded successfully for Deck ${deck}`);
               resolve(toneBuffer);
-            }, reject);
+            }, (error) => {
+              console.error(`[AudioEngine] ToneAudioBuffer failed for Deck ${deck}:`, error);
+              console.error(`[AudioEngine] Error type: ${typeof error}, Error name: ${error?.name}, Error message: ${error?.message}`);
+              reject(error);
+            });
           }),
           this.loadTimeout,
           `Track loading for Deck ${deck}`
