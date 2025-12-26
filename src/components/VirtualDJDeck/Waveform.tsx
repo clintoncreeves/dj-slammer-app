@@ -225,16 +225,28 @@ export function Waveform({
     const container = containerRef.current;
     if (!canvas || !container) return;
 
+    let currentDpr = window.devicePixelRatio || 1;
+
     const updateCanvasSize = () => {
       const rect = container.getBoundingClientRect();
       const width = rect.width;
-      setCanvasWidth(width);
+
+      // Avoid unnecessary updates if width is zero
+      if (width === 0) return;
 
       const dpr = window.devicePixelRatio || 1;
+      currentDpr = dpr;
       canvas.width = width * dpr;
       canvas.height = height * dpr;
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
+
+      setCanvasWidth(width);
+
+      // Immediately redraw after resize to prevent blank canvas
+      requestAnimationFrame(() => {
+        drawWaveformRef.current();
+      });
     };
 
     // Initial size
@@ -244,8 +256,16 @@ export function Waveform({
     const resizeObserver = new ResizeObserver(updateCanvasSize);
     resizeObserver.observe(container);
 
+    // Handle devicePixelRatio changes (e.g., dragging to different monitor)
+    const mediaQuery = window.matchMedia(`(resolution: ${currentDpr}dppx)`);
+    const handleDprChange = () => {
+      updateCanvasSize();
+    };
+    mediaQuery.addEventListener('change', handleDprChange);
+
     return () => {
       resizeObserver.disconnect();
+      mediaQuery.removeEventListener('change', handleDprChange);
     };
   }, [height]);
 
@@ -277,7 +297,7 @@ export function Waveform({
     if (!isPlaying) {
       drawWaveformRef.current();
     }
-  }, [currentTime, duration, cuePoint, isPlaying, hoverPosition]);
+  }, [currentTime, duration, cuePoint, isPlaying, hoverPosition, canvasWidth, waveformData, color, suggestedCuePoints, showSpectralColors, spectralData]);
 
   // Handle click to seek - use containerRef for accurate click position
   // since the click event is attached to the container div
@@ -307,6 +327,43 @@ export function Waveform({
     setHoverPosition(null);
   };
 
+  // Handle keyboard navigation for accessibility
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!onSeek || duration <= 0) return;
+
+    const SMALL_STEP = 1; // 1 second
+    const LARGE_STEP = 5; // 5 seconds
+
+    switch (e.key) {
+      case 'ArrowLeft':
+        e.preventDefault();
+        onSeek(Math.max(0, currentTime - (e.shiftKey ? LARGE_STEP : SMALL_STEP)));
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        onSeek(Math.min(duration, currentTime + (e.shiftKey ? LARGE_STEP : SMALL_STEP)));
+        break;
+      case 'Home':
+        e.preventDefault();
+        onSeek(0);
+        break;
+      case 'End':
+        e.preventDefault();
+        onSeek(duration);
+        break;
+      case 'ArrowUp':
+        // Increase by 10%
+        e.preventDefault();
+        onSeek(Math.min(duration, currentTime + duration * 0.1));
+        break;
+      case 'ArrowDown':
+        // Decrease by 10%
+        e.preventDefault();
+        onSeek(Math.max(0, currentTime - duration * 0.1));
+        break;
+    }
+  }, [onSeek, duration, currentTime]);
+
   return (
     <div
       ref={containerRef}
@@ -316,6 +373,7 @@ export function Waveform({
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onKeyDown={handleKeyDown}
       role={onSeek ? 'slider' : undefined}
       aria-label={onSeek ? 'Track position' : undefined}
       aria-valuenow={onSeek ? Math.round(playheadPosition * 100) : undefined}

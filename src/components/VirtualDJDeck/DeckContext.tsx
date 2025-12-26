@@ -12,7 +12,7 @@
  * - AudioEngine is controlled through this context, not directly by UI components
  */
 
-import { createContext, useContext, useState, useRef, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useRef, useCallback, useEffect, ReactNode } from 'react';
 import { AudioEngine } from './AudioEngine';
 import { DeckState, DeckId, VirtualDJDeckState, CrossfaderCurveType, calculateCrossfaderVolumes } from './types';
 import { generateWaveformData, generateSpectralWaveformData, spectralToAmplitudeArray } from '../../utils/waveformUtils';
@@ -223,6 +223,17 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
 
   // Track BPM detection initialization per deck
   const bpmDetectionInitialized = useRef<{ A: boolean; B: boolean }>({ A: false, B: false });
+
+  // Cleanup AudioEngine on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (audioEngineRef.current) {
+        console.log('[DeckContext] Cleaning up AudioEngine on unmount');
+        audioEngineRef.current.destroy();
+        audioEngineRef.current = null;
+      }
+    };
+  }, []);
 
   // Deck States - The central focal points
   const [deckAState, setDeckAState] = useState<DeckState>({
@@ -612,7 +623,20 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     }
 
     const state = deck === 'A' ? deckAState : deckBState;
+
+    // Guard against division by zero
+    if (state.originalBPM <= 0) {
+      console.warn(`[DeckContext] Cannot set BPM for Deck ${deck}: originalBPM is ${state.originalBPM}`);
+      return;
+    }
+
     const playbackRate = bpm / state.originalBPM;
+
+    // Validate playbackRate is finite and reasonable
+    if (!isFinite(playbackRate) || playbackRate <= 0) {
+      console.warn(`[DeckContext] Invalid playback rate ${playbackRate} for Deck ${deck}`);
+      return;
+    }
 
     try {
       audioEngineRef.current.setPlaybackRate(deck, playbackRate);

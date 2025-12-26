@@ -191,20 +191,20 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
 
 
     // Handle lesson completion actions
-    const handleReplayLesson = () => {
+    const handleReplayLesson = useCallback(() => {
       onReplayLesson?.();
-    };
+    }, [onReplayLesson]);
 
-    const handleFreePlayMode = () => {
+    const handleFreePlayMode = useCallback(() => {
       onModeChange?.('freeplay');
-    };
+    }, [onModeChange]);
 
-    const handleMoreLessons = () => {
+    const handleMoreLessons = useCallback(() => {
       // Future: Navigate to lesson selection screen
-    };
+    }, []);
 
     // Initialize audio engine and load tracks
-    const handleEnableAudio = async () => {
+    const handleEnableAudio = useCallback(async () => {
       try {
         await deck.initializeAudioEngine();
 
@@ -233,7 +233,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
         setError(err as Error);
         config.onError?.(err as Error);
       }
-    };
+    }, [deck, config, onAudioEnabled]);
 
     // Auto-initialize if skipping welcome screen (lesson transition)
     useEffect(() => {
@@ -311,7 +311,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
     }, [deck.isInitialized, deck.audioEngine, deck.deckAState.isPlaying, deck.deckBState.isPlaying]);
 
     // Helper to create expected state after an action (since React state updates are async)
-    const createExpectedState = (overrides: {
+    const createExpectedState = useCallback((overrides: {
       deckA?: Partial<VirtualDJDeckState['deckA']>;
       deckB?: Partial<VirtualDJDeckState['deckB']>;
       crossfaderPosition?: number;
@@ -322,10 +322,10 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
         deckB: { ...current.deckB, ...overrides.deckB },
         crossfaderPosition: overrides.crossfaderPosition ?? current.crossfaderPosition,
       };
-    };
+    }, [getState]);
 
     // Wrap deck operations to include tutorial validation and mentor action tracking
-    const playDeckWithTutorial = (deckId: DeckId) => {
+    const playDeckWithTutorial = useCallback((deckId: DeckId) => {
       deck.playDeck(deckId);
       const expectedState = createExpectedState({
         [deckId === 'A' ? 'deckA' : 'deckB']: { isPlaying: true, isPaused: false },
@@ -340,70 +340,70 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
       ) {
         mentor.recordAction('both_decks_playing');
       }
-    };
+    }, [deck, createExpectedState, tutorial, mentor]);
 
-    const pauseDeckWithTutorial = (deckId: DeckId) => {
+    const pauseDeckWithTutorial = useCallback((deckId: DeckId) => {
       deck.pauseDeck(deckId);
       const expectedState = createExpectedState({
         [deckId === 'A' ? 'deckA' : 'deckB']: { isPlaying: false, isPaused: true },
       });
       tutorial.validateStep(expectedState);
       mentor.recordAction('pause_deck');
-    };
+    }, [deck, createExpectedState, tutorial, mentor]);
 
-    const cueDeckWithTutorial = (deckId: DeckId) => {
+    const cueDeckWithTutorial = useCallback((deckId: DeckId) => {
       deck.cueDeck(deckId);
       tutorial.validateStep(getState());
       mentor.recordAction('jump_to_cue');
-    };
+    }, [deck, tutorial, mentor, getState]);
 
-    const setCuePointWithTutorial = (deckId: DeckId) => {
+    const setCuePointWithTutorial = useCallback((deckId: DeckId) => {
       deck.setCuePoint(deckId);
       tutorial.validateStep(getState());
       mentor.recordAction('set_cue');
-    };
+    }, [deck, tutorial, mentor, getState]);
 
-    const setBPMWithTutorial = (deckId: DeckId, bpm: number) => {
+    const setBPMWithTutorial = useCallback((deckId: DeckId, bpm: number) => {
       deck.setBPM(deckId, bpm);
       const expectedState = createExpectedState({
         [deckId === 'A' ? 'deckA' : 'deckB']: { bpm },
       });
       tutorial.validateStep(expectedState);
       mentor.recordAction('adjust_tempo');
-    };
+    }, [deck, createExpectedState, tutorial, mentor]);
 
-    const setVolumeWithTutorial = (deckId: DeckId, volume: number) => {
+    const setVolumeWithTutorial = useCallback((deckId: DeckId, volume: number) => {
       deck.setVolume(deckId, volume);
       const expectedState = createExpectedState({
         [deckId === 'A' ? 'deckA' : 'deckB']: { volume },
       });
       tutorial.validateStep(expectedState);
       mentor.recordAction('adjust_volume');
-    };
+    }, [deck, createExpectedState, tutorial, mentor]);
 
-    const setCrossfaderWithTutorial = (position: number) => {
+    const setCrossfaderWithTutorial = useCallback((position: number) => {
       deck.setCrossfader(position);
       const expectedState = createExpectedState({ crossfaderPosition: position });
       tutorial.validateStep(expectedState);
       mentor.recordAction('use_crossfader');
-    };
+    }, [deck, createExpectedState, tutorial, mentor]);
 
     // EQ change handler with mentor tracking
-    const setDeckEQWithMentor = (deckId: DeckId, band: 'low' | 'mid' | 'high', value: number) => {
+    const setDeckEQWithMentor = useCallback((deckId: DeckId, band: 'low' | 'mid' | 'high', value: number) => {
       deck.setDeckEQ(deckId, band, value);
       if (band === 'low') mentor.recordAction('adjust_eq_low');
       else if (band === 'mid') mentor.recordAction('adjust_eq_mid');
       else mentor.recordAction('adjust_eq_high');
-    };
+    }, [deck, mentor]);
 
     // Seek handler with mentor tracking
-    const seekDeckWithMentor = (deckId: DeckId, time: number) => {
+    const seekDeckWithMentor = useCallback((deckId: DeckId, time: number) => {
       deck.seekDeck(deckId, time);
       mentor.recordAction('seek_waveform');
-    };
+    }, [deck, mentor]);
 
     // Auto Cue handler with system message
-    const handleAutoCue = (deckId: DeckId) => {
+    const handleAutoCue = useCallback((deckId: DeckId) => {
       const otherDeck = deckId === 'A' ? deck.deckBState : deck.deckAState;
       const thisDeck = deckId === 'A' ? deck.deckAState : deck.deckBState;
 
@@ -418,7 +418,37 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
       } else {
         mentor.showSystemMessage(`Auto Cue: Set to first phrase boundary`);
       }
-    };
+    }, [deck, mentor]);
+
+    // Memoized callbacks for Deck A
+    const handlePlayA = useCallback(() => playDeckWithTutorial('A'), [playDeckWithTutorial]);
+    const handlePauseA = useCallback(() => pauseDeckWithTutorial('A'), [pauseDeckWithTutorial]);
+    const handleCueA = useCallback(() => cueDeckWithTutorial('A'), [cueDeckWithTutorial]);
+    const handleSetCueA = useCallback(() => setCuePointWithTutorial('A'), [setCuePointWithTutorial]);
+    const handleSyncA = useCallback(() => deck.syncBeatPhase('A'), [deck]);
+    const handleSeekA = useCallback((time: number) => seekDeckWithMentor('A', time), [seekDeckWithMentor]);
+    const handleVolumeA = useCallback((vol: number) => setVolumeWithTutorial('A', vol), [setVolumeWithTutorial]);
+    const handleBPMA = useCallback((bpm: number) => setBPMWithTutorial('A', bpm), [setBPMWithTutorial]);
+    const handleEQA = useCallback((band: 'low' | 'mid' | 'high', value: number) => setDeckEQWithMentor('A', band, value), [setDeckEQWithMentor]);
+    const handleToggleSpectralA = useCallback(() => deck.toggleSpectralColors('A'), [deck]);
+    const handleAutoCueA = useCallback(() => handleAutoCue('A'), [handleAutoCue]);
+
+    // Memoized callbacks for Deck B
+    const handlePlayB = useCallback(() => playDeckWithTutorial('B'), [playDeckWithTutorial]);
+    const handlePauseB = useCallback(() => pauseDeckWithTutorial('B'), [pauseDeckWithTutorial]);
+    const handleCueB = useCallback(() => cueDeckWithTutorial('B'), [cueDeckWithTutorial]);
+    const handleSetCueB = useCallback(() => setCuePointWithTutorial('B'), [setCuePointWithTutorial]);
+    const handleSyncB = useCallback(() => deck.syncBeatPhase('B'), [deck]);
+    const handleSeekB = useCallback((time: number) => seekDeckWithMentor('B', time), [seekDeckWithMentor]);
+    const handleVolumeB = useCallback((vol: number) => setVolumeWithTutorial('B', vol), [setVolumeWithTutorial]);
+    const handleBPMB = useCallback((bpm: number) => setBPMWithTutorial('B', bpm), [setBPMWithTutorial]);
+    const handleEQB = useCallback((band: 'low' | 'mid' | 'high', value: number) => setDeckEQWithMentor('B', band, value), [setDeckEQWithMentor]);
+    const handleToggleSpectralB = useCallback(() => deck.toggleSpectralColors('B'), [deck]);
+    const handleAutoCueB = useCallback(() => handleAutoCue('B'), [handleAutoCue]);
+
+    // MIDI settings handlers
+    const handleOpenMIDISettings = useCallback(() => setShowMIDISettings(true), []);
+    const handleCloseMIDISettings = useCallback(() => setShowMIDISettings(false), []);
 
     // Render error state
     if (error) {
@@ -480,7 +510,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
             onRequestHelp={mentor.requestHelp}
             sidebarCollapsed={true}
             onToggleSidebar={() => {/* Sidebar hidden for now */}}
-            onOpenMIDISettings={() => setShowMIDISettings(true)}
+            onOpenMIDISettings={handleOpenMIDISettings}
             midiConnected={midi.isEnabled}
           />
         )}
@@ -531,17 +561,17 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 duration={deck.deckAState.duration}
                 height={100}
                 className={styles.waveform}
-                onSeek={(time) => seekDeckWithMentor('A', time)}
+                onSeek={handleSeekA}
                 suggestedCuePoints={deck.deckAState.suggestedCuePoints}
                 cuePoint={deck.deckAState.cuePoint}
                 spectralData={deck.deckAState.spectralWaveformData}
                 showSpectralColors={deck.deckAState.showSpectralColors}
-                onToggleSpectralColors={() => deck.toggleSpectralColors('A')}
+                onToggleSpectralColors={handleToggleSpectralA}
               />
               {mode === 'freeplay' && (
                 <button
                   className={styles.autoCueButton}
-                  onClick={() => handleAutoCue('A')}
+                  onClick={handleAutoCueA}
                   disabled={!deck.deckAState.isLoaded}
                   style={{ '--button-color': config.deckA.waveformColor } as React.CSSProperties}
                   aria-label="Auto-select cue point for Deck A"
@@ -563,7 +593,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 deck="A"
                 volume={deck.deckAState.volume}
                 color={config.deckA.waveformColor}
-                onChange={(vol) => setVolumeWithTutorial('A', vol)}
+                onChange={handleVolumeA}
                 highlighted={
                   mode === 'tutorial' &&
                   highlightTarget?.type === 'slider' &&
@@ -577,7 +607,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 originalBPM={deck.deckAState.originalBPM}
                 currentBPM={deck.deckAState.currentBPM}
                 color={config.deckA.waveformColor}
-                onChange={(bpm) => setBPMWithTutorial('A', bpm)}
+                onChange={handleBPMA}
                 highlighted={
                   mode === 'tutorial' &&
                   highlightTarget?.type === 'slider' &&
@@ -592,7 +622,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 eqMid={deck.deckAState.eqMid}
                 eqHigh={deck.deckAState.eqHigh}
                 color={config.deckA.waveformColor}
-                onChange={(band, value) => setDeckEQWithMentor('A', band, value)}
+                onChange={handleEQA}
                 highlighted={
                   mentorHighlight?.type === 'eq' &&
                   (mentorHighlight?.deck === 'A' || !mentorHighlight?.deck)
@@ -614,11 +644,11 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 isPlaying={deck.deckAState.isPlaying}
                 isLoaded={deck.deckAState.isLoaded}
                 color={config.deckA.waveformColor}
-                onPlay={() => playDeckWithTutorial('A')}
-                onPause={() => pauseDeckWithTutorial('A')}
-                onCue={() => cueDeckWithTutorial('A')}
-                onSetCue={() => setCuePointWithTutorial('A')}
-                onSync={mode === 'freeplay' ? () => deck.syncBeatPhase('A') : undefined}
+                onPlay={handlePlayA}
+                onPause={handlePauseA}
+                onCue={handleCueA}
+                onSetCue={handleSetCueA}
+                onSync={mode === 'freeplay' ? handleSyncA : undefined}
                 hideCueButtons={mode === 'tutorial'}
                 highlightPlay={
                   mode === 'tutorial' &&
@@ -703,17 +733,17 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 duration={deck.deckBState.duration}
                 height={100}
                 className={styles.waveform}
-                onSeek={(time) => seekDeckWithMentor('B', time)}
+                onSeek={handleSeekB}
                 suggestedCuePoints={deck.deckBState.suggestedCuePoints}
                 cuePoint={deck.deckBState.cuePoint}
                 spectralData={deck.deckBState.spectralWaveformData}
                 showSpectralColors={deck.deckBState.showSpectralColors}
-                onToggleSpectralColors={() => deck.toggleSpectralColors('B')}
+                onToggleSpectralColors={handleToggleSpectralB}
               />
               {mode === 'freeplay' && (
                 <button
                   className={styles.autoCueButton}
-                  onClick={() => handleAutoCue('B')}
+                  onClick={handleAutoCueB}
                   disabled={!deck.deckBState.isLoaded}
                   style={{ '--button-color': config.deckB.waveformColor } as React.CSSProperties}
                   aria-label="Auto-select cue point for Deck B"
@@ -735,7 +765,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 deck="B"
                 volume={deck.deckBState.volume}
                 color={config.deckB.waveformColor}
-                onChange={(vol) => setVolumeWithTutorial('B', vol)}
+                onChange={handleVolumeB}
                 highlighted={
                   mode === 'tutorial' &&
                   highlightTarget?.type === 'slider' &&
@@ -749,7 +779,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 originalBPM={deck.deckBState.originalBPM}
                 currentBPM={deck.deckBState.currentBPM}
                 color={config.deckB.waveformColor}
-                onChange={(bpm) => setBPMWithTutorial('B', bpm)}
+                onChange={handleBPMB}
                 highlighted={
                   mode === 'tutorial' &&
                   highlightTarget?.type === 'slider' &&
@@ -764,7 +794,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 eqMid={deck.deckBState.eqMid}
                 eqHigh={deck.deckBState.eqHigh}
                 color={config.deckB.waveformColor}
-                onChange={(band, value) => setDeckEQWithMentor('B', band, value)}
+                onChange={handleEQB}
                 highlighted={
                   mentorHighlight?.type === 'eq' &&
                   (mentorHighlight?.deck === 'B' || !mentorHighlight?.deck)
@@ -786,11 +816,11 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 isPlaying={deck.deckBState.isPlaying}
                 isLoaded={deck.deckBState.isLoaded}
                 color={config.deckB.waveformColor}
-                onPlay={() => playDeckWithTutorial('B')}
-                onPause={() => pauseDeckWithTutorial('B')}
-                onCue={() => cueDeckWithTutorial('B')}
-                onSetCue={() => setCuePointWithTutorial('B')}
-                onSync={mode === 'freeplay' ? () => deck.syncBeatPhase('B') : undefined}
+                onPlay={handlePlayB}
+                onPause={handlePauseB}
+                onCue={handleCueB}
+                onSetCue={handleSetCueB}
+                onSync={mode === 'freeplay' ? handleSyncB : undefined}
                 hideCueButtons={mode === 'tutorial'}
                 highlightPlay={
                   mode === 'tutorial' &&
@@ -886,7 +916,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                 <h2>MIDI Controller Settings</h2>
                 <button
                   className={styles.midiSettingsClose}
-                  onClick={() => setShowMIDISettings(false)}
+                  onClick={handleCloseMIDISettings}
                   aria-label="Close MIDI settings"
                 >
                   ✕

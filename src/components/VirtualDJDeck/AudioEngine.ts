@@ -72,6 +72,8 @@ export class AudioEngine {
   private filters: Map<DeckId, Tone.Filter>;
   private filterStates: Map<DeckId, { position: number; resonance: number }>;
   private gains: Map<DeckId, Tone.Gain>;
+  // Separate crossfader gain nodes to avoid conflict with deck volume
+  private crossfaderGains: Map<DeckId, Tone.Gain>;
   private crossfader: Tone.CrossFade;
   private masterGain: Tone.Gain;
   private isInitialized = false;
@@ -116,6 +118,7 @@ export class AudioEngine {
     this.filters = new Map();
     this.filterStates = new Map();
     this.gains = new Map();
+    this.crossfaderGains = new Map();
     this.loadingPromises = new Map();
     this.seekPositions = new Map();
     this.keylockStates = new Map();
@@ -161,11 +164,11 @@ export class AudioEngine {
           this.createPlayer('B');
 
           // Connect audio graph:
-          // Deck A -> Gain A -> Crossfader.a
-          // Deck B -> Gain B -> Crossfader.b
+          // Deck A -> Gain A -> CrossfaderGain A -> Crossfader.a
+          // Deck B -> Gain B -> CrossfaderGain B -> Crossfader.b
           // Crossfader -> Master Gain -> Destination
-          this.gains.get('A')!.connect(this.crossfader.a);
-          this.gains.get('B')!.connect(this.crossfader.b);
+          this.crossfaderGains.get('A')!.connect(this.crossfader.a);
+          this.crossfaderGains.get('B')!.connect(this.crossfader.b);
           this.crossfader.connect(this.masterGain);
           this.masterGain.toDestination();
 
@@ -236,15 +239,20 @@ export class AudioEngine {
       rolloff: -24, // Steeper rolloff for more dramatic filter effect
     });
 
-    // Create gain node for volume control
+    // Create gain node for deck volume control
     const gain = new Tone.Gain(1);
 
-    // Connect audio chains: Both players -> EQ -> Filter -> Gain
+    // Create separate gain node for crossfader curve control
+    // This keeps deck volume separate from crossfader control to avoid conflicts
+    const crossfaderGain = new Tone.Gain(1);
+
+    // Connect audio chains: Both players -> EQ -> Filter -> Gain -> CrossfaderGain
     // Only one player will be active at a time
     player.connect(eq);
     grainPlayer.connect(eq);
     eq.connect(filter);
     filter.connect(gain);
+    gain.connect(crossfaderGain);
 
     this.players.set(deck, player);
     this.grainPlayers.set(deck, grainPlayer);
@@ -252,6 +260,7 @@ export class AudioEngine {
     this.filters.set(deck, filter);
     this.filterStates.set(deck, { position: 0, resonance: 1 }); // Center position = no filtering
     this.gains.set(deck, gain);
+    this.crossfaderGains.set(deck, crossfaderGain);
 
     // Initialize keylock state (disabled by default, use regular player)
     this.keylockStates.set(deck, {
@@ -295,8 +304,19 @@ export class AudioEngine {
       console.log(`[AudioEngine] Stopped existing GrainPlayer for Deck ${deck}`);
     }
 
+    // Clear loop state for new track
+    this.clearLoop(deck);
+
     const loadingPromise = (async () => {
       try {
+        // Dispose of any existing buffer to free memory
+        const existingBuffer = this.audioBuffers.get(deck);
+        if (existingBuffer) {
+          existingBuffer.dispose();
+          this.audioBuffers.delete(deck);
+          console.log(`[AudioEngine] Disposed previous buffer for Deck ${deck}`);
+        }
+
         // Load the audio buffer first, then assign to both players
         const buffer = await this.withTimeout(
           new Promise<Tone.ToneAudioBuffer>((resolve, reject) => {
@@ -514,29 +534,37 @@ export class AudioEngine {
       );
     }
 
+    // Clamp seek time to valid range [0, duration]
+    const duration = player.buffer?.duration ?? 0;
+    const clampedTime = Math.max(0, Math.min(time, duration));
+
+    if (clampedTime !== time) {
+      console.warn(`[AudioEngine] Deck ${deck} seek time ${time.toFixed(2)}s clamped to ${clampedTime.toFixed(2)}s (duration: ${duration.toFixed(2)}s)`);
+    }
+
     // Store the seek position for use when play() is called
     // Tone.js player.seek() only works during playback; for stopped players,
     // we need to pass the offset to player.start()
-    this.seekPositions.set(deck, time);
+    this.seekPositions.set(deck, clampedTime);
 
     // If currently playing, seek immediately on the active player
     if (player.state === 'started') {
-      player.seek(time);
+      player.seek(clampedTime);
     }
     if (grainPlayer.state === 'started') {
       // GrainPlayer doesn't have seek(), need to restart at new position
       grainPlayer.stop();
-      grainPlayer.start(undefined, time);
+      grainPlayer.start(undefined, clampedTime);
       // Reset tracking with new start position
       this.grainPlaybackTracking.set(deck, {
         startWallTime: performance.now(),
-        startOffset: time,
+        startOffset: clampedTime,
         playbackRate: grainPlayer.playbackRate ?? 1,
       });
     }
 
     const latency = performance.now() - startTime;
-    console.log(`[AudioEngine] Deck ${deck} seek to ${time.toFixed(2)}s, latency: ${latency.toFixed(2)}ms`);
+    console.log(`[AudioEngine] Deck ${deck} seek to ${clampedTime.toFixed(2)}s, latency: ${latency.toFixed(2)}ms`);
 
     if (latency > 20) {
       console.warn(`[AudioEngine] Seek latency exceeded 20ms target: ${latency.toFixed(2)}ms`);
@@ -569,6 +597,14 @@ export class AudioEngine {
       );
     }
 
+    // Clamp cue point to valid range [0, duration]
+    const duration = player.buffer?.duration ?? 0;
+    const clampedCuePoint = Math.max(0, Math.min(cuePoint, duration));
+
+    if (clampedCuePoint !== cuePoint) {
+      console.warn(`[AudioEngine] Deck ${deck} cue point ${cuePoint.toFixed(2)}s clamped to ${clampedCuePoint.toFixed(2)}s (duration: ${duration.toFixed(2)}s)`);
+    }
+
     // Stop both players if playing
     if (player.state === 'started') {
       player.stop();
@@ -578,26 +614,26 @@ export class AudioEngine {
     }
 
     // Store cue point as seek position
-    this.seekPositions.set(deck, cuePoint);
+    this.seekPositions.set(deck, clampedCuePoint);
     // Clear any existing tracking
     this.grainPlaybackTracking.delete(deck);
 
     // Seek to cue point and start on the active player
     const keylockState = this.keylockStates.get(deck);
     const activePlayer = this.getActivePlayer(deck);
-    activePlayer.start(undefined, cuePoint);
+    activePlayer.start(undefined, clampedCuePoint);
 
     // Initialize tracking if using GrainPlayer (keylock mode)
     if (keylockState?.enabled) {
       this.grainPlaybackTracking.set(deck, {
         startWallTime: performance.now(),
-        startOffset: cuePoint,
+        startOffset: clampedCuePoint,
         playbackRate: grainPlayer.playbackRate ?? 1,
       });
     }
 
     const latency = performance.now() - startTime;
-    console.log(`[AudioEngine] Deck ${deck} cue latency: ${latency.toFixed(2)}ms`);
+    console.log(`[AudioEngine] Deck ${deck} cue to ${clampedCuePoint.toFixed(2)}s, latency: ${latency.toFixed(2)}ms`);
 
     if (latency > 20) {
       console.warn(`[AudioEngine] Cue latency exceeded 20ms target: ${latency.toFixed(2)}ms`);
@@ -737,24 +773,20 @@ export class AudioEngine {
     const clampedVolA = Math.max(0, Math.min(1, volA));
     const clampedVolB = Math.max(0, Math.min(1, volB));
 
-    // Get the crossfader gain nodes
-    // Tone.CrossFade internally has two gain nodes at a.gain and b.gain
-    // We'll use rampTo for smooth transitions to prevent audio clicks
     const rampTime = 0.02; // 20ms ramp for smooth transitions
 
-    // Access the internal gain values of the crossfader
-    // Tone.CrossFade uses fade value to control a/b balance
-    // But we want to control the volumes directly for custom curves
-    // So we'll set the crossfader to center (0.5) and use the deck gains instead
+    // Set the main crossfader to center (0.5) and use separate crossfader gains
+    // This allows custom curve control without conflicting with deck volume
     this.crossfader.fade.value = 0.5;
 
-    // Apply curve volumes to the deck gain nodes
-    const gainA = this.gains.get('A');
-    const gainB = this.gains.get('B');
+    // Apply curve volumes to the dedicated crossfader gain nodes
+    // This doesn't interfere with deck volume controls
+    const crossfaderGainA = this.crossfaderGains.get('A');
+    const crossfaderGainB = this.crossfaderGains.get('B');
 
-    if (gainA && gainB) {
-      gainA.gain.rampTo(clampedVolA, rampTime);
-      gainB.gain.rampTo(clampedVolB, rampTime);
+    if (crossfaderGainA && crossfaderGainB) {
+      crossfaderGainA.gain.rampTo(clampedVolA, rampTime);
+      crossfaderGainB.gain.rampTo(clampedVolB, rampTime);
     }
 
     console.log(
@@ -1513,13 +1545,22 @@ export class AudioEngine {
       this.stopLoopMonitor(deck);
     });
 
-    // Stop all players
+    // Stop all players (both regular and grain)
     this.players.forEach((player, deck) => {
       if (player.state === 'started') {
         player.stop();
       }
       player.dispose();
       console.log(`[AudioEngine] Disposed player for Deck ${deck}`);
+    });
+
+    // Stop and dispose GrainPlayers
+    this.grainPlayers.forEach((grainPlayer, deck) => {
+      if (grainPlayer.state === 'started') {
+        grainPlayer.stop();
+      }
+      grainPlayer.dispose();
+      console.log(`[AudioEngine] Disposed GrainPlayer for Deck ${deck}`);
     });
 
     // Disconnect and dispose audio nodes
@@ -1539,6 +1580,12 @@ export class AudioEngine {
       gain.disconnect();
       gain.dispose();
       console.log(`[AudioEngine] Disposed gain for Deck ${deck}`);
+    });
+
+    this.crossfaderGains.forEach((gain, deck) => {
+      gain.disconnect();
+      gain.dispose();
+      console.log(`[AudioEngine] Disposed crossfader gain for Deck ${deck}`);
     });
 
     this.crossfader.disconnect();
@@ -1579,14 +1626,29 @@ export class AudioEngine {
       console.log('[AudioEngine] Disposed effects engine');
     }
 
+    // Dispose audio buffers to free memory
+    this.audioBuffers.forEach((buffer, deck) => {
+      try {
+        buffer.dispose();
+        console.log(`[AudioEngine] Disposed audio buffer for Deck ${deck}`);
+      } catch (e) {
+        // Ignore dispose errors
+      }
+    });
+
     // Clear maps
     this.players.clear();
+    this.grainPlayers.clear();
     this.eqs.clear();
     this.filters.clear();
     this.filterStates.clear();
     this.gains.clear();
+    this.crossfaderGains.clear();
     this.loadingPromises.clear();
     this.seekPositions.clear();
+    this.keylockStates.clear();
+    this.activePlayerType.clear();
+    this.audioBuffers.clear();
     this.bpmAnalyzers.clear();
     this.bpmNodes.clear();
     this.bpmEventListeners.clear();
@@ -1609,8 +1671,10 @@ export class AudioEngine {
    * @returns Promise that rejects on timeout
    */
   private withTimeout<T>(promise: Promise<T>, timeoutMs: number, operation: string): Promise<T> {
+    let timeoutId: ReturnType<typeof setTimeout>;
+
     const timeoutPromise = new Promise<T>((_, reject) => {
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
         reject(
           new DJDeckError(
             DJDeckErrorType.AUDIO_CONTEXT_CREATION_FAILED,
@@ -1620,7 +1684,9 @@ export class AudioEngine {
       }, timeoutMs);
     });
 
-    return Promise.race([promise, timeoutPromise]);
+    return Promise.race([promise, timeoutPromise]).finally(() => {
+      clearTimeout(timeoutId);
+    });
   }
 
   /**
