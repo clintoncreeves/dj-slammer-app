@@ -622,111 +622,116 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
               musicalKey={deck.deckAState.detectedKey ? `${deck.deckAState.detectedKey} ${deck.deckAState.detectedKeyMode}` : undefined}
             />
 
-            <div className={styles.controlsRow}>
-              <VolumeControl
-                deck="A"
-                volume={deck.deckAState.volume}
-                color={config.deckA.waveformColor}
-                onChange={handleVolumeA}
-                highlighted={
-                  mode === 'tutorial' &&
-                  highlightTarget?.type === 'slider' &&
-                  highlightTarget?.control === 'volume' &&
-                  highlightTarget?.deck === 'A'
-                }
-              />
+            <div className={styles.controlsWrapper}>
+              {/* Row 1: Main mixing controls */}
+              <div className={styles.controlsRow}>
+                <DeckControls
+                  deck="A"
+                  isPlaying={deck.deckAState.isPlaying}
+                  isLoaded={deck.deckAState.isLoaded}
+                  color={config.deckA.waveformColor}
+                  onPlay={handlePlayA}
+                  onPause={handlePauseA}
+                  onCue={handleCueA}
+                  onSetCue={handleSetCueA}
+                  onSync={handleSyncA}
+                  hideCueButtons={false}
+                  highlightPlay={
+                    mode === 'tutorial' &&
+                    highlightTarget?.type === 'button' &&
+                    highlightTarget?.control === 'play' &&
+                    highlightTarget?.deck === 'A'
+                  }
+                  highlightPause={
+                    mode === 'tutorial' &&
+                    highlightTarget?.type === 'button' &&
+                    highlightTarget?.control === 'pause' &&
+                    highlightTarget?.deck === 'A'
+                  }
+                  highlightCue={
+                    mode === 'tutorial' &&
+                    highlightTarget?.type === 'button' &&
+                    highlightTarget?.control === 'cue' &&
+                    highlightTarget?.deck === 'A'
+                  }
+                  highlightSetCue={
+                    mode === 'tutorial' &&
+                    highlightTarget?.type === 'button' &&
+                    highlightTarget?.control === 'setCue' &&
+                    highlightTarget?.deck === 'A'
+                  }
+                />
 
-              <TempoSlider
-                deck="A"
-                originalBPM={deck.deckAState.originalBPM}
-                currentBPM={deck.deckAState.currentBPM}
-                color={config.deckA.waveformColor}
-                onChange={handleBPMA}
-                highlighted={
-                  mode === 'tutorial' &&
-                  highlightTarget?.type === 'slider' &&
-                  highlightTarget?.control === 'tempo' &&
-                  highlightTarget?.deck === 'A'
-                }
-              />
+                <VolumeControl
+                  deck="A"
+                  volume={deck.deckAState.volume}
+                  color={config.deckA.waveformColor}
+                  onChange={handleVolumeA}
+                  highlighted={
+                    mode === 'tutorial' &&
+                    highlightTarget?.type === 'slider' &&
+                    highlightTarget?.control === 'volume' &&
+                    highlightTarget?.deck === 'A'
+                  }
+                />
 
-              <EQControl
-                deck="A"
-                eqLow={deck.deckAState.eqLow}
-                eqMid={deck.deckAState.eqMid}
-                eqHigh={deck.deckAState.eqHigh}
-                color={config.deckA.waveformColor}
-                onChange={handleEQA}
-                highlighted={
-                  mentorHighlight?.type === 'eq' &&
-                  (mentorHighlight?.deck === 'A' || !mentorHighlight?.deck)
-                }
-                highlightedBand={
-                  mode === 'tutorial' &&
-                  highlightTarget?.type === 'slider' &&
-                  highlightTarget?.deck === 'A'
-                    ? (highlightTarget?.control === 'eq-low' ? 'low' :
-                       highlightTarget?.control === 'eq-mid' ? 'mid' :
-                       highlightTarget?.control === 'eq-high' ? 'high' : undefined)
-                    : undefined
-                }
-                transitionGuidance={getEQGuidance('A')}
-              />
+                <TempoSlider
+                  deck="A"
+                  originalBPM={deck.deckAState.originalBPM}
+                  currentBPM={deck.deckAState.currentBPM}
+                  color={config.deckA.waveformColor}
+                  onChange={handleBPMA}
+                  highlighted={
+                    mode === 'tutorial' &&
+                    highlightTarget?.type === 'slider' &&
+                    highlightTarget?.control === 'tempo' &&
+                    highlightTarget?.deck === 'A'
+                  }
+                />
 
-              <DeckControls
-                deck="A"
-                isPlaying={deck.deckAState.isPlaying}
-                isLoaded={deck.deckAState.isLoaded}
-                color={config.deckA.waveformColor}
-                onPlay={handlePlayA}
-                onPause={handlePauseA}
-                onCue={handleCueA}
-                onSetCue={handleSetCueA}
-                onSync={handleSyncA}
-                hideCueButtons={false}
-                highlightPlay={
-                  mode === 'tutorial' &&
-                  highlightTarget?.type === 'button' &&
-                  highlightTarget?.control === 'play' &&
-                  highlightTarget?.deck === 'A'
-                }
-                highlightPause={
-                  mode === 'tutorial' &&
-                  highlightTarget?.type === 'button' &&
-                  highlightTarget?.control === 'pause' &&
-                  highlightTarget?.deck === 'A'
-                }
-                highlightCue={
-                  mode === 'tutorial' &&
-                  highlightTarget?.type === 'button' &&
-                  highlightTarget?.control === 'cue' &&
-                  highlightTarget?.deck === 'A'
-                }
-                highlightSetCue={
-                  mode === 'tutorial' &&
-                  highlightTarget?.type === 'button' &&
-                  highlightTarget?.control === 'setCue' &&
-                  highlightTarget?.deck === 'A'
-                }
-              />
+                <EQControl
+                  deck="A"
+                  eqLow={deck.deckAState.eqLow}
+                  eqMid={deck.deckAState.eqMid}
+                  eqHigh={deck.deckAState.eqHigh}
+                  color={config.deckA.waveformColor}
+                  onChange={handleEQA}
+                  highlighted={
+                    mentorHighlight?.type === 'eq' &&
+                    (mentorHighlight?.deck === 'A' || !mentorHighlight?.deck)
+                  }
+                  highlightedBand={
+                    mode === 'tutorial' &&
+                    highlightTarget?.type === 'slider' &&
+                    highlightTarget?.deck === 'A'
+                      ? (highlightTarget?.control === 'eq-low' ? 'low' :
+                         highlightTarget?.control === 'eq-mid' ? 'mid' :
+                         highlightTarget?.control === 'eq-high' ? 'high' : undefined)
+                      : undefined
+                  }
+                  transitionGuidance={getEQGuidance('A')}
+                />
+              </div>
 
-              {/* Performance Controls - Hot Cues, Loops, Filter */}
-              <PerformanceControls
-                deck="A"
-                color={config.deckA.waveformColor}
-                isLoaded={deck.deckAState.isLoaded}
-                isPlaying={deck.deckAState.isPlaying}
-                hotCues={deck.hotCuesA.map(hc => hc?.position ?? null)}
-                onSetHotCue={(slot) => deck.setHotCue('A', slot)}
-                onJumpToHotCue={(slot) => deck.jumpToHotCue('A', slot)}
-                onClearHotCue={(slot) => deck.deleteHotCue('A', slot)}
-                onClearAllHotCues={() => deck.clearAllHotCues('A')}
-                loopActive={deck.deckAState.loopActive}
-                onLoopToggle={() => deck.toggleLoop('A')}
-                onSetAutoLoop={(beats) => deck.setAutoLoop('A', beats)}
-                filterValue={deck.deckAState.filterPosition}
-                onFilterChange={(value) => deck.setDeckFilter('A', value)}
-              />
+              {/* Row 2: Performance controls */}
+              <div className={styles.controlsRowSecondary}>
+                <PerformanceControls
+                  deck="A"
+                  color={config.deckA.waveformColor}
+                  isLoaded={deck.deckAState.isLoaded}
+                  isPlaying={deck.deckAState.isPlaying}
+                  hotCues={deck.hotCuesA.map(hc => hc?.position ?? null)}
+                  onSetHotCue={(slot) => deck.setHotCue('A', slot)}
+                  onJumpToHotCue={(slot) => deck.jumpToHotCue('A', slot)}
+                  onClearHotCue={(slot) => deck.deleteHotCue('A', slot)}
+                  onClearAllHotCues={() => deck.clearAllHotCues('A')}
+                  loopActive={deck.deckAState.loopActive}
+                  onLoopToggle={() => deck.toggleLoop('A')}
+                  onSetAutoLoop={(beats) => deck.setAutoLoop('A', beats)}
+                  filterValue={deck.deckAState.filterPosition}
+                  onFilterChange={(value) => deck.setDeckFilter('A', value)}
+                />
+              </div>
             </div>
           </div>
 
@@ -793,111 +798,116 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
               musicalKey={deck.deckBState.detectedKey ? `${deck.deckBState.detectedKey} ${deck.deckBState.detectedKeyMode}` : undefined}
             />
 
-            <div className={styles.controlsRow}>
-              <VolumeControl
-                deck="B"
-                volume={deck.deckBState.volume}
-                color={config.deckB.waveformColor}
-                onChange={handleVolumeB}
-                highlighted={
-                  mode === 'tutorial' &&
-                  highlightTarget?.type === 'slider' &&
-                  highlightTarget?.control === 'volume' &&
-                  highlightTarget?.deck === 'B'
-                }
-              />
+            <div className={styles.controlsWrapper}>
+              {/* Row 1: Main mixing controls */}
+              <div className={styles.controlsRow}>
+                <DeckControls
+                  deck="B"
+                  isPlaying={deck.deckBState.isPlaying}
+                  isLoaded={deck.deckBState.isLoaded}
+                  color={config.deckB.waveformColor}
+                  onPlay={handlePlayB}
+                  onPause={handlePauseB}
+                  onCue={handleCueB}
+                  onSetCue={handleSetCueB}
+                  onSync={handleSyncB}
+                  hideCueButtons={false}
+                  highlightPlay={
+                    mode === 'tutorial' &&
+                    highlightTarget?.type === 'button' &&
+                    highlightTarget?.control === 'play' &&
+                    highlightTarget?.deck === 'B'
+                  }
+                  highlightPause={
+                    mode === 'tutorial' &&
+                    highlightTarget?.type === 'button' &&
+                    highlightTarget?.control === 'pause' &&
+                    highlightTarget?.deck === 'B'
+                  }
+                  highlightCue={
+                    mode === 'tutorial' &&
+                    highlightTarget?.type === 'button' &&
+                    highlightTarget?.control === 'cue' &&
+                    highlightTarget?.deck === 'B'
+                  }
+                  highlightSetCue={
+                    mode === 'tutorial' &&
+                    highlightTarget?.type === 'button' &&
+                    highlightTarget?.control === 'setCue' &&
+                    highlightTarget?.deck === 'B'
+                  }
+                />
 
-              <TempoSlider
-                deck="B"
-                originalBPM={deck.deckBState.originalBPM}
-                currentBPM={deck.deckBState.currentBPM}
-                color={config.deckB.waveformColor}
-                onChange={handleBPMB}
-                highlighted={
-                  mode === 'tutorial' &&
-                  highlightTarget?.type === 'slider' &&
-                  highlightTarget?.control === 'tempo' &&
-                  highlightTarget?.deck === 'B'
-                }
-              />
+                <VolumeControl
+                  deck="B"
+                  volume={deck.deckBState.volume}
+                  color={config.deckB.waveformColor}
+                  onChange={handleVolumeB}
+                  highlighted={
+                    mode === 'tutorial' &&
+                    highlightTarget?.type === 'slider' &&
+                    highlightTarget?.control === 'volume' &&
+                    highlightTarget?.deck === 'B'
+                  }
+                />
 
-              <EQControl
-                deck="B"
-                eqLow={deck.deckBState.eqLow}
-                eqMid={deck.deckBState.eqMid}
-                eqHigh={deck.deckBState.eqHigh}
-                color={config.deckB.waveformColor}
-                onChange={handleEQB}
-                highlighted={
-                  mentorHighlight?.type === 'eq' &&
-                  (mentorHighlight?.deck === 'B' || !mentorHighlight?.deck)
-                }
-                highlightedBand={
-                  mode === 'tutorial' &&
-                  highlightTarget?.type === 'slider' &&
-                  highlightTarget?.deck === 'B'
-                    ? (highlightTarget?.control === 'eq-low' ? 'low' :
-                       highlightTarget?.control === 'eq-mid' ? 'mid' :
-                       highlightTarget?.control === 'eq-high' ? 'high' : undefined)
-                    : undefined
-                }
-                transitionGuidance={getEQGuidance('B')}
-              />
+                <TempoSlider
+                  deck="B"
+                  originalBPM={deck.deckBState.originalBPM}
+                  currentBPM={deck.deckBState.currentBPM}
+                  color={config.deckB.waveformColor}
+                  onChange={handleBPMB}
+                  highlighted={
+                    mode === 'tutorial' &&
+                    highlightTarget?.type === 'slider' &&
+                    highlightTarget?.control === 'tempo' &&
+                    highlightTarget?.deck === 'B'
+                  }
+                />
 
-              <DeckControls
-                deck="B"
-                isPlaying={deck.deckBState.isPlaying}
-                isLoaded={deck.deckBState.isLoaded}
-                color={config.deckB.waveformColor}
-                onPlay={handlePlayB}
-                onPause={handlePauseB}
-                onCue={handleCueB}
-                onSetCue={handleSetCueB}
-                onSync={handleSyncB}
-                hideCueButtons={false}
-                highlightPlay={
-                  mode === 'tutorial' &&
-                  highlightTarget?.type === 'button' &&
-                  highlightTarget?.control === 'play' &&
-                  highlightTarget?.deck === 'B'
-                }
-                highlightPause={
-                  mode === 'tutorial' &&
-                  highlightTarget?.type === 'button' &&
-                  highlightTarget?.control === 'pause' &&
-                  highlightTarget?.deck === 'B'
-                }
-                highlightCue={
-                  mode === 'tutorial' &&
-                  highlightTarget?.type === 'button' &&
-                  highlightTarget?.control === 'cue' &&
-                  highlightTarget?.deck === 'B'
-                }
-                highlightSetCue={
-                  mode === 'tutorial' &&
-                  highlightTarget?.type === 'button' &&
-                  highlightTarget?.control === 'setCue' &&
-                  highlightTarget?.deck === 'B'
-                }
-              />
+                <EQControl
+                  deck="B"
+                  eqLow={deck.deckBState.eqLow}
+                  eqMid={deck.deckBState.eqMid}
+                  eqHigh={deck.deckBState.eqHigh}
+                  color={config.deckB.waveformColor}
+                  onChange={handleEQB}
+                  highlighted={
+                    mentorHighlight?.type === 'eq' &&
+                    (mentorHighlight?.deck === 'B' || !mentorHighlight?.deck)
+                  }
+                  highlightedBand={
+                    mode === 'tutorial' &&
+                    highlightTarget?.type === 'slider' &&
+                    highlightTarget?.deck === 'B'
+                      ? (highlightTarget?.control === 'eq-low' ? 'low' :
+                         highlightTarget?.control === 'eq-mid' ? 'mid' :
+                         highlightTarget?.control === 'eq-high' ? 'high' : undefined)
+                      : undefined
+                  }
+                  transitionGuidance={getEQGuidance('B')}
+                />
+              </div>
 
-              {/* Performance Controls - Hot Cues, Loops, Filter */}
-              <PerformanceControls
-                deck="B"
-                color={config.deckB.waveformColor}
-                isLoaded={deck.deckBState.isLoaded}
-                isPlaying={deck.deckBState.isPlaying}
-                hotCues={deck.hotCuesB.map(hc => hc?.position ?? null)}
-                onSetHotCue={(slot) => deck.setHotCue('B', slot)}
-                onJumpToHotCue={(slot) => deck.jumpToHotCue('B', slot)}
-                onClearHotCue={(slot) => deck.deleteHotCue('B', slot)}
-                onClearAllHotCues={() => deck.clearAllHotCues('B')}
-                loopActive={deck.deckBState.loopActive}
-                onLoopToggle={() => deck.toggleLoop('B')}
-                onSetAutoLoop={(beats) => deck.setAutoLoop('B', beats)}
-                filterValue={deck.deckBState.filterPosition}
-                onFilterChange={(value) => deck.setDeckFilter('B', value)}
-              />
+              {/* Row 2: Performance controls */}
+              <div className={styles.controlsRowSecondary}>
+                <PerformanceControls
+                  deck="B"
+                  color={config.deckB.waveformColor}
+                  isLoaded={deck.deckBState.isLoaded}
+                  isPlaying={deck.deckBState.isPlaying}
+                  hotCues={deck.hotCuesB.map(hc => hc?.position ?? null)}
+                  onSetHotCue={(slot) => deck.setHotCue('B', slot)}
+                  onJumpToHotCue={(slot) => deck.jumpToHotCue('B', slot)}
+                  onClearHotCue={(slot) => deck.deleteHotCue('B', slot)}
+                  onClearAllHotCues={() => deck.clearAllHotCues('B')}
+                  loopActive={deck.deckBState.loopActive}
+                  onLoopToggle={() => deck.toggleLoop('B')}
+                  onSetAutoLoop={(beats) => deck.setAutoLoop('B', beats)}
+                  filterValue={deck.deckBState.filterPosition}
+                  onFilterChange={(value) => deck.setDeckFilter('B', value)}
+                />
+              </div>
             </div>
           </div>
         </div>

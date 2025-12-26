@@ -65,22 +65,15 @@
   overflow: hidden;
 }
 
-/* Clear dividing line between decks */
+/* Clear dividing line between decks - subtle neutral color */
 .decksContainer::after {
   content: '';
   position: absolute;
   top: 0;
   bottom: 0;
   left: 50%;
-  width: 2px;
-  background: linear-gradient(
-    180deg,
-    rgba(0, 240, 255, 0.6) 0%,
-    rgba(255, 255, 255, 0.3) 30%,
-    rgba(255, 255, 255, 0.3) 70%,
-    rgba(255, 0, 110, 0.6) 100%
-  );
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+  width: 1px;
+  background: rgba(255, 255, 255, 0.15);
   z-index: 5;
 }
 
@@ -214,13 +207,32 @@
   flex-shrink: 0;
 }
 
+/* Two-row layout for controls */
+.controlsWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  width: 100%;
+}
+
 .controlsRow {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   flex-shrink: 0;
-  flex-wrap: nowrap; /* Don't wrap - scale down instead */
+  min-width: 0;
+  width: 100%;
+}
+
+/* Secondary controls row (Hot Cues, Loops, Filter) */
+.controlsRowSecondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
   min-width: 0;
   width: 100%;
 }
