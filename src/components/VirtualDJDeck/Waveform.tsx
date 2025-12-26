@@ -302,12 +302,17 @@ export function Waveform({
   // Handle click to seek - use containerRef for accurate click position
   // since the click event is attached to the container div
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!onSeek || !containerRef.current || duration <= 0) return;
+    console.log('[Waveform] Click detected', { hasOnSeek: !!onSeek, hasContainer: !!containerRef.current, duration });
+    if (!onSeek || !containerRef.current || duration <= 0) {
+      console.log('[Waveform] Click ignored - missing onSeek, container, or invalid duration');
+      return;
+    }
 
     const rect = containerRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const position = Math.max(0, Math.min(1, x / rect.width));
     const seekTime = position * duration;
+    console.log(`[Waveform] Seeking to ${seekTime.toFixed(2)}s (position: ${(position * 100).toFixed(1)}%)`);
     onSeek(seekTime);
   };
 

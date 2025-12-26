@@ -18,6 +18,7 @@ interface PerformanceControlsProps {
   onSetHotCue: (slot: number) => void;
   onJumpToHotCue: (slot: number) => void;
   onClearHotCue: (slot: number) => void;
+  onClearAllHotCues: () => void;
   // Loops
   loopActive: boolean;
   onLoopToggle: () => void;
@@ -36,6 +37,7 @@ export function PerformanceControls({
   onSetHotCue,
   onJumpToHotCue,
   onClearHotCue,
+  onClearAllHotCues,
   loopActive,
   onLoopToggle,
   onSetAutoLoop,
@@ -78,6 +80,14 @@ export function PerformanceControls({
               {slot + 1}
             </button>
           ))}
+          <button
+            className={styles.clearAllButton}
+            onClick={onClearAllHotCues}
+            disabled={!isLoaded || hotCues.every(cue => cue === null)}
+            title="Clear all hot cues"
+          >
+            ✕
+          </button>
         </div>
       </div>
 

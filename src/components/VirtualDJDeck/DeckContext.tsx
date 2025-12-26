@@ -79,6 +79,7 @@ interface DeckContextValue {
   jumpToHotCue: (deck: DeckId, slot: number) => void;
   deleteHotCue: (deck: DeckId, slot: number) => void;
   updateHotCueColor: (deck: DeckId, slot: number, color: string) => void;
+  clearAllHotCues: (deck: DeckId) => void;
 
   // Loop Functions
   setLoopIn: (deck: DeckId) => void;
@@ -606,18 +607,18 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     }
 
     try {
+      console.log(`[DeckContext] Deck ${deck} SEEK: ${validTime.toFixed(2)}s (was: ${deckState.currentTime.toFixed(2)}s, isPlaying: ${deckState.isPlaying})`);
       audioEngineRef.current.seek(deck, validTime);
 
       const updateState = deck === 'A' ? setDeckAState : setDeckBState;
       updateState((prev) => ({ ...prev, currentTime: validTime }));
 
       notifyStateChange();
-      console.log(`[DeckContext] Deck ${deck} seeked to ${validTime.toFixed(2)}s`);
     } catch (err) {
       console.error(`[DeckContext] Failed to seek Deck ${deck}:`, err);
       onError?.(err as Error);
     }
-  }, [isInitialized, deckAState.duration, deckBState.duration, notifyStateChange, onError]);
+  }, [isInitialized, deckAState, deckBState, notifyStateChange, onError]);
 
   // Set BPM for a deck
   const setBPM = useCallback((deck: DeckId, bpm: number) => {
@@ -1082,6 +1083,13 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     console.log(`[DeckContext] Deck ${deck} hot cue ${slot} color updated to ${color}`);
   }, [hotCuesA, hotCuesB]);
 
+  // Clear all hot cues for a deck
+  const clearAllHotCues = useCallback((deck: DeckId) => {
+    const setHotCuesState = deck === 'A' ? setHotCuesA : setHotCuesB;
+    setHotCuesState(Array(8).fill(null));
+    console.log(`[DeckContext] Deck ${deck} all hot cues cleared`);
+  }, []);
+
   // =========================================================================
   // Loop Functions - Professional DJ loop controls
   // =========================================================================
@@ -1509,6 +1517,7 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     jumpToHotCue,
     deleteHotCue,
     updateHotCueColor,
+    clearAllHotCues,
     setLoopIn,
     setLoopOut,
     toggleLoop,
@@ -1552,6 +1561,7 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
     jumpToHotCue,
     deleteHotCue,
     updateHotCueColor,
+    clearAllHotCues,
     setLoopIn,
     setLoopOut,
     toggleLoop,

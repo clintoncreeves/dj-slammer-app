@@ -259,6 +259,10 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
       deckRef.current = deck;
     }, [deck]);
 
+    // Track if we've already handled track end to prevent multiple resets
+    // Using refs so these persist across effect re-runs
+    const trackEndHandledRef = useRef({ a: false, b: false });
+
     // Update playback time using requestAnimationFrame for smooth, synchronized updates
     // This replaces setInterval to avoid timing drift and sync with browser paint cycles
     useEffect(() => {
@@ -281,17 +285,24 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
         const aActuallyPlaying = currentDeck.audioEngine.isPlaying('A');
         const bActuallyPlaying = currentDeck.audioEngine.isPlaying('B');
 
+        // Reset the "handled" flags when track starts playing again
+        if (aActuallyPlaying) trackEndHandledRef.current.a = false;
+        if (bActuallyPlaying) trackEndHandledRef.current.b = false;
+
         // Sync React state with audio engine state if track finished naturally
-        if (aReactPlaying && !aActuallyPlaying) {
+        // Only handle once per track end to avoid racing with user seeks
+        if (aReactPlaying && !aActuallyPlaying && !trackEndHandledRef.current.a) {
           // Track A finished naturally - update React state
           console.log('[VirtualDJDeck] Deck A finished naturally, syncing state');
+          trackEndHandledRef.current.a = true;
           currentDeck.pauseDeck('A');
           // Reset to beginning after natural end
           currentDeck.seekDeck('A', 0);
         }
-        if (bReactPlaying && !bActuallyPlaying) {
+        if (bReactPlaying && !bActuallyPlaying && !trackEndHandledRef.current.b) {
           // Track B finished naturally - update React state
           console.log('[VirtualDJDeck] Deck B finished naturally, syncing state');
+          trackEndHandledRef.current.b = true;
           currentDeck.pauseDeck('B');
           // Reset to beginning after natural end
           currentDeck.seekDeck('B', 0);
@@ -710,6 +721,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                   onSetHotCue={(slot) => deck.setHotCue('A', slot)}
                   onJumpToHotCue={(slot) => deck.jumpToHotCue('A', slot)}
                   onClearHotCue={(slot) => deck.deleteHotCue('A', slot)}
+                  onClearAllHotCues={() => deck.clearAllHotCues('A')}
                   loopActive={deck.deckAState.loopActive}
                   onLoopToggle={() => deck.toggleLoop('A')}
                   onSetAutoLoop={(beats) => deck.setAutoLoop('A', beats)}
@@ -884,6 +896,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                   onSetHotCue={(slot) => deck.setHotCue('B', slot)}
                   onJumpToHotCue={(slot) => deck.jumpToHotCue('B', slot)}
                   onClearHotCue={(slot) => deck.deleteHotCue('B', slot)}
+                  onClearAllHotCues={() => deck.clearAllHotCues('B')}
                   loopActive={deck.deckBState.loopActive}
                   onLoopToggle={() => deck.toggleLoop('B')}
                   onSetAutoLoop={(beats) => deck.setAutoLoop('B', beats)}
