@@ -216,6 +216,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
             artist: config.deckA.artistName || 'Unknown Artist',
             bpm: config.deckA.initialBPM,
             cuePoint: config.deckA.cuePoint,
+            camelotCode: config.deckA.camelotCode,
           }),
           deck.loadTrack('B', {
             url: config.deckB.trackUrl,
@@ -223,6 +224,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
             artist: config.deckB.artistName || 'Unknown Artist',
             bpm: config.deckB.initialBPM,
             cuePoint: config.deckB.cuePoint,
+            camelotCode: config.deckB.camelotCode,
           }),
         ]);
 

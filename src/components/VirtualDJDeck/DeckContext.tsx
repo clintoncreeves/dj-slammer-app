@@ -37,6 +37,8 @@ export interface TrackInfo {
   suggestedCuePoints?: number[];
   /** Pre-saved hot cues for this track */
   hotCues?: (HotCue | null)[];
+  /** Camelot code for harmonic mixing (e.g., "8A", "11B") */
+  camelotCode?: string;
 }
 
 interface DeckContextValue {
@@ -367,7 +369,7 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
       throw new Error('AudioEngine not initialized');
     }
 
-    const { url, name, artist, bpm, cuePoint = 0, suggestedCuePoints } = trackInfo;
+    const { url, name, artist, bpm, cuePoint = 0, suggestedCuePoints, camelotCode } = trackInfo;
 
     try {
       await audioEngineRef.current.loadTrack(deck, url);
@@ -391,7 +393,7 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
       let detectedBPM = bpm;
       let detectedKey = '';
       let detectedKeyMode: 'major' | 'minor' = 'major';
-      let detectedCamelotCode = '';
+      let detectedCamelotCode = camelotCode || '';
 
       // Only run detection if BPM is 0 or not provided (indicates user upload)
       if (buffer && bpm === 0) {
@@ -416,7 +418,7 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
           console.warn(`[DeckContext] Deck ${deck} BPM/Key detection failed:`, detectionError);
         }
       } else if (bpm > 0) {
-        console.log(`[DeckContext] Deck ${deck} using provided BPM: ${bpm} (skipping detection)`);
+        console.log(`[DeckContext] Deck ${deck} using provided BPM: ${bpm}, camelotCode: ${camelotCode || 'none'}`);
       }
 
       // Calculate suggested cue points if not provided

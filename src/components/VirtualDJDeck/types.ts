@@ -22,6 +22,8 @@ export interface DeckConfig {
   cuePoint: number;
   /** Color for waveform visualization (hex color) */
   waveformColor: string;
+  /** Camelot code for harmonic mixing (e.g., "8A", "11B") */
+  camelotCode?: string;
 }
 
 /**

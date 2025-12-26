@@ -14,17 +14,24 @@ import { allLessons, getNextLesson } from './lessons';
 
 type AppMode = 'tutorial' | 'freeplay';
 
-// Track metadata for BPM configuration
-const TRACK_BPM: Record<string, number> = {
+// Track metadata for tutorial tracks
+interface TrackMetadata {
+  bpm: number;
+  camelotCode: string;
+  trackName: string;
+  artist: string;
+}
+
+const TRACK_METADATA: Record<string, TrackMetadata> = {
   // Legacy Pixabay tracks (kept for compatibility)
-  '/audio/dance-until-dark-329026.mp3': 123,
-  '/audio/ootd-upbeat-summer-house-242100.mp3': 123,
-  '/audio/happy-summer-145530.mp3': 129,
+  '/audio/dance-until-dark-329026.mp3': { bpm: 123, camelotCode: '8B', trackName: 'Dance Until Dark', artist: 'Pixabay' },
+  '/audio/ootd-upbeat-summer-house-242100.mp3': { bpm: 123, camelotCode: '8B', trackName: 'OOTD Upbeat Summer House', artist: 'Pixabay' },
+  '/audio/happy-summer-145530.mp3': { bpm: 129, camelotCode: '8B', trackName: 'Happy Summer', artist: 'Pixabay' },
   // DJ SLAMMER tracks
-  '/audio/Heartburst!.mp3': 129,
-  '/audio/Sunshine On The Floor!.mp3': 129,
-  '/audio/Get ready to move, feel the groove!.mp3': 129,
-  '/audio/Shake It Up!.mp3': 123,
+  '/audio/Heartburst!.mp3': { bpm: 129, camelotCode: '10B', trackName: 'Heartburst!', artist: 'DJ SLAMMER' },
+  '/audio/Sunshine On The Floor!.mp3': { bpm: 129, camelotCode: '11A', trackName: 'Sunshine On The Floor!', artist: 'DJ SLAMMER' },
+  '/audio/Get ready to move, feel the groove!.mp3': { bpm: 129, camelotCode: '6A', trackName: 'Get ready to move, feel the groove!', artist: 'DJ SLAMMER' },
+  '/audio/Shake It Up!.mp3': { bpm: 123, camelotCode: '9A', trackName: 'Shake It Up!', artist: 'DJ SLAMMER' },
 };
 
 // Get initial lesson from URL or default to first lesson
@@ -56,20 +63,30 @@ export const TutorialLesson: React.FC = () => {
 
   // Configuration for both decks based on current lesson
   // Colors match the spectral waveform's prominent frequencies (blue/green)
-  const config: VirtualDJDeckConfig = useMemo(() => ({
-    deckA: {
-      trackUrl: currentLesson.tracks.deckA,
-      initialBPM: TRACK_BPM[currentLesson.tracks.deckA] || 120,
-      cuePoint: currentLesson.tracks.deckACuePoint || 0,
-      waveformColor: '#4A90D9', // Blue for Deck A (matches low/mid frequencies)
-    },
-    deckB: {
-      trackUrl: currentLesson.tracks.deckB,
-      initialBPM: TRACK_BPM[currentLesson.tracks.deckB] || 120,
-      cuePoint: currentLesson.tracks.deckBCuePoint || 0,
-      waveformColor: '#7ED321', // Green for Deck B (matches mid/high frequencies)
-    },
-  }), [currentLesson]);
+  const config: VirtualDJDeckConfig = useMemo(() => {
+    const deckAMeta = TRACK_METADATA[currentLesson.tracks.deckA];
+    const deckBMeta = TRACK_METADATA[currentLesson.tracks.deckB];
+    return {
+      deckA: {
+        trackUrl: currentLesson.tracks.deckA,
+        trackName: deckAMeta?.trackName || 'Track A',
+        artistName: deckAMeta?.artist || 'Unknown Artist',
+        initialBPM: deckAMeta?.bpm || 120,
+        cuePoint: currentLesson.tracks.deckACuePoint || 0,
+        waveformColor: '#4A90D9', // Blue for Deck A (matches low/mid frequencies)
+        camelotCode: deckAMeta?.camelotCode,
+      },
+      deckB: {
+        trackUrl: currentLesson.tracks.deckB,
+        trackName: deckBMeta?.trackName || 'Track B',
+        artistName: deckBMeta?.artist || 'Unknown Artist',
+        initialBPM: deckBMeta?.bpm || 120,
+        cuePoint: currentLesson.tracks.deckBCuePoint || 0,
+        waveformColor: '#7ED321', // Green for Deck B (matches mid/high frequencies)
+        camelotCode: deckBMeta?.camelotCode,
+      },
+    };
+  }, [currentLesson]);
 
   // Tutorial configuration (only when in tutorial mode)
   const tutorialConfig: TutorialConfig | undefined = useMemo(() => {
