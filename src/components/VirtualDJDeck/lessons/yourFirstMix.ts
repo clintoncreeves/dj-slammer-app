@@ -26,8 +26,8 @@ export const yourFirstMixLesson: TutorialLesson = {
   // IMPORTANT: Both tracks match in BPM AND Camelot key for harmonic mixing
   // This means when both play, they sound good together harmonically
   tracks: {
-    deckA: '/audio/1AM Gridlock.mp3',
-    deckB: '/audio/Sunshine On The Floor.mp3',
+    deckA: '/audio/1am-gridlock.mp3',
+    deckB: '/audio/sunshine-on-the-floor.mp3',
     // Both start from the beginning to ensure beats are phase-aligned
     deckACuePoint: 0,
     deckBCuePoint: 0,
