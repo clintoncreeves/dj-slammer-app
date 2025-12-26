@@ -22,12 +22,12 @@ export const yourFirstMixLesson: TutorialLesson = {
   description: 'Learn how to blend two tracks and create a smooth DJ transition!',
   difficulty: 'beginner',
 
-  // Using two DJ SLAMMER tracks at 129 BPM for easy mixing
+  // Using tracks at 129 BPM for easy mixing
   // IMPORTANT: Both tracks start at position 0 to ensure beat phase alignment
   // This means when both play, their beats hit at the SAME time
   tracks: {
     deckA: '/audio/Heartburst.mp3',
-    deckB: '/audio/Sunshine On The Floor.mp3',
+    deckB: '/audio/SunshineOnTheFloor.mp3',
     // Both start from the beginning to ensure beats are phase-aligned
     deckACuePoint: 0,
     deckBCuePoint: 0,

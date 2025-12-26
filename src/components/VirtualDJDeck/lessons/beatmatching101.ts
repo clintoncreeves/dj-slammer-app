@@ -29,8 +29,8 @@ export const beatmatching101Lesson: TutorialLesson = {
   // Get ready to move, feel the groove!: 129 BPM
   // Shake It Up!: 123 BPM (6 BPM difference)
   tracks: {
-    deckA: '/audio/Get ready to move, feel the groove.mp3',
-    deckB: '/audio/Shake It Up.mp3',
+    deckA: '/audio/GetReadyToMove.mp3',
+    deckB: '/audio/ShakeItUp.mp3',
   },
 
   steps: [
