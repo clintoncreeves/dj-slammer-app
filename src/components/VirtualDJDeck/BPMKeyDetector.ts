@@ -614,8 +614,17 @@ function pearsonCorrelation(x: Float32Array, y: readonly number[]): number {
 // ============================================================================
 
 /**
+ * Yield to the main thread to prevent UI blocking
+ * This allows the browser to process events and remain responsive
+ */
+const yieldToMain = (): Promise<void> => new Promise(resolve => setTimeout(resolve, 0));
+
+/**
  * Detect BPM and musical key from an AudioBuffer
  * Uses multi-validation approach for high accuracy
+ *
+ * IMPORTANT: This function yields to the main thread between heavy operations
+ * to prevent browser hangs (RESULT_CODE_HUNG)
  *
  * @param audioBuffer - Web Audio API AudioBuffer to analyze
  * @returns Promise with BPM, confidence, key, mode, and Camelot code
@@ -623,6 +632,10 @@ function pearsonCorrelation(x: Float32Array, y: readonly number[]): number {
 export async function detectBPMAndKey(audioBuffer: AudioBuffer): Promise<BPMKeyDetectionResult> {
   // Convert to mono and downsample for efficiency
   const monoData = convertToMono(audioBuffer);
+
+  // Yield to main thread after mono conversion
+  await yieldToMain();
+
   const resampledData = downsample(monoData, audioBuffer.sampleRate, ANALYSIS_SAMPLE_RATE);
 
   console.log('[BPMKeyDetector] Analyzing audio:', {
@@ -632,8 +645,15 @@ export async function detectBPMAndKey(audioBuffer: AudioBuffer): Promise<BPMKeyD
     samples: resampledData.length,
   });
 
+  // Yield before heavy BPM detection
+  await yieldToMain();
+
   // Run BPM detection with multiple methods
   const autocorrResult = detectBPMAutocorrelation(resampledData, ANALYSIS_SAMPLE_RATE);
+
+  // Yield between detection methods
+  await yieldToMain();
+
   const peakResult = detectBPMPeakDetection(resampledData, ANALYSIS_SAMPLE_RATE);
 
   console.log('[BPMKeyDetector] Autocorrelation result:', autocorrResult);
@@ -644,8 +664,14 @@ export async function detectBPMAndKey(audioBuffer: AudioBuffer): Promise<BPMKeyD
 
   console.log('[BPMKeyDetector] Combined BPM result:', combinedBPM);
 
+  // Yield before key detection (also heavy)
+  await yieldToMain();
+
   // Extract chroma features for key detection
   const chroma = extractChromaFeatures(resampledData, ANALYSIS_SAMPLE_RATE);
+
+  // Yield after chroma extraction
+  await yieldToMain();
 
   // Detect key using Krumhansl-Schmuckler algorithm
   const keyResult = detectKeyFromChroma(chroma);

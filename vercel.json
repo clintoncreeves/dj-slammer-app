@@ -31,7 +31,6 @@
     }
   ],
   "rewrites": [
-    { "source": "/", "destination": "/public/index.html" },
-    { "source": "/(.*)", "destination": "/public/$1" }
+    { "source": "/((?!assets|audio|.*\\..*).*)", "destination": "/index.html" }
   ]
 }
