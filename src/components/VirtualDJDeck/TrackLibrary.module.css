@@ -380,6 +380,30 @@
   accent-color: #00F0FF;
 }
 
+.resetButton {
+  padding: 4px 10px;
+  background: rgba(255, 100, 100, 0.15);
+  border: 1px solid rgba(255, 100, 100, 0.4);
+  border-radius: 4px;
+  color: rgba(255, 150, 150, 0.9);
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.resetButton:hover {
+  background: rgba(255, 100, 100, 0.25);
+  border-color: rgba(255, 100, 100, 0.6);
+  color: #fff;
+}
+
+.resetButton:focus-visible {
+  outline: 2px solid rgba(255, 100, 100, 0.6);
+  outline-offset: 1px;
+}
+
 /* Compatible tracks section */
 .compatibleSection {
   margin-bottom: 12px;

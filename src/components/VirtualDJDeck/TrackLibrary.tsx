@@ -581,6 +581,22 @@ export function TrackLibrary({
                   <span>Compatible only</span>
                 </label>
               )}
+
+              {/* Reset filters button - only show when filters are active */}
+              {(searchQuery || sortBy !== 'artist' || showCompatibleOnly) && (
+                <button
+                  className={styles.resetButton}
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSortBy('artist');
+                    setShowCompatibleOnly(false);
+                  }}
+                  aria-label="Reset filters"
+                  title="Reset all filters"
+                >
+                  ✕ Reset
+                </button>
+              )}
             </div>
           </div>
 
