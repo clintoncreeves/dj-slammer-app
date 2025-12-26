@@ -1,9 +1,9 @@
 .container {
   width: 100%;
-  max-width: 1400px;
+  max-width: 100%; /* Full width - no max */
   margin: 0 auto;
   padding: 0;
-  padding-top: 60px; /* Space for fixed tutorial instruction panel */
+  padding-top: 50px; /* Reduced space for fixed tutorial instruction panel */
   background: #0D0D0D; /* Darker, more professional */
   color: #ffffff;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -86,7 +86,7 @@
 
 .deck {
   background: #1A1A1A; /* Professional deck surface */
-  padding: 0.5rem 1rem; /* More compact padding */
+  padding: 0.25rem 0.5rem; /* Minimal padding */
   border: none;
   position: relative;
   transition: all 0.3s ease;
@@ -94,6 +94,7 @@
   flex-direction: column;
   overflow: hidden; /* NO SCROLLING - content must shrink to fit */
   min-height: 0; /* Allow shrinking */
+  gap: 0.15rem; /* Tight spacing between elements */
 }
 
 .deck::before {
@@ -120,9 +121,9 @@
 }
 
 .deckHeader {
-  margin-bottom: 0.25rem;
+  margin-bottom: 0;
   text-align: center;
-  padding-bottom: 0.25rem;
+  padding-bottom: 0.1rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
 }
@@ -141,8 +142,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  margin-top: 4px;
+  gap: 0;
+  margin-top: 0;
 }
 
 .trackName {
@@ -168,7 +169,7 @@
 }
 
 .waveform {
-  margin-bottom: 0.25rem;
+  margin-bottom: 0;
   flex-shrink: 0;
 }
 
@@ -176,7 +177,7 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0;
 }
 
 .autoCueButton {
@@ -209,7 +210,7 @@
 }
 
 .bpmDisplay {
-  margin-bottom: 0.25rem;
+  margin-bottom: 0;
   flex-shrink: 0;
 }
 
@@ -217,23 +218,23 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   flex-shrink: 0;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; /* Don't wrap - scale down instead */
   min-width: 0;
   width: 100%;
 }
 
 .crossfader {
   background: #1A1A1A;
-  padding: 0.75rem 2rem;
+  padding: 0.4rem 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   box-shadow: inset 0 10px 20px rgba(0, 0, 0, 0.5);
   flex-shrink: 0;
 }
 
 .trackLibrary {
-  margin: 0.5rem 1rem 1rem;
+  margin: 0.25rem 0.5rem 0.5rem;
   flex: 0 1 auto; /* Can shrink but won't grow beyond content */
   min-height: 0; /* Allow shrinking below content size */
   overflow: hidden; /* NO SCROLLING */
