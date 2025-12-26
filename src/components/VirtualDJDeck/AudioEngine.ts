@@ -105,6 +105,10 @@ export class AudioEngine {
   // Loop monitor interval IDs
   private loopMonitors: Map<DeckId, number>;
 
+  // GrainPlayer time tracking (since GrainPlayer doesn't have .immediate())
+  // Stores { startWallTime: number, startOffset: number, playbackRate: number }
+  private grainPlaybackTracking: Map<DeckId, { startWallTime: number; startOffset: number; playbackRate: number }>;
+
   constructor(config: AudioEngineConfig = {}) {
     this.players = new Map();
     this.grainPlayers = new Map();
@@ -124,6 +128,7 @@ export class AudioEngine {
     this.onBpmUpdate = config.onBpmUpdate;
     this.loopStates = new Map();
     this.loopMonitors = new Map();
+    this.grainPlaybackTracking = new Map();
 
     // Initialize master gain
     this.masterGain = new Tone.Gain(config.masterVolume ?? 1);
@@ -314,6 +319,8 @@ export class AudioEngine {
 
         // Reset seek position to beginning for new track
         this.seekPositions.set(deck, 0);
+        // Clear any GrainPlayer time tracking
+        this.grainPlaybackTracking.delete(deck);
 
         // Reset keylock state for new track
         const keylockState = this.keylockStates.get(deck);
@@ -404,6 +411,16 @@ export class AudioEngine {
       activePlayer.start(undefined, offset);
       const playerType = keylockState?.enabled ? 'GrainPlayer (keylock)' : 'Player';
       console.log(`[AudioEngine] Deck ${deck} ${playerType} starting from offset ${offset.toFixed(2)}s`);
+
+      // Track GrainPlayer playback start for time calculation
+      if (keylockState?.enabled) {
+        const grainPlayer = this.grainPlayers.get(deck);
+        this.grainPlaybackTracking.set(deck, {
+          startWallTime: performance.now(),
+          startOffset: offset,
+          playbackRate: grainPlayer?.playbackRate ?? 1,
+        });
+      }
     }
 
     const latency = performance.now() - startTime;
@@ -443,11 +460,19 @@ export class AudioEngine {
       stopped = true;
     }
     if (grainPlayer.state === 'started') {
-      // GrainPlayer doesn't have .immediate(), use stored seek position
-      // This is approximate but sufficient for pause/resume
-      currentPos = this.seekPositions.get(deck) ?? 0;
+      // GrainPlayer doesn't have .immediate(), calculate from tracking data
+      const tracking = this.grainPlaybackTracking.get(deck);
+      if (tracking) {
+        const elapsedMs = performance.now() - tracking.startWallTime;
+        const elapsedSec = (elapsedMs / 1000) * tracking.playbackRate;
+        currentPos = tracking.startOffset + elapsedSec;
+      } else {
+        currentPos = this.seekPositions.get(deck) ?? 0;
+      }
       grainPlayer.stop();
       stopped = true;
+      // Clear tracking data
+      this.grainPlaybackTracking.delete(deck);
     }
 
     if (stopped) {
@@ -502,6 +527,12 @@ export class AudioEngine {
       // GrainPlayer doesn't have seek(), need to restart at new position
       grainPlayer.stop();
       grainPlayer.start(undefined, time);
+      // Reset tracking with new start position
+      this.grainPlaybackTracking.set(deck, {
+        startWallTime: performance.now(),
+        startOffset: time,
+        playbackRate: grainPlayer.playbackRate ?? 1,
+      });
     }
 
     const latency = performance.now() - startTime;
@@ -684,15 +715,47 @@ export class AudioEngine {
   /**
    * Get current playback time for a deck
    *
+   * When the player is stopped, returns the stored seek position.
+   * When playing, returns the actual playback position from Tone.js.
+   *
    * @param deck - Deck identifier ('A' or 'B')
    * @returns Current time in seconds
    */
   getCurrentTime(deck: DeckId): number {
     const player = this.players.get(deck);
+    const grainPlayer = this.grainPlayers.get(deck);
     if (!player || !player.loaded) {
       return 0;
     }
-    return player.immediate();
+
+    const duration = player.buffer?.duration ?? 0;
+    let currentTime = 0;
+
+    // If regular Player is playing, use its immediate() value
+    if (player.state === 'started') {
+      currentTime = player.immediate();
+    } else if (grainPlayer && grainPlayer.state === 'started') {
+      // GrainPlayer is playing (keylock mode) - calculate elapsed time from tracking
+      const tracking = this.grainPlaybackTracking.get(deck);
+      if (tracking) {
+        const elapsedMs = performance.now() - tracking.startWallTime;
+        const elapsedSec = (elapsedMs / 1000) * tracking.playbackRate;
+        currentTime = tracking.startOffset + elapsedSec;
+      } else {
+        currentTime = this.seekPositions.get(deck) ?? 0;
+      }
+    } else {
+      // When stopped, return the stored seek position
+      currentTime = this.seekPositions.get(deck) ?? 0;
+    }
+
+    // Clamp to valid range [0, duration] to prevent display issues
+    // This handles edge cases where player.immediate() returns invalid values
+    if (duration > 0) {
+      currentTime = Math.max(0, Math.min(currentTime, duration));
+    }
+
+    return currentTime;
   }
 
   /**
@@ -1465,6 +1528,7 @@ export class AudioEngine {
     this.detectedBpm.clear();
     this.loopStates.clear();
     this.loopMonitors.clear();
+    this.grainPlaybackTracking.clear();
 
     this.isInitialized = false;
 

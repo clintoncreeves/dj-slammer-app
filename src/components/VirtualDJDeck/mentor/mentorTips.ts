@@ -547,6 +547,7 @@ export const MENTOR_TIPS: MentorTip[] = [
       conditions: [
         { type: 'crossfader_extreme' },
         { type: 'bpm_matched' },
+        { type: 'both_playing' },
       ],
     },
     celebrationVariant: 'fire',

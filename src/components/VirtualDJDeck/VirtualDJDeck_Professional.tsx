@@ -37,9 +37,10 @@ import { HighlightTarget } from './mentor/mentorTypes';
 import { useTransitionState } from './useTransitionState';
 import { TransitionGuidance } from './EQControl';
 import { LibraryProvider } from './library/LibraryContext';
-import { PlaylistSidebar } from './library/PlaylistSidebar';
+// import { PlaylistSidebar } from './library/PlaylistSidebar'; // Hidden - not working yet
 import { MIDIProvider, useMIDI } from './MIDIContext';
 import { MIDISettings } from './MIDISettings';
+import { PerformanceControls } from './PerformanceControls';
 import styles from './VirtualDJDeck_Professional.module.css';
 
 export interface VirtualDJDeckHandle {
@@ -86,9 +87,6 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
     // Skip welcome screen if audio was already enabled (lesson transition)
     const [needsUserGesture, setNeedsUserGesture] = useState(!skipWelcomeScreen);
     const [error, setError] = useState<Error | null>(null);
-
-    // Playlist sidebar state (for freeplay mode)
-    const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
     // MIDI settings panel state
     const [showMIDISettings, setShowMIDISettings] = useState(false);
@@ -434,7 +432,7 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
 
     // Render main professional UI
     return (
-      <div className={`${styles.container} ${!showTutorialBanner && mode !== 'freeplay' ? styles.noTutorial : ''} ${showMentorBanner ? styles.withMentorPanel : ''} ${mode === 'freeplay' ? styles.withFreeplayBar : ''} ${mode === 'freeplay' && !sidebarCollapsed ? styles.withSidebar : ''} ${className || ''}`}>
+      <div className={`${styles.container} ${!showTutorialBanner && mode !== 'freeplay' ? styles.noTutorial : ''} ${showMentorBanner ? styles.withMentorPanel : ''} ${mode === 'freeplay' ? styles.withFreeplayBar : ''} ${className || ''}`}>
         {/* Tutorial Instruction Panel - Fixed at top, Guitar Hero style */}
         {showTutorialBanner && tutorial.currentStep && (
           <TutorialInstructionPanel
@@ -451,21 +449,21 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
           <FreeplayTopBar
             mentorEnabled={mentor.isEnabled}
             onRequestHelp={mentor.requestHelp}
-            sidebarCollapsed={sidebarCollapsed}
-            onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
+            sidebarCollapsed={true}
+            onToggleSidebar={() => {/* Sidebar hidden for now */}}
             onOpenMIDISettings={() => setShowMIDISettings(true)}
             midiConnected={midi.isEnabled}
           />
         )}
 
-        {/* Playlist Sidebar - Only shown in freeplay mode */}
-        {mode === 'freeplay' && (
+        {/* Playlist Sidebar - Hidden for now (not working) */}
+        {/* {mode === 'freeplay' && (
           <PlaylistSidebar
             className={styles.playlistSidebar}
             isCollapsed={sidebarCollapsed}
             onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
           />
-        )}
+        )} */}
 
         <div className={styles.decksContainer}>
           {/* Deck A */}
@@ -618,6 +616,25 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                   highlightTarget?.deck === 'A'
                 }
               />
+
+              {/* Performance Controls - Hot Cues, Loops, Filter (freeplay only) */}
+              {mode === 'freeplay' && (
+                <PerformanceControls
+                  deck="A"
+                  color={config.deckA.waveformColor}
+                  isLoaded={deck.deckAState.isLoaded}
+                  isPlaying={deck.deckAState.isPlaying}
+                  hotCues={deck.hotCuesA.map(hc => hc?.position ?? null)}
+                  onSetHotCue={(slot) => deck.setHotCue('A', slot)}
+                  onJumpToHotCue={(slot) => deck.jumpToHotCue('A', slot)}
+                  onClearHotCue={(slot) => deck.deleteHotCue('A', slot)}
+                  loopActive={deck.deckAState.loopActive}
+                  onLoopToggle={() => deck.toggleLoop('A')}
+                  onSetAutoLoop={(beats) => deck.setAutoLoop('A', beats)}
+                  filterValue={deck.deckAState.filterPosition}
+                  onFilterChange={(value) => deck.setDeckFilter('A', value)}
+                />
+              )}
             </div>
           </div>
 
@@ -771,6 +788,25 @@ const VirtualDJDeckInternal = forwardRef<VirtualDJDeckHandle, VirtualDJDeckProps
                   highlightTarget?.deck === 'B'
                 }
               />
+
+              {/* Performance Controls - Hot Cues, Loops, Filter (freeplay only) */}
+              {mode === 'freeplay' && (
+                <PerformanceControls
+                  deck="B"
+                  color={config.deckB.waveformColor}
+                  isLoaded={deck.deckBState.isLoaded}
+                  isPlaying={deck.deckBState.isPlaying}
+                  hotCues={deck.hotCuesB.map(hc => hc?.position ?? null)}
+                  onSetHotCue={(slot) => deck.setHotCue('B', slot)}
+                  onJumpToHotCue={(slot) => deck.jumpToHotCue('B', slot)}
+                  onClearHotCue={(slot) => deck.deleteHotCue('B', slot)}
+                  loopActive={deck.deckBState.loopActive}
+                  onLoopToggle={() => deck.toggleLoop('B')}
+                  onSetAutoLoop={(beats) => deck.setAutoLoop('B', beats)}
+                  filterValue={deck.deckBState.filterPosition}
+                  onFilterChange={(value) => deck.setDeckFilter('B', value)}
+                />
+              )}
             </div>
           </div>
         </div>
