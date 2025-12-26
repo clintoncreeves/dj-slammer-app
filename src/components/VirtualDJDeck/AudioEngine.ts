@@ -319,7 +319,9 @@ export class AudioEngine {
       throw new Error(`Player not found for deck ${deck}`);
     }
 
-    console.log(`[AudioEngine] Loading track for Deck ${deck}: ${url}`);
+    // Encode URL to handle special characters (spaces, !, etc.)
+    const encodedUrl = encodeURI(url);
+    console.log(`[AudioEngine] Loading track for Deck ${deck}: ${encodedUrl}`);
 
     // Stop any existing playback before loading new track
     if (player.state === 'started') {
@@ -350,7 +352,7 @@ export class AudioEngine {
         // Load the audio buffer first, then assign to both players
         const buffer = await this.withTimeout(
           new Promise<Tone.ToneAudioBuffer>((resolve, reject) => {
-            const toneBuffer = new Tone.ToneAudioBuffer(url, () => {
+            const toneBuffer = new Tone.ToneAudioBuffer(encodedUrl, () => {
               resolve(toneBuffer);
             }, reject);
           }),
