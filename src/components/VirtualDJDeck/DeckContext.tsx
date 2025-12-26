@@ -374,24 +374,23 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
 
       console.log(`[DeckContext] Deck ${deck} spectral waveform generated with ${spectralWaveformData?.segments.length || 0} segments`);
 
-      // Run BPM/Key detection on the loaded audio buffer
-      // This uses our multi-validation algorithm for high accuracy
+      // BPM/Key detection - only run if BPM is not provided (user-uploaded tracks)
+      // Skip for built-in tracks that already have known BPM values
       let detectedBPM = bpm;
       let detectedKey = '';
       let detectedKeyMode: 'major' | 'minor' = 'major';
       let detectedCamelotCode = '';
 
-      if (buffer) {
+      // Only run detection if BPM is 0 or not provided (indicates user upload)
+      if (buffer && bpm === 0) {
         try {
-          console.log(`[DeckContext] Deck ${deck} running BPM/Key detection...`);
+          console.log(`[DeckContext] Deck ${deck} running BPM/Key detection (no BPM provided)...`);
           const detection = await detectBPMAndKey(buffer);
 
           // Use detected BPM if confidence is high enough (> 70%)
           if (detection.bpmConfidence > 70) {
             detectedBPM = detection.bpm;
             console.log(`[DeckContext] Deck ${deck} detected BPM: ${detection.bpm} (${detection.bpmConfidence}% confidence)`);
-          } else {
-            console.log(`[DeckContext] Deck ${deck} BPM detection low confidence (${detection.bpmConfidence}%), using provided BPM: ${bpm}`);
           }
 
           // Always use detected key if available
@@ -404,6 +403,8 @@ export function DeckProvider({ children, onStateChange, onError }: DeckProviderP
         } catch (detectionError) {
           console.warn(`[DeckContext] Deck ${deck} BPM/Key detection failed:`, detectionError);
         }
+      } else if (bpm > 0) {
+        console.log(`[DeckContext] Deck ${deck} using provided BPM: ${bpm} (skipping detection)`);
       }
 
       // Calculate suggested cue points if not provided
